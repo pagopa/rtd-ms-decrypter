@@ -1,0 +1,18 @@
+
+spring:
+  cloud:
+    stream:
+      bindings:
+        input:
+          destination: ${BLOB_STORAGE_EHUB_NAME}
+      kafka:
+        binder:
+          auto-create-topics: false
+          brokers: ${EVENT_HUB_KAFKA_BROKER}
+          configuration:
+            sasl:
+              jaas:
+                config: ${BLOB_STORAGE_EHUB_CONNECTION_STRING}
+              mechanism: PLAIN
+            security:
+              protocol: SASL_SSL
