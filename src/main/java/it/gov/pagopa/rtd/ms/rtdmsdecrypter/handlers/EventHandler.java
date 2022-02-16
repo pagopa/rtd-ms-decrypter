@@ -14,10 +14,10 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
 
 @Configuration
 @Slf4j
-public class BlobStorage {
+public class EventHandler {
   
   @Bean
-	public Consumer<Message<List<EventGridEvent>>> decrypt() {
+	public Consumer<Message<List<EventGridEvent>>> blobStorage() {
 		return message -> message.getPayload().forEach((final EventGridEvent e) -> log.info("\n{}\n", e.getTopic()));
 	}
 }

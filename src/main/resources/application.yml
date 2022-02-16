@@ -8,7 +8,7 @@ spring:
     
     stream:
       bindings:
-        decrypt-in-0:
+        blobStorage-in-0: # name must match [handler name]-in-0
           destination: ${BLOB_STORAGE_EHUB_NAME}
           group: rtd-platform-events-consumer-group
           content-type: application/json
