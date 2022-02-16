@@ -1,14 +1,23 @@
 
+logging:
+  level:
+    root: INFO
+
 spring:
   cloud:
+    function:
+      definition: decrypt
     stream:
       bindings:
-        input:
+        decrypt-in-0:
           destination: ${BLOB_STORAGE_EHUB_NAME}
+          group: rtd-platform-events-consumer-group
+          binder: kafka
+
       kafka:
         binder:
           auto-create-topics: false
-          brokers: ${EVENT_HUB_KAFKA_BROKER}
+          brokers: ${EVENT_HUB_KAFKA_BROKER}          
           configuration:
             sasl:
               jaas:
@@ -16,3 +25,39 @@ spring:
               mechanism: PLAIN
             security:
               protocol: SASL_SSL
+            default:
+              key:
+                deserializer: class org.apache.kafka.common.serialization.StringDeserializer
+              value:
+                deserializer: class org.apache.kafka.common.serialization.ByteArrayDeserializer
+          consumerProperties:
+            socket:
+              connection:
+                setup:
+                  timeout:
+                    max:
+                      ms: 200000
+                    ms: 100000
+            key: 
+              deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            request:
+              timeout:
+                ms: 60000
+            connections:
+              max:
+                idle:
+                  ms: 180000
+            max:
+              partition:
+                fetch:
+                  bytes: 10485760
+            session:
+              timeout:
+                ms: 10000
+            metadata:
+              max:
+                age:
+                  ms: 180000
+            partition:
+              assignment:
+                strategy: org.apache.kafka.clients.consumer.RangeAssignor
