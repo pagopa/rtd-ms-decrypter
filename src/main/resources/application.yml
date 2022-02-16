@@ -5,13 +5,13 @@ logging:
 
 spring:
   cloud:
-    function:
-      definition: decrypt
+    
     stream:
       bindings:
         decrypt-in-0:
           destination: ${BLOB_STORAGE_EHUB_NAME}
           group: rtd-platform-events-consumer-group
+          content-type: application/json
           binder: kafka
 
       kafka:
@@ -25,11 +25,11 @@ spring:
               mechanism: PLAIN
             security:
               protocol: SASL_SSL
-            default:
-              key:
-                deserializer: class org.apache.kafka.common.serialization.StringDeserializer
-              value:
-                deserializer: class org.apache.kafka.common.serialization.ByteArrayDeserializer
+            # default:
+            #   key:
+            #     deserializer: class org.apache.kafka.common.serialization.StringDeserializer
+            #   value:
+            #     deserializer: class org.apache.kafka.common.serialization.ByteArrayDeserializer
           consumerProperties:
             socket:
               connection:
@@ -39,6 +39,8 @@ spring:
                       ms: 200000
                     ms: 100000
             key: 
+              deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            value:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
             request:
               timeout:
@@ -58,6 +60,6 @@ spring:
               max:
                 age:
                   ms: 180000
-            partition:
-              assignment:
-                strategy: org.apache.kafka.clients.consumer.RangeAssignor
+            # partition:
+            #   assignment:
+            #     strategy: org.apache.kafka.clients.consumer.RangeAssignor
