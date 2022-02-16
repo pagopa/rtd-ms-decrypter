@@ -59,7 +59,6 @@ public class EventGridEvent {
     /**
      * The time (in UTC) the event was generated.
      */
-    // @JsonFormat(pattern = "YYYY-MM-dd HH:mm:ss")
     //@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
