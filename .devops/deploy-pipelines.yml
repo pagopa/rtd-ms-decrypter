@@ -45,7 +45,7 @@ variables:
     dockerRegistryServiceConnection: '$(DEV_CONTAINER_REGISTRY_SERVICE_CONN)'
     kubernetesServiceConnection: '$(DEV_KUBERNETES_SERVICE_CONN)'
     containerRegistry: '$(DEV_CONTAINER_REGISTRY_NAME)'
-    deployment: deployment-dev
+    deployment: 'deployment-dev'
     selfHostedAgentPool: $(DEV_AGENT_POOL)
     # postman environment secure file
     # postmanEnvFile: fa_dev.postman_environment.json
