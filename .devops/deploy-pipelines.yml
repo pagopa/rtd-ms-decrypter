@@ -180,7 +180,7 @@ stages:
                     namespace: '$(deployNamespace)'
                     manifests: |
                       $(Pipeline.Workspace)/manifests/$(deployment).yml
-                    containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
+                    # containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
 
   # - stage: Test_e2e
   #   displayName: 'Test_e2e_on_${{ variables.environment }}'
