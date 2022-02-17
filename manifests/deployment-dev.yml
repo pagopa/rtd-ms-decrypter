@@ -19,8 +19,8 @@ spec:
           ports:
             - containerPort: 8080
           envFrom:
-            - secretRef:
-              name: rtd-blob-storage-events
+          - secretRef:
+            name: rtd-blob-storage-events
         - resources:
             limits:
               cpu: 500m
