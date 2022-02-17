@@ -18,11 +18,11 @@ resources:
 parameters:
 - name: environment # name of the parameter; required
   type: string # data type of the parameter; required
-  default: DEV
+  default: dev
   values:
-  - DEV
-  - UAT
-  - PROD
+  - dev
+  - uat
+  - prod
 
 variables:
   dockerfileRelativePath: '$(DOCKERFILE)' # DockerfileV1
@@ -37,15 +37,36 @@ variables:
   settingsXmlSecureFileName: '$(SETTINGS_XML_RO_SECURE_FILE_NAME)'
   mavenGoals: 'package'
 
-
-  # isToDeploy: $[and(ne(variables['Build.Reason'], 'PullRequest'), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix')))]
+  #isToDeploy: $[and(ne(variables['Build.Reason'], 'PullRequest'), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix')))]
   isToDeploy: false
-  dockerRegistryServiceConnection: $[ variables[format('{0}{1}', '${{ parameters.environment }}', '_CONTAINER_REGISTRY_SERVICE_CONN')] ]
-  kubernetesServiceConnection: variables[format('{0}{1}', '${{ parameters.environment }}', '_KUBERNETES_SERVICE_CONN')] 
-  containerRegistry: $[ variables[format('{0}{1}', upper('${{ parameters.environment }}'), '_CONTAINER_REGISTRY_NAME')] ]
-  deployment: deployment
-  selfHostedAgentPool: $[ variables[format('{0}{1}', upper('${{ parameters.environment }}'), '_AGENT_POOL')] ]
-  # postman environment secure file
+
+  ${{ if eq(parameters['environment'], 'dev' ) }}:
+    environment: 'DEV'
+    dockerRegistryServiceConnection: '$(DEV_CONTAINER_REGISTRY_SERVICE_CONN)'
+    kubernetesServiceConnection: '$(DEV_KUBERNETES_SERVICE_CONN)'
+    containerRegistry: '$(DEV_CONTAINER_REGISTRY_NAME)'
+    deployment: deployment-dev
+    selfHostedAgentPool: $(DEV_AGENT_POOL)
+    # postman environment secure file
+    # postmanEnvFile: fa_dev.postman_environment.json
+  ${{ if eq(parameters['environment'], 'uat' ) }}:
+    environment: 'UAT'
+    dockerRegistryServiceConnection: '$(UAT_CONTAINER_REGISTRY_SERVICE_CONN)'
+    kubernetesServiceConnection: '$(UAT_KUBERNETES_SERVICE_CONN)'
+    containerRegistry: '$(UAT_CONTAINER_REGISTRY_NAME)'
+    deployment: deployment-uat
+    selfHostedAgentPool: $(UAT_AGENT_POOL)
+    # postman environment secure file
+    # postmanEnvFile: fa_uat.postman_environment.json
+  ${{ if eq(parameters['environment'], 'prod' ) }}:
+    environment: 'PROD'
+    dockerRegistryServiceConnection: '$(PROD_CONTAINER_REGISTRY_SERVICE_CONN)'
+    kubernetesServiceConnection: '$(PROD_KUBERNETES_SERVICE_CONN)'
+    containerRegistry: '$(PROD_CONTAINER_REGISTRY_NAME)'
+    deployment: deployment-prod
+    selfHostedAgentPool: $(PROD_AGENT_POOL)
+    # postman environment secure file
+    # postmanEnvFile: fa_uat.postman_environment.json
   # postmanEnvFile: fa_dev.postman_environment.json
 
 stages:
@@ -58,12 +79,12 @@ stages:
         pool:
           vmImage: $(vmImageNameDefault)
         steps:
-          - task: DownloadSecureFile@1
-            displayName: 'download settings.xml for Maven'
-            name: settingsxml
-            inputs:
-              secureFile: '$(settingsXmlSecureFileName)'
-              retryCount: '2'
+          # - task: DownloadSecureFile@1
+          #   displayName: 'download settings.xml for Maven'
+          #   name: settingsxml
+          #   inputs:
+          #     secureFile: '$(settingsXmlSecureFileName)'
+          #     retryCount: '2'
           - task: Bash@3
             displayName: Get POM version
             name: getpomversion
@@ -87,20 +108,20 @@ stages:
         pool:
           vmImage: $(vmImageNameDefault)
         steps:
-          - task: DownloadSecureFile@1
-            displayName: 'download settings.xml for Maven'
-            name: settingsxml
-            inputs:
-              secureFile: '$(settingsXmlSecureFileName)'
-              retryCount: '2'
+          # - task: DownloadSecureFile@1
+          #   displayName: 'download settings.xml for Maven'
+          #   name: settingsxml
+          #   inputs:
+          #     secureFile: '$(settingsXmlSecureFileName)'
+          #     retryCount: '2'
 
           - task: Maven@3
             inputs:
               mavenPomFile: 'pom.xml'
               goals: '$(mavenGoals)'
-              options: '-B -s $(settingsxml.secureFilePath) -DskipTests=true'
+              options: '-B  -DskipTests=true'
               javaHomeOption: 'JDKVersion'
-              jdkVersionOption: '1.8'
+              jdkVersionOption: '11'
               mavenVersionOption: 'Default'
               mavenOptions: '-Xmx3072m'
               mavenAuthenticateFeed: false
