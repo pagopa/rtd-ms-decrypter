@@ -165,12 +165,14 @@ stages:
           runOnce:
             deploy:
               steps:
-                - download: none
                 - task: DownloadPipelineArtifact@2
                   inputs:
                     buildType: 'current'
                     artifactName: 'manifests'
                     targetPath: '$(Pipeline.Workspace)/manifests'
+                - bash: |
+                    ls -al
+                    cat manifests/deployment*
                 - task: KubernetesManifest@0
                   displayName: Deploy to Kubernetes cluster
                   inputs:
@@ -179,9 +181,9 @@ stages:
                     kubernetesServiceConnection: ${{ variables.kubernetesServiceConnection }}
                     namespace: '$(deployNamespace)'
                     manifests: |
-                      $(Pipeline.Workspace)/manifests/deployment-dev.yml
+                      $(Pipeline.Workspace)/manifests/$(deployment).yml
                     #  $(Pipeline.Workspace)/manifests/service.yml
-                    containers: '$(containerRegistry)/$(imageRepository):latest'
+                    containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
 
   # - stage: Test_e2e
   #   displayName: 'Test_e2e_on_${{ variables.environment }}'
