@@ -38,7 +38,7 @@ variables:
   mavenGoals: 'package'
 
   #isToDeploy: $[and(ne(variables['Build.Reason'], 'PullRequest'), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix')))]
-  isToDeploy: false
+  isToDeploy: true
 
   ${{ if eq(parameters['environment'], 'dev' ) }}:
     environment: 'DEV'
