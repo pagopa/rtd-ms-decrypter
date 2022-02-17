@@ -173,6 +173,7 @@ stages:
                 - bash: |
                     ls -al $(Pipeline.Workspace)
                     cat $(Pipeline.Workspace)/manifests/deployment*
+                    echo '$(containerRegistry)/$(imageRepository):$(pomversion)'
                 - task: KubernetesManifest@0
                   displayName: Deploy to Kubernetes cluster
                   inputs:
@@ -182,7 +183,6 @@ stages:
                     namespace: '$(deployNamespace)'
                     manifests: |
                       $(Pipeline.Workspace)/manifests/$(deployment).yml
-                    #  $(Pipeline.Workspace)/manifests/service.yml
                     containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
 
   # - stage: Test_e2e
