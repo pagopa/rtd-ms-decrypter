@@ -18,11 +18,11 @@ resources:
 parameters:
 - name: environment # name of the parameter; required
   type: string # data type of the parameter; required
-  default: dev
+  default: DEV
   values:
-  - dev
-  - uat
-  - prod
+  - DEV
+  - UAT
+  - PROD
 
 variables:
   dockerfileRelativePath: '$(DOCKERFILE)' # DockerfileV1
@@ -40,8 +40,8 @@ variables:
 
   # isToDeploy: $[and(ne(variables['Build.Reason'], 'PullRequest'), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix')))]
   isToDeploy: false
-  dockerRegistryServiceConnection: $[ variables[format('{0}{1}', upper('${{ parameters.environment }}'), '_CONTAINER_REGISTRY_SERVICE_CONN')] ]
-  kubernetesServiceConnection: $( variables[format('{0}{1}', upper('${{ parameters.environment }}'), '_KUBERNETES_SERVICE_CONN')] )
+  dockerRegistryServiceConnection: $[ variables[format('{0}{1}', '${{ parameters.environment }}', '_CONTAINER_REGISTRY_SERVICE_CONN')] ]
+  kubernetesServiceConnection: $( variables[format('{0}{1}', '${{ parameters.environment }}', '_KUBERNETES_SERVICE_CONN')] )
   containerRegistry: $[ variables[format('{0}{1}', upper('${{ parameters.environment }}'), '_CONTAINER_REGISTRY_NAME')] ]
   deployment: deployment
   selfHostedAgentPool: $[ variables[format('{0}{1}', upper('${{ parameters.environment }}'), '_AGENT_POOL')] ]
