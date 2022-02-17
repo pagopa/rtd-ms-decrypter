@@ -1,4 +1,4 @@
-apiVersion : apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rtdmsdecrypter
@@ -18,17 +18,27 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-          envFrom:
-          - secretRef:
-            name: rtd-blob-storage-events
-        - resources:
+          env:
+            - name: KAFKA_TOPIC_BLOB_STORAGE_EVENTS
+              valueFrom:
+                secretKeyRef:
+                  name: rtd-blob-storage-events
+                  key: KAFKA_TOPIC_BLOB_STORAGE_EVENTS
+            - name: KAFKA_BROKER
+              valueFrom:
+                secretKeyRef:
+                  name: rtd-blob-storage-events
+                  key: KAFKA_BROKER
+            - name: KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS
+              valueFrom:
+                secretKeyRef:
+                  name: rtd-blob-storage-events
+                  key: KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS
+          resources:
             limits:
               cpu: 500m
               memory: 4Gi
             requests:
               cpu: 50m
               memory: 256Mi
-          #    name: famscustomer
-          # - configMapRef:
-          #     name: eventhub-common
-
+          
