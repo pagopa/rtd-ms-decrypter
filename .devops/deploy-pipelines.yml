@@ -41,7 +41,7 @@ variables:
   # isToDeploy: $[and(ne(variables['Build.Reason'], 'PullRequest'), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix')))]
   isToDeploy: false
   dockerRegistryServiceConnection: $[ variables[format('{0}{1}', upper('${{ parameters.environment }}'), '_CONTAINER_REGISTRY_SERVICE_CONN')] ]
-  kubernetesServiceConnection: $[ variables[format('{0}{1}', upper('${{ parameters.environment }}'), '_KUBERNETES_SERVICE_CONN')] ]
+  kubernetesServiceConnection: $( variables[format('{0}{1}', upper('${{ parameters.environment }}'), '_KUBERNETES_SERVICE_CONN')] )
   containerRegistry: $[ variables[format('{0}{1}', upper('${{ parameters.environment }}'), '_CONTAINER_REGISTRY_NAME')] ]
   deployment: deployment
   selfHostedAgentPool: $[ variables[format('{0}{1}', upper('${{ parameters.environment }}'), '_AGENT_POOL')] ]
