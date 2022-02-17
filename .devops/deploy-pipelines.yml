@@ -179,9 +179,9 @@ stages:
                     kubernetesServiceConnection: ${{ variables.kubernetesServiceConnection }}
                     namespace: '$(deployNamespace)'
                     manifests: |
-                      $(Pipeline.Workspace)/manifests/$(deployment).yml
+                      $(Pipeline.Workspace)/manifests/deployment-dev.yml
                     #  $(Pipeline.Workspace)/manifests/service.yml
-                    containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
+                    containers: '$(containerRegistry)/$(imageRepository):latest'
 
   # - stage: Test_e2e
   #   displayName: 'Test_e2e_on_${{ variables.environment }}'
