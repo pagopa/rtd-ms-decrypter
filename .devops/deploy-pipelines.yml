@@ -170,10 +170,6 @@ stages:
                     buildType: 'current'
                     artifactName: 'manifests'
                     targetPath: '$(Pipeline.Workspace)/manifests'
-                - bash: |
-                    ls -al $(Pipeline.Workspace)
-                    cat $(Pipeline.Workspace)/manifests/$(deployment).yml
-                    echo '$(containerRegistry)/$(imageRepository):$(pomversion)'
                 - task: KubernetesManifest@0
                   displayName: Deploy to Kubernetes cluster
                   inputs:
@@ -181,8 +177,7 @@ stages:
                     rolloutStatusTimeout: 120
                     kubernetesServiceConnection: ${{ variables.kubernetesServiceConnection }}
                     namespace: '$(deployNamespace)'
-                    manifests: |
-                      $(Pipeline.Workspace)/manifests/$(deployment).yml
+                    manifests: $(Pipeline.Workspace)/manifests/$(deployment).yml
                     containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
 
   # - stage: Test_e2e
