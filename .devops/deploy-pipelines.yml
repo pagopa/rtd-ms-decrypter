@@ -1,27 +1,28 @@
-# Deploy to Azure Kubernetes Service
 # Build and push image to Azure Container Registry; Deploy to Azure Kubernetes Service
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
   branches:
     include:
-      - master
-      - develop
-      - release-*
-      - features/*
-      - hotfix/*
+      - main
   paths:
     include:
-      - api/*
-      - app/*
-      - core/*
-      - integration/*
+      - src/*
       - pom.xml
 
 pr: none
 
 resources:
   - repo: self
+
+parameters:
+- name: environment # name of the parameter; required
+  type: string # data type of the parameter; required
+  default: dev
+  values:
+  - dev
+  - uat
+  - prod
 
 variables:
   dockerfileRelativePath: '$(DOCKERFILE)' # DockerfileV1
@@ -36,36 +37,15 @@ variables:
   settingsXmlSecureFileName: '$(SETTINGS_XML_RO_SECURE_FILE_NAME)'
   mavenGoals: 'package'
 
-  #isToDeploy: $[and(ne(variables['Build.Reason'], 'PullRequest'), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix')))]
+  # isToDeploy: $[and(ne(variables['Build.Reason'], 'PullRequest'), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix')))]
   isToDeploy: false
-
-  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/heads/release-dev'), startsWith(variables['Build.SourceBranch'], 'refs/heads/CEN-')) }}:
-    environment: 'DEV'
-    dockerRegistryServiceConnection: '$(DEV_CONTAINER_REGISTRY_SERVICE_CONN)'
-    kubernetesServiceConnection: '$(DEV_KUBERNETES_SERVICE_CONN)'
-    containerRegistry: '$(DEV_CONTAINER_REGISTRY_NAME)'
-    deployment: deployment-dev
-    selfHostedAgentPool: $(DEV_AGENT_POOL)
-    # postman environment secure file
-    postmanEnvFile: fa_dev.postman_environment.json
-  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/heads/release-uat'), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix')) }}:
-    environment: 'UAT'
-    dockerRegistryServiceConnection: '$(UAT_CONTAINER_REGISTRY_SERVICE_CONN)'
-    kubernetesServiceConnection: '$(UAT_KUBERNETES_SERVICE_CONN)'
-    containerRegistry: '$(UAT_CONTAINER_REGISTRY_NAME)'
-    deployment: deployment-uat
-    selfHostedAgentPool: $(UAT_AGENT_POOL)
-    # postman environment secure file
-    postmanEnvFile: fa_uat.postman_environment.json
-  ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/master'),eq(variables['Build.SourceBranch'], 'refs/heads/release-prod')) }}:
-    environment: 'PROD'
-    dockerRegistryServiceConnection: '$(PROD_CONTAINER_REGISTRY_SERVICE_CONN)'
-    kubernetesServiceConnection: '$(PROD_KUBERNETES_SERVICE_CONN)'
-    containerRegistry: '$(PROD_CONTAINER_REGISTRY_NAME)'
-    deployment: deployment-prod
-    selfHostedAgentPool: $(PROD_AGENT_POOL)
-    # postman environment secure file
-    postmanEnvFile: fa_uat.postman_environment.json
+  dockerRegistryServiceConnection: $(upper({{ parameters.environment }})_CONTAINER_REGISTRY_SERVICE_CONN)
+  kubernetesServiceConnection: $(upper({{ parameters.environment }}_KUBERNETES_SERVICE_CONN)
+  containerRegistry: $(upper({{ parameters.environment }}_CONTAINER_REGISTRY_NAME)
+  deployment: deployment
+  selfHostedAgentPool: $(upper({{ parameters.environment }}_AGENT_POOL)
+  # postman environment secure file
+  # postmanEnvFile: fa_dev.postman_environment.json
 
 stages:
   - stage: Release
@@ -112,6 +92,7 @@ stages:
             inputs:
               secureFile: '$(settingsXmlSecureFileName)'
               retryCount: '2'
+
           - task: Maven@3
             inputs:
               mavenPomFile: 'pom.xml'
@@ -124,6 +105,7 @@ stages:
               mavenAuthenticateFeed: false
               effectivePomSkip: true
               sonarQubeRunAnalysis: false
+
           - task: Docker@2
             displayName: 'Publish_image_to_${{ variables.environment }}'
             condition: succeeded()
