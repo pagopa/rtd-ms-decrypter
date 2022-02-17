@@ -5,11 +5,10 @@ logging:
 
 spring:
   cloud:
-    
     stream:
       bindings:
         blobStorage-in-0: # name must match [handler name]-in-0
-          destination: ${BLOB_STORAGE_EHUB_NAME}
+          destination: ${KAFKA_TOPIC_BLOB_STORAGE_EVENTS}
           group: rtd-platform-events-consumer-group
           content-type: application/json
           binder: kafka
@@ -17,19 +16,14 @@ spring:
       kafka:
         binder:
           auto-create-topics: false
-          brokers: ${EVENT_HUB_KAFKA_BROKER}          
+          brokers: ${KAFKA_BROKER}          
           configuration:
             sasl:
               jaas:
-                config: ${BLOB_STORAGE_EHUB_CONNECTION_STRING}
+                config: ${KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS}
               mechanism: PLAIN
             security:
               protocol: SASL_SSL
-            # default:
-            #   key:
-            #     deserializer: class org.apache.kafka.common.serialization.StringDeserializer
-            #   value:
-            #     deserializer: class org.apache.kafka.common.serialization.ByteArrayDeserializer
           consumerProperties:
             socket:
               connection:
