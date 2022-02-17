@@ -17,9 +17,9 @@ spec:
           image: cstardacr.azurecr.io/rtdmsdecrypter
           imagePullPolicy: Always
           ports:
-          - containerPort: 8080
+            - containerPort: 8080
           envFrom:
-          - secretRef:
+            - secretRef:
               name: rtd-blob-storage-events
         - resources:
             limits:
