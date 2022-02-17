@@ -47,8 +47,7 @@ variables:
     containerRegistry: '$(DEV_CONTAINER_REGISTRY_NAME)'
     deployment: deployment-dev
     selfHostedAgentPool: $(DEV_AGENT_POOL)
-    # postman environment secure file
-    # postmanEnvFile: fa_dev.postman_environment.json
+
   ${{ if eq(parameters['environment'], 'uat' ) }}:
     environment: 'UAT'
     dockerRegistryServiceConnection: '$(UAT_CONTAINER_REGISTRY_SERVICE_CONN)'
@@ -56,8 +55,7 @@ variables:
     containerRegistry: '$(UAT_CONTAINER_REGISTRY_NAME)'
     deployment: deployment-uat
     selfHostedAgentPool: $(UAT_AGENT_POOL)
-    # postman environment secure file
-    # postmanEnvFile: fa_uat.postman_environment.json
+
   ${{ if eq(parameters['environment'], 'prod' ) }}:
     environment: 'PROD'
     dockerRegistryServiceConnection: '$(PROD_CONTAINER_REGISTRY_SERVICE_CONN)'
@@ -65,9 +63,7 @@ variables:
     containerRegistry: '$(PROD_CONTAINER_REGISTRY_NAME)'
     deployment: deployment-prod
     selfHostedAgentPool: $(PROD_AGENT_POOL)
-    # postman environment secure file
-    # postmanEnvFile: fa_uat.postman_environment.json
-  # postmanEnvFile: fa_dev.postman_environment.json
+
 
 stages:
   - stage: Release
@@ -79,12 +75,6 @@ stages:
         pool:
           vmImage: $(vmImageNameDefault)
         steps:
-          # - task: DownloadSecureFile@1
-          #   displayName: 'download settings.xml for Maven'
-          #   name: settingsxml
-          #   inputs:
-          #     secureFile: '$(settingsXmlSecureFileName)'
-          #     retryCount: '2'
           - task: Bash@3
             displayName: Get POM version
             name: getpomversion
@@ -108,13 +98,6 @@ stages:
         pool:
           vmImage: $(vmImageNameDefault)
         steps:
-          # - task: DownloadSecureFile@1
-          #   displayName: 'download settings.xml for Maven'
-          #   name: settingsxml
-          #   inputs:
-          #     secureFile: '$(settingsXmlSecureFileName)'
-          #     retryCount: '2'
-
           - task: Maven@3
             inputs:
               mavenPomFile: 'pom.xml'
@@ -180,37 +163,4 @@ stages:
                     namespace: '$(deployNamespace)'
                     manifests: |
                       $(Pipeline.Workspace)/manifests/$(deployment).yml
-                    # containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
-
-  # - stage: Test_e2e
-  #   displayName: 'Test_e2e_on_${{ variables.environment }}'
-  #   # TODO: before merging into release-dev modify the following condition
-  #   #       to depend on previous stages exit status
-  #   condition: always()
-  #   jobs:
-  #     - job: 'Run_Postman_collection_on_${{ variables.environment }}'
-  #       displayName: 'Run_Postman_collection_on_${{ variables.environment }}'
-  #       pool:
-  #         vmImage: $(vmImageNameDefault)
-  #       steps:
-  #         - task: Npm@1
-  #           displayName: Install newman
-  #           inputs:
-  #             command: custom
-  #             customCommand: install -g newman
-  #         - task: DownloadSecureFile@1
-  #           displayName: 'download postman environment'
-  #           name: postman_env
-  #           inputs:
-  #             secureFile: $(postmanEnvFile)
-  #         - task: CmdLine@2
-  #           displayName: Run newman
-  #           continueOnError: true # Useful to avoid the skipping of result publishing task
-  #           inputs:
-  #             script: newman run postman/CEN-518-user-onboarding.postman_collection.json -e $(postman_env.secureFilePath) --reporters cli,junit --reporter-junit-export result/test-result.xml              
-  #         - task: PublishTestResults@2
-  #           inputs:
-  #             testResultsFormat: 'JUnit'
-  #             testResultsFiles: '**/test-*.xml'
-  #             searchFolder: '$(System.DefaultWorkingDirectory)/result/'
-  #             testRunTitle: 'Publish Newman Test Results'
+                    containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
