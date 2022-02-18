@@ -138,18 +138,10 @@ stages:
                     buildType: 'current'
                     artifactName: 'manifests'
                     targetPath: '$(Pipeline.Workspace)/manifests'
-          
-                # - task: KubernetesManifest@0
-                #   displayName: Customize Manifest
-                #   inputs:
-                #     action: bake
-                #     renderType: kustomize
-                #     kustomizationPath: $(Pipeline.Workspace)/manifests
-                #     overrides: |
-                #       image:'$(containerRegistry)/$(imageRepository)'
+        
                 - task: Bash@3
-                  displayName: Test Printings
-                  name: testPrintings
+                  displayName: Generate Kustomization
+                  name: generateKustomization
                   inputs:
                     targetType: 'inline'
                     script: |
@@ -157,11 +149,17 @@ stages:
                       rm -rf kustomization.yml
                       curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
                       ./kustomize create --autodetect
-                      ./kustomize edit set image $(containerRegistry)/$(imageRepository):$(pomversion)
+                      ./kustomize edit set image $(containerRegistry)/$(imageRepository):latest
                       mv kustomization.yaml kustomization.yml
                       rm -rf kustomize
                       cd $(Pipeline.Workspace)
                     failOnStderr: true
+                - task: KubernetesManifest@0
+                  displayName: Customize Manifest
+                  inputs:
+                    action: bake
+                    renderType: kustomize
+                    kustomizationPath: $(Pipeline.Workspace)/manifests
                 - task: KubernetesManifest@0
                   displayName: Deploy to Kubernetes Cluster
                   inputs:
