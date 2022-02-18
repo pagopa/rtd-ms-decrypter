@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: rtdmsdecrypter
-          image: cstardacr.azurecr.io/rtdmsdecrypter
+          image: cstaracr.azurecr.io/rtdmsdecrypter
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

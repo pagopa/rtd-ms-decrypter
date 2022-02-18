@@ -5,6 +5,8 @@ trigger:
   branches:
     include:
       - main
+      - develop
+      - uat
   paths:
     include:
       - src/*
@@ -15,53 +17,36 @@ pr: none
 resources:
   - repo: self
 
-parameters:
-- name: environment # name of the parameter; required
-  type: string # data type of the parameter; required
-  default: dev
-  values:
-  - dev
-  - uat
-  - prod
-
 variables:
-  dockerfileRelativePath: Dockerfile # DockerfileV1
+  # dockerfileRelativePath: Dockerfile # DockerfileV1
 
-  # Agent VM image name for Build
   vmImageNameDefault: 'ubuntu-latest'
 
-  # Image Repository Name
   imageRepository: '$(K8S_IMAGE_REPOSITORY_NAME)'
   deployNamespace: '$(DEPLOY_NAMESPACE)'
   settingsXmlROsecureFileName: '$(SETTINGS_XML_RO_SECURE_FILE_NAME)'
   settingsXmlSecureFileName: '$(SETTINGS_XML_RO_SECURE_FILE_NAME)'
-  mavenGoals: 'package'
 
-  #isToDeploy: $[and(ne(variables['Build.Reason'], 'PullRequest'), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix')))]
-  isToDeploy: true
-
-  ${{ if eq(parameters['environment'], 'dev' ) }}:
+  # If the branch is develop or a feature branch starting with CEN, deploy in DEV environment
+  ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/heads/develop'), startsWith(variables['Build.SourceBranch'], 'refs/heads/CEN') }}:
     environment: 'DEV'
     dockerRegistryServiceConnection: '$(DEV_CONTAINER_REGISTRY_SERVICE_CONN)'
     kubernetesServiceConnection: '$(DEV_KUBERNETES_SERVICE_CONN)'
     containerRegistry: '$(DEV_CONTAINER_REGISTRY_NAME)'
-    deployment: deployment-dev
     selfHostedAgentPool: $(DEV_AGENT_POOL)
 
-  ${{ if eq(parameters['environment'], 'uat' ) }}:
+  ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/uat') }}:
     environment: 'UAT'
     dockerRegistryServiceConnection: '$(UAT_CONTAINER_REGISTRY_SERVICE_CONN)'
     kubernetesServiceConnection: '$(UAT_KUBERNETES_SERVICE_CONN)'
     containerRegistry: '$(UAT_CONTAINER_REGISTRY_NAME)'
-    deployment: deployment-uat
     selfHostedAgentPool: $(UAT_AGENT_POOL)
 
-  ${{ if eq(parameters['environment'], 'prod' ) }}:
+  ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/main') }}:
     environment: 'PROD'
     dockerRegistryServiceConnection: '$(PROD_CONTAINER_REGISTRY_SERVICE_CONN)'
     kubernetesServiceConnection: '$(PROD_KUBERNETES_SERVICE_CONN)'
     containerRegistry: '$(PROD_CONTAINER_REGISTRY_NAME)'
-    deployment: deployment-prod
     selfHostedAgentPool: $(PROD_AGENT_POOL)
 
 
@@ -82,7 +67,7 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                version=$(cat pom.xml | grep '^.*<version>' | sed -n 2p | awk -F'[><]' '{print $3}')
+                version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
                 echo "##vso[task.setvariable variable=outputpomversion;isOutput=true]$version"
               failOnStderr: true
 
@@ -101,7 +86,7 @@ stages:
           - task: Maven@3
             inputs:
               mavenPomFile: 'pom.xml'
-              goals: '$(mavenGoals)'
+              goals: 'package'
               options: '-B  -DskipTests=true'
               javaHomeOption: 'JDKVersion'
               jdkVersionOption: '11'
@@ -162,5 +147,6 @@ stages:
                     kubernetesServiceConnection: ${{ variables.kubernetesServiceConnection }}
                     namespace: '$(deployNamespace)'
                     manifests: |
-                      $(Pipeline.Workspace)/manifests/$(deployment).yml
+                      $(Pipeline.Workspace)/manifests/deployment.yml
+                    #substitute image reported in manifest
                     containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
