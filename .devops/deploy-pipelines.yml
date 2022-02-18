@@ -156,6 +156,7 @@ stages:
                     failOnStderr: true
                 - task: KubernetesManifest@0
                   displayName: Customize Manifest
+                  name: customizeManifest
                   inputs:
                     action: bake
                     renderType: kustomize
@@ -167,5 +168,5 @@ stages:
                     rolloutStatusTimeout: 180
                     kubernetesServiceConnection: ${{ variables.kubernetesServiceConnection }}
                     namespace: '$(deployNamespace)'
-                    manifests:  $(bake.manifestsBundle)
+                    manifests:  $(customizeManifest.manifestsBundle)
                     containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
