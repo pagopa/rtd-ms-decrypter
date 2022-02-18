@@ -153,8 +153,9 @@ stages:
                   inputs:
                     targetType: 'inline'
                     script: |
+                      curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
                       cd manifests
-                      kustomize $(Pipeline.Workspace)/manifests/ --autodetect
+                      kustomize manifests/ --autodetect
                       kustomize edit set image '$(containerRegistry)/$(imageRepository)'
                       cd ..
                     failOnStderr: true
