@@ -156,6 +156,7 @@ stages:
                       pwd
                       cd $(Pipeline.Workspace)/manifests
                       curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+                      ls -al
                       ./kustomize create --autodetect
                       ./kustomize edit set image $(containerRegistry)/$(imageRepository):$(pomversion)
                       cd $(Pipeline.Workspace)
