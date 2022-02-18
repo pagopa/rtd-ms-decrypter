@@ -49,7 +49,7 @@ variables:
     containerRegistry: '$(PROD_CONTAINER_REGISTRY_NAME)'
     selfHostedAgentPool: $(PROD_AGENT_POOL)
 
-
+  isToDeploy: ${{ containsValue(['DEV', 'UAT', 'PROD'], variable.environment) }}
 stages:
   - stage: Release
     displayName: Release
