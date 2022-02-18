@@ -143,6 +143,7 @@ stages:
                   displayName: Customize Manifest
                   inputs:
                     action: bake
+                    renderType: kustomize
                     overrides: |
                       image:'$(containerRegistry)/$(imageRepository)'
                 - task: KubernetesManifest@0
