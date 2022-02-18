@@ -149,7 +149,7 @@ stages:
                       rm -rf kustomization.*
                       curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
                       ./kustomize create --autodetect
-                      ./kustomize edit set image $(containerRegistry)/$(imageRepository):latest
+                      ./kustomize edit set image rtdmsdecrypter=$(containerRegistry)/$(imageRepository):latest
                       rm -rf kustomize
                       cd $(Pipeline.Workspace)
                     failOnStderr: true
