@@ -154,12 +154,12 @@ stages:
                     targetType: 'inline'
                     script: |
                       cd $(Pipeline.Workspace)/manifests
-                      rm -rf kustomiz*
+                      rm -rf kustomization.yml
                       curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
-                      ls -al
                       ./kustomize create --autodetect
                       ./kustomize edit set image $(containerRegistry)/$(imageRepository):$(pomversion)
                       mv kustomization.yaml kustomization.yml
+                      rm -rf kustomize
                       cd $(Pipeline.Workspace)
                     failOnStderr: true
                 - task: KubernetesManifest@0
