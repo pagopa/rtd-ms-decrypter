@@ -155,7 +155,7 @@ stages:
                     script: |
                       pwd
                       cd $(Pipeline.Workspace)/manifests
-                      rm -rf kustomization.*
+                      rm -rf kustomiz*
                       curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
                       ls -al
                       ./kustomize create --autodetect
