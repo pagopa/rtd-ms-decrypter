@@ -117,7 +117,7 @@ stages:
               publishLocation: 'pipeline'
 
   - stage: 'Deploy'
-    displayName: 'Deploy_to_${{ variables.environment }}'
+    displayName: 'Deploy to ${{ variables.environment }} K8S'
     dependsOn: ['Release', 'Build']
     condition: and(succeeded(), eq(variables.isToDeploy, true))
     variables:
@@ -167,5 +167,5 @@ stages:
                     rolloutStatusTimeout: 180
                     kubernetesServiceConnection: ${{ variables.kubernetesServiceConnection }}
                     namespace: '$(deployNamespace)'
-                    manifests: $(Pipeline.Workspace)/manifests/*yml
+                    manifests:  $(bake.manifestsBundle)
                     containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
