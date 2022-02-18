@@ -154,6 +154,8 @@ stages:
                     targetType: 'inline'
                     script: |
                       cat $(Pipeline.Workspace)/manifests/*
+                      ls $(Pipeline.Workspace)
+                      cat $(Pipeline.Workspace)/kustomization.yml
                     failOnStderr: true
                 - task: KubernetesManifest@0
                   displayName: Deploy to Kubernetes Cluster
