@@ -160,6 +160,7 @@ stages:
                       ls -al
                       ./kustomize create --autodetect
                       ./kustomize edit set image $(containerRegistry)/$(imageRepository):$(pomversion)
+                      cat *yml
                       cd $(Pipeline.Workspace)
                     failOnStderr: true
                 - task: KubernetesManifest@0
