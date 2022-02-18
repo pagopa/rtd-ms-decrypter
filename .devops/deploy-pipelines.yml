@@ -139,23 +139,24 @@ stages:
                     artifactName: 'manifests'
                     targetPath: '$(Pipeline.Workspace)/manifests'
           
-                - task: KubernetesManifest@0
-                  displayName: Customize Manifest
-                  inputs:
-                    action: bake
-                    renderType: kustomize
-                    kustomizationPath: $(Pipeline.Workspace)/manifests
-                    overrides: |
-                      image:'$(containerRegistry)/$(imageRepository)'
+                # - task: KubernetesManifest@0
+                #   displayName: Customize Manifest
+                #   inputs:
+                #     action: bake
+                #     renderType: kustomize
+                #     kustomizationPath: $(Pipeline.Workspace)/manifests
+                #     overrides: |
+                #       image:'$(containerRegistry)/$(imageRepository)'
                 - task: Bash@3
                   displayName: Test Printings
                   name: testPrintings
                   inputs:
                     targetType: 'inline'
                     script: |
-                      cat $(Pipeline.Workspace)/manifests/*
-                      ls $(Pipeline.Workspace)
-                      cat $(Pipeline.Workspace)/kustomization.yml
+                      cd manifests
+                      kustomize $(Pipeline.Workspace)/manifests/ --autodetect
+                      kustomize edit set image '$(containerRegistry)/$(imageRepository)'
+                      cd ..
                     failOnStderr: true
                 - task: KubernetesManifest@0
                   displayName: Deploy to Kubernetes Cluster
