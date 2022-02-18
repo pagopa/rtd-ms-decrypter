@@ -152,6 +152,7 @@ stages:
                   inputs:
                     action: bake
                     renderType: kustomize
+                    kustomizationPath: $(Pipeline.Workspace)/manifests
                     overrides: |
                       image:'$(containerRegistry)/$(imageRepository)'
                 - task: KubernetesManifest@0
