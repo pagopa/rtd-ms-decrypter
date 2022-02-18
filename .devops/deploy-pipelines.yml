@@ -125,7 +125,7 @@ stages:
       pomversion: $[ stageDependencies.Release.POM.outputs['getpomversion.outputpomversion'] ]
     jobs:
       - deployment: 'Deploy_to_${{ variables.environment }}'
-        displayName: 'Deploy_to_${{ variables.environment }}'
+        displayName: 'Deploy to ${{ variables.environment }} K8S'
         pool:
           name: $(selfHostedAgentPool)
         environment: '$(environment)'
@@ -146,10 +146,10 @@ stages:
                     overrides: |
                       image:'$(containerRegistry)/$(imageRepository)'
                 - task: KubernetesManifest@0
-                  displayName: Deploy to Kubernetes cluster
+                  displayName: Deploy to Kubernetes Cluster
                   inputs:
                     action: deploy
-                    rolloutStatusTimeout: 120
+                    rolloutStatusTimeout: 180
                     kubernetesServiceConnection: ${{ variables.kubernetesServiceConnection }}
                     namespace: '$(deployNamespace)'
                     manifests: |
