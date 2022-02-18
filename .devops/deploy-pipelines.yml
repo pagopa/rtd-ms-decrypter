@@ -162,6 +162,5 @@ stages:
                     rolloutStatusTimeout: 180
                     kubernetesServiceConnection: ${{ variables.kubernetesServiceConnection }}
                     namespace: '$(deployNamespace)'
-                    manifests: |
-                      $(Pipeline.Workspace)/manifests/deployment.yml
+                    manifests: $(Pipeline.Workspace)/manifests/*
                     containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
