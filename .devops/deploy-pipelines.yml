@@ -138,15 +138,7 @@ stages:
                     buildType: 'current'
                     artifactName: 'manifests'
                     targetPath: '$(Pipeline.Workspace)/manifests'
-                # - task: Bash@3
-                #   displayName: Create Kustomization File
-                #   name: createKustomizationFile
-                #   inputs:
-                #     targetType: 'inline'
-                #     script: |
-                #       echo "apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization" > $(Pipeline.Workspace)/manifests/kustomization.yml
-                #       ls $(Pipeline.Workspace)/manifests
-                #     failOnStderr: true
+          
                 - task: KubernetesManifest@0
                   displayName: Customize Manifest
                   inputs:
@@ -155,6 +147,14 @@ stages:
                     kustomizationPath: $(Pipeline.Workspace)/manifests
                     overrides: |
                       image:'$(containerRegistry)/$(imageRepository)'
+                - task: Bash@3
+                  displayName: Test Printings
+                  name: testPrintings
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      cat $(Pipeline.Workspace)/manifests/*
+                    failOnStderr: true
                 - task: KubernetesManifest@0
                   displayName: Deploy to Kubernetes Cluster
                   inputs:
