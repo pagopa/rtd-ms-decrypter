@@ -105,8 +105,6 @@ stages:
               containerRegistry: '$(dockerRegistryServiceConnection)'
               repository: '$(imageRepository)'
               command: 'buildAndPush'
-              # Dockerfile: '$(Build.Repository.LocalPath)/$(dockerfileRelativePath)'
-              # buildContext: '$(Build.Repository.LocalPath)'
               tags: |
                 $(Build.BuildId)
                 latest
@@ -142,6 +140,12 @@ stages:
                     artifactName: 'manifests'
                     targetPath: '$(Pipeline.Workspace)/manifests'
                 - task: KubernetesManifest@0
+                  displayName: Customize Manifest
+                  inputs:
+                    action: bake
+                    overrides: |
+                      image:'$(containerRegistry)/$(imageRepository)'
+                - task: KubernetesManifest@0
                   displayName: Deploy to Kubernetes cluster
                   inputs:
                     action: deploy
@@ -150,5 +154,4 @@ stages:
                     namespace: '$(deployNamespace)'
                     manifests: |
                       $(Pipeline.Workspace)/manifests/deployment.yml
-                    #substitute image reported in manifest
                     containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
