@@ -154,11 +154,11 @@ stages:
                     targetType: 'inline'
                     script: |
                       pwd
-                      cd (Pipeline.Workspace)/manifests
+                      cd $(Pipeline.Workspace)/manifests
                       curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
                       kustomize create --autodetect
                       kustomize edit set image '$(containerRegistry)/$(imageRepository)'
-                      cd (Pipeline.Workspace)
+                      cd $(Pipeline.Workspace)
                     failOnStderr: true
                 - task: KubernetesManifest@0
                   displayName: Deploy to Kubernetes Cluster
