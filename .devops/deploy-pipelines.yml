@@ -153,7 +153,6 @@ stages:
                   inputs:
                     targetType: 'inline'
                     script: |
-                      pwd
                       cd $(Pipeline.Workspace)/manifests
                       rm -rf kustomiz*
                       curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
@@ -161,7 +160,6 @@ stages:
                       ./kustomize create --autodetect
                       ./kustomize edit set image $(containerRegistry)/$(imageRepository):$(pomversion)
                       mv kustomization.yaml kustomization.yml
-                      cat *yml
                       cd $(Pipeline.Workspace)
                     failOnStderr: true
                 - task: KubernetesManifest@0
@@ -171,5 +169,5 @@ stages:
                     rolloutStatusTimeout: 180
                     kubernetesServiceConnection: ${{ variables.kubernetesServiceConnection }}
                     namespace: '$(deployNamespace)'
-                    manifests: $(Pipeline.Workspace)/manifests/*
+                    manifests: $(Pipeline.Workspace)/manifests/*yml
                     containers: '$(containerRegistry)/$(imageRepository):$(pomversion)'
