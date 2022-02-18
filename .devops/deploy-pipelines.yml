@@ -105,8 +105,8 @@ stages:
               containerRegistry: '$(dockerRegistryServiceConnection)'
               repository: '$(imageRepository)'
               command: 'buildAndPush'
-              Dockerfile: '$(Build.Repository.LocalPath)/$(dockerfileRelativePath)'
-              buildContext: '$(Build.Repository.LocalPath)'
+              # Dockerfile: '$(Build.Repository.LocalPath)/$(dockerfileRelativePath)'
+              # buildContext: '$(Build.Repository.LocalPath)'
               tags: |
                 $(Build.BuildId)
                 latest
