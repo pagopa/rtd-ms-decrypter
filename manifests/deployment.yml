@@ -18,6 +18,9 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: rtddecrypter
           env:
             - name: KAFKA_TOPIC_BLOB_STORAGE_EVENTS
               valueFrom:
@@ -34,6 +37,16 @@ spec:
                 secretKeyRef:
                   name: rtd-blob-storage-events
                   key: KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS
+            - name: INTERNAL_SERVICES_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rtddecrypter
+                  key: INTERNAL_SERVICES_API_KEY
+            - name: CSV_TRANSACTION_PRIVATE_KEY_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: rtddecrypter
+                  key: CSV_TRANSACTION_PRIVATE_KEY_PASS
           resources:
             limits:
               cpu: 500m
@@ -41,4 +54,13 @@ spec:
             requests:
               cpu: 50m
               memory: 256Mi
-          
+      volumes:
+        - name: certs
+          secret:
+            secretName: rtddecrypter
+          items:
+            - key: CSV_TRANSACTION_PRIVATE_KEY
+              path: private.key
+
+
+
