@@ -58,9 +58,9 @@ spec:
         - name: certs
           secret:
             secretName: rtddecrypter
-          items:
-            - key: CSV_TRANSACTION_PRIVATE_KEY
-              path: private.key
+            items:
+              - key: CSV_TRANSACTION_PRIVATE_KEY
+                path: private.key
 
 
 
