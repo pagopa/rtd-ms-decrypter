@@ -16,8 +16,6 @@ spec:
         - name: rtdmsdecrypter
           image: rtdmsdecrypter
           imagePullPolicy: Always
-          ports:
-            - containerPort: 8080
           volumeMounts:
             - name: certs
               mountPath: /home/certs

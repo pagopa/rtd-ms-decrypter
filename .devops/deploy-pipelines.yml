@@ -18,7 +18,6 @@ resources:
   - repo: self
 
 variables:
-  # dockerfileRelativePath: Dockerfile # DockerfileV1
 
   vmImageNameDefault: 'ubuntu-latest'
 
