@@ -20,7 +20,7 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.Decrypter;
 public class EventHandler {
   
   @Bean
-	public Consumer<Message<List<EventGridEvent>>> blobStorage(Decrypter decrypter) {
+	public Consumer<Message<List<EventGridEvent>>> blobStorageConsumer(Decrypter decrypter) {
 		return message -> message.getPayload().forEach((final EventGridEvent e) -> {
 			log.info("Intercepted Event. Subject: {}. Type: {}.", e.getSubject(), e.getEventType());
 			decrypter.decrypt(e.getSubject());
