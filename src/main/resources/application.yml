@@ -7,8 +7,8 @@ spring:
   cloud:
     stream:
       bindings:
-        blobStorage-in-0: # name must match [handler name]-in-0
-          destination: ${KAFKA_TOPIC_BLOB_STORAGE_EVENTS}
+        blobStorageConsumer-in-0: # name must match [handler name]-in-0
+          destination: rtd-platform-events
           group: rtd-platform-events-consumer-group
           content-type: application/json
           binder: kafka
@@ -16,12 +16,41 @@ spring:
       kafka:
         binder:
           auto-create-topics: false
+          consumerProperties:
+            key: 
+              deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            value:
+              deserializer: org.apache.kafka.common.serialization.StringDeserializer
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  cloud:
+    stream:
+      bindings:
+        blobStorageProducer-out-0: # name must match [handler name]-out-0
+          destination: rtd-platform-events
+          content-type: application/json
+          binder: kafka
+      # kafka:
+      #   binder:     
+      #     brokers: localhost
+---
+spring:
+  config:
+    activate:
+      on-profile: default
+  cloud:
+    stream:  
+      kafka:
+        binder:     
           brokers: ${KAFKA_BROKER}          
           configuration:
             sasl:
               jaas:
                 config: ${KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS}
-              mechanism: PLAIN
+            mechanism: PLAIN
             security:
               protocol: SASL_SSL
           consumerProperties:
@@ -32,10 +61,6 @@ spring:
                     max:
                       ms: 200000
                     ms: 100000
-            key: 
-              deserializer: org.apache.kafka.common.serialization.StringDeserializer
-            value:
-              deserializer: org.apache.kafka.common.serialization.StringDeserializer
             request:
               timeout:
                 ms: 60000
