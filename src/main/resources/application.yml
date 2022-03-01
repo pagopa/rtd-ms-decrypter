@@ -1,7 +1,14 @@
-
 logging:
   level:
     root: INFO
+rtd:
+  resources:
+    base:
+      path: src/test/resources
+  private:
+    key: 
+      path: ${CSV_TRANSACTION_PRIVATE_KEY_PATH:${rtd.resources.base.path}/certs/private_base64.key} # just for tests
+      password: ${CSV_TRANSACTION_PRIVATE_KEY_PASS:privatekeypass}
 
 spring:
   cloud:
@@ -22,22 +29,7 @@ spring:
             value:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
 ---
-spring:
-  config:
-    activate:
-      on-profile: test
-  cloud:
-    stream:
-      bindings:
-        blobStorageProducer-out-0: # name must match [handler name]-out-0
-          destination: rtd-platform-events
-          content-type: application/json
-          binder: kafka
-      # kafka:
-      #   binder:     
-      #     brokers: localhost
----
-spring:
+spring: 
   config:
     activate:
       on-profile: default
@@ -50,7 +42,7 @@ spring:
             sasl:
               jaas:
                 config: ${KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS}
-            mechanism: PLAIN
+              mechanism: PLAIN
             security:
               protocol: SASL_SSL
           consumerProperties:

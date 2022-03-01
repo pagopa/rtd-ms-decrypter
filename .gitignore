@@ -125,3 +125,8 @@ Desktop.ini
 # ESLint
 ######################
 .eslintcache
+
+
+# Docker
+.env
+certs
