@@ -1,8 +1,11 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+
 public interface IBlobRestConnector {
   // Downloads a blob and returns the name of the downloaded file
-  public String get(String blobUri);
+  public BlobApplicationAware get(BlobApplicationAware blobUri);
   // Uploads a blob and returns the name of the uploaded file
-  public String put(String blobName);
+  public BlobApplicationAware put(BlobApplicationAware fileName);
+
 }
