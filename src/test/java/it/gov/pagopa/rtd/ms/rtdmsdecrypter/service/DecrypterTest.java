@@ -44,10 +44,10 @@ public class DecrypterTest {
   @Autowired
   Decrypter decrypter;
 
-  @Value("${rtd.resources.base.path}")
+  @Value("${decrypt.resources.base.path}")
   String resources;
 
-  @Value("${rtd.private.key.password}")
+  @Value("${decrypt.private.key.password}")
   String privateKeyPassword;
 
   @Test

@@ -2,6 +2,7 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.event.EventHandler;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnector;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.Decrypter;
 
 import org.springframework.messaging.support.MessageBuilder;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.stream.messaging.DirectWithAttributesChannel;
 
@@ -31,11 +33,14 @@ import java.time.Duration;
     "rtd-platform-events" }, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
 public class RtdMsDecrypterApplicationTest {
 
-  @SpyBean
+  @MockBean
   Decrypter decrypter;
 
   @SpyBean
   EventHandler handler;
+
+  @MockBean
+  BlobRestConnector blobRestConnector;
 
   @Autowired
   private DirectWithAttributesChannel channel;
