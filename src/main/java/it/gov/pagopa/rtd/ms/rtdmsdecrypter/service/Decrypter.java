@@ -10,7 +10,6 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.NoSuchProviderException;
 import java.security.Security;
 import java.util.Base64;
 import java.util.Iterator;
@@ -36,36 +35,37 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyDataDecryptorFactory
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+
 import org.apache.commons.io.IOUtils;
-import java.util.regex.Pattern;
 
 @Service
 @Slf4j
 @Getter
 public class Decrypter implements IDecrypter {
 
-  @Value("${rtd.private.key.path}")
+  @Value("${decrypt.private.key.path}")
   private String privateKeyPath;
 
-  @Value("${rtd.private.key.password}")
+  @Value("${decrypt.private.key.password}")
   private String privateKeyPassword;
 
   private String privateKey;
 
-  // private Pattern blobPattern =
-  // Pattern.compile("(ade|rtd)-transactions-[a-z0-9]{44}");
 
   @PostConstruct
   private void readKey() throws IOException {
     this.privateKey = new String(Base64.getDecoder().decode(Files.readString(Path.of(this.privateKeyPath))));
   }
 
-  public String decrypt(String filename) {
-    log.info("Decrypted Blob {}.", filename);
+  public BlobApplicationAware decrypt(BlobApplicationAware blob) {
+    log.info("Decrypted Blob {}.", blob.getBlobUri());
     // Create Input Stream, Output Stream
     // call decrypt file
     // close streams and return the name of the decrypted filename
-    return "filename";
+    blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
+    return blob;
   }
 
   @SneakyThrows
@@ -158,7 +158,7 @@ public class Decrypter implements IDecrypter {
 
   @Nullable
   private PGPPrivateKey findSecretKey(PGPSecretKeyRingCollection pgpSec, long keyID, char[] pass)
-      throws PGPException, NoSuchProviderException {
+      throws PGPException {
     PGPSecretKey pgpSecKey = pgpSec.getSecretKey(keyID);
 
     if (pgpSecKey == null) {
