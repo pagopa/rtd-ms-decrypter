@@ -53,6 +53,7 @@ public class BlobRestConnector implements IBlobRestConnector {
       httpClient.execute(getBlob, new FileDownloadResponseHandler(new FileOutputStream("/tmp/" + blob.getBlob())));
     }
     catch (Exception ex) {
+      log.error("GET Blob failed. {}", ex.getMessage());
     }
 
     blob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
@@ -71,7 +72,7 @@ public class BlobRestConnector implements IBlobRestConnector {
     putBlob.setEntity(entity);
 
     try {
-      CloseableHttpResponse  myResponse= httpClient.execute(putBlob);
+      CloseableHttpResponse  myResponse = httpClient.execute(putBlob);
       assert (myResponse.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED);
     }
     catch (Exception ex) {
@@ -99,6 +100,4 @@ public class BlobRestConnector implements IBlobRestConnector {
     }
 
   }
-
- 
 }
