@@ -54,11 +54,8 @@ public class BlobRestConnector implements IBlobRestConnector {
     }
     catch (Exception ex) {
     }
-    finally {
-      blob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
-			IOUtils.closeQuietly(httpClient);
-		}
 
+    blob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     return blob;
   }
 
