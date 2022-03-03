@@ -139,9 +139,6 @@ public class Decrypter implements IDecrypter {
       }
 
     } catch (PGPException e) {
-      if (e.getUnderlyingException() != null) {
-        e.getUnderlyingException().printStackTrace();
-      }
       throw e;
 
     } finally {
