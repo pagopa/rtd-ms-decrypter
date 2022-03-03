@@ -1,15 +1,22 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -24,32 +31,34 @@ public class BlobRestConnectorTest {
 
   @Autowired
   BlobRestConnector blobRestConnector;
+
+  @MockBean
+  CloseableHttpClient client;
  
-
   @Test
-  void shouldGetSasToken() {
-    // SasResponse myResponse = new SasResponse();
-    // myResponse.setSas("sasToken");
-    // myResponse.setAuthorizedContainer("container");
-    // // when(client.postRtdSas(anyString(), anyString())).thenReturn(myResponse);
-    // when(client.postAdeSas(anyString(), anyString())).thenReturn(myResponse);
+  void shouldGet() throws ClientProtocolException, IOException {
 
-    // blobRestConnector.postSas(IngestionApplication.RTD);
+    String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
+    String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
+    BlobApplicationAware blob = new BlobApplicationAware(
+        "/blobServices/default/containers/" + container + "/blobs/" + blobName);
 
-    // verify(client, times(1)).postRtdSas(anyString(), anyString());
+    blobRestConnector.get(blob);
 
-    // blobRestConnector.postSas(IngestionApplication.ADE);
+    verify(client, times(1)).execute(any(HttpUriRequest.class), ArgumentMatchers.<ResponseHandler<OutputStream>>any());
 
-    // verify(client, times(1)).postAdeSas(anyString(), anyString());
   }
-
+  
   @Test
-  void shouldGet() {
+  void shouldPut() throws ClientProtocolException, IOException {
+
     String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
     String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
     BlobApplicationAware blob = new BlobApplicationAware("/blobServices/default/containers/" + container + "/blobs/" + blobName);
 
-    // blobRestConnector.get(blob);
+    blobRestConnector.put(blob);
+
+    verify(client, times(1)).execute(any(HttpPut.class));
    
   }
   
