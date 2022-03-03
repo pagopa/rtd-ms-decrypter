@@ -27,7 +27,7 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.Decrypter;
   "rtd-platform-events" }, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
 @ActiveProfiles("test")
 
-public class EventHandlerTest {
+class EventHandlerTest {
 
   @Autowired
   Consumer<Message<List<EventGridEvent>>> my_consumer;

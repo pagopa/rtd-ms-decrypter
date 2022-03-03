@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import org.junit.jupiter.api.Test;
 
-public class BlobApplicationAwareTest {
+class BlobApplicationAwareTest {
   @Test
   void shouldMatchRegex() {
     String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";

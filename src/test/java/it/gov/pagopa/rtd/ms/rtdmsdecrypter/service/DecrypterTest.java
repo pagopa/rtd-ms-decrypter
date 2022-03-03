@@ -43,7 +43,7 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodG
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class DecrypterTest {
+class DecrypterTest {
 
   @Autowired
   Decrypter decrypter;

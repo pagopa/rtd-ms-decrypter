@@ -31,7 +31,7 @@ import java.time.Duration;
 @ActiveProfiles("test")
 @EmbeddedKafka(topics = {
     "rtd-platform-events" }, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
-public class RtdMsDecrypterApplicationTest {
+class RtdMsDecrypterApplicationTest {
 
   @MockBean
   Decrypter decrypter;

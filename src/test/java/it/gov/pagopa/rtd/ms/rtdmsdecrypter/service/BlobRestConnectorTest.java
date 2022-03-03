@@ -27,7 +27,7 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 @ActiveProfiles("test")
 @EmbeddedKafka(topics = {
   "rtd-platform-events" }, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
-public class BlobRestConnectorTest {
+class BlobRestConnectorTest {
 
   @Autowired
   BlobRestConnector blobRestConnector;
