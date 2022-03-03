@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -21,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPCompressedData;
@@ -78,7 +82,10 @@ public class DecrypterTest {
     myClearText.close();
 
 
-    assertTrue(true);
+    assertTrue(IOUtils.contentEquals(
+        new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
+        new BufferedReader(new FileReader(Path.of(resources, "/unencrypted.pgp.csv").toFile()))
+      ));
   }
 
   // This routine should be factored out in a common module
