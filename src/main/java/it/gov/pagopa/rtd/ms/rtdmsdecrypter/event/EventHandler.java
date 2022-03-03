@@ -28,7 +28,6 @@ public class EventHandler {
 			BlobRestConnector blobRestConnector) {
 
 		return message -> message.getPayload().stream()
-				.peek(e -> log.info("Intercepted event {} on {}", e.getEventType(), e.getSubject()))
 				.filter(e -> "Microsoft.Storage.BlobCreated".equals(e.getEventType()))
 				.map(EventGridEvent::getSubject)
 				.map(BlobApplicationAware::new)
