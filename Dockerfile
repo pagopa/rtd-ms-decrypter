@@ -3,4 +3,4 @@ ADD https://github.com/microsoft/ApplicationInsights-Java/releases/download/3.2.
 VOLUME /tmp
 COPY target/*.jar app.jar
 # ENTRYPOINT ["java","-jar","app.jar"]
-ENTRYPOINT ["sleep", "infinity"]
+ENTRYPOINT ["java","-jar","app.jar", "&&", "sleep", "infinity"]
