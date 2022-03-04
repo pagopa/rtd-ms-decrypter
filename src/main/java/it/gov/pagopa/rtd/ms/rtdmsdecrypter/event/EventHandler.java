@@ -6,8 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
 
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.List;
 import org.springframework.messaging.Message;
 
@@ -19,7 +17,6 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.Decrypter;
 import java.util.stream.Collectors;
 
 @Configuration
-@Slf4j
 @Getter
 public class EventHandler {
 
