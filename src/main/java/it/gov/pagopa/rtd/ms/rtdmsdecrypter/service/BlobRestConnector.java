@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +51,7 @@ public class BlobRestConnector implements IBlobRestConnector {
     getBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
     
     try {
-      httpClient.execute(getBlob, new FileDownloadResponseHandler(new FileOutputStream("/tmp/" + blob.getBlob())));
+      httpClient.execute(getBlob, new FileDownloadResponseHandler(new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile())));
     }
     catch (Exception ex) {
       log.error("GET Blob failed. {}", ex.getMessage());
@@ -64,7 +65,7 @@ public class BlobRestConnector implements IBlobRestConnector {
 
     String uri = baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob.getBlob();
 
-    FileEntity entity = new FileEntity(new File("/tmp/" + blob.getBlob()),
+    FileEntity entity = new FileEntity(new File(Path.of(blob.getTargetDir(), blob.getBlob()).toString()),
         ContentType.create("application/octet-stream"));
     
     final HttpPut putBlob = new HttpPut(uri);

@@ -23,6 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
@@ -63,10 +66,10 @@ class DecrypterTest {
 
   @Test
   void shouldDecryptFile() throws IOException, NoSuchProviderException, PGPException {
-    
+
     // generate file
     String sourceFileName = "cleartext.csv";
-    
+
     // Read the publicKey
     FileInputStream publicKey = new FileInputStream(resources + "/certs/public.key");
 
@@ -76,17 +79,48 @@ class DecrypterTest {
 
     // decrypt and compare
     FileInputStream myEncrypted = new FileInputStream(resources + "/encrypted.pgp");
-    FileOutputStream myClearText = new FileOutputStream(resources + "/unencrypted.pgp.csv");
+    FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
 
     decrypter.decryptFile(myEncrypted, myClearText);
     myClearText.close();
 
+    assertTrue(IOUtils.contentEquals(
+        new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
+        new BufferedReader(new FileReader(Path.of(resources, "/file.pgp.csv.decrypted").toFile()))));
+  }
+  
+  @Test
+  void shouldDecrypt() throws IOException, NoSuchProviderException, PGPException {
+    
+    String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
+    String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
+
+    // generate file
+    String sourceFileName = "cleartext.csv";
+    
+    // Read the publicKey
+    FileInputStream publicKey = new FileInputStream(Path.of(resources, "/certs/public.key").toString());
+
+    // encrypt with the same routine used by batch service
+    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+    this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(), this.readPublicKey(publicKey), true, true);
+
+    
+    BlobApplicationAware fakeBlob = new BlobApplicationAware(
+        "/blobServices/default/containers/" + container + "/blobs/" + blobName);
+
+    // decrypt and compare
+    fakeBlob.setTargetDir(resources);
+    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    decrypter.decrypt(fakeBlob);
+
 
     assertTrue(IOUtils.contentEquals(
         new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
-        new BufferedReader(new FileReader(Path.of(resources, "/unencrypted.pgp.csv").toFile()))
+        new BufferedReader(new FileReader(Path.of(resources, fakeBlob.getBlob() + ".decrypted").toFile()))
       ));
   }
+
 
   // This routine should be factored out in a common module
   // https://github.com/pagopa/rtd-ms-transaction-filter/blob/76ef81bd58be8c9a9d417735c87ad1c08360a091/api/batch/src/main/java/it/gov/pagopa/rtd/transaction_filter/batch/encryption/EncryptUtil.java#L194

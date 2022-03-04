@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -60,10 +62,18 @@ public class Decrypter implements IDecrypter {
   }
 
   public BlobApplicationAware decrypt(BlobApplicationAware blob) {
-    log.info("Decrypted Blob {}.", blob.getBlobUri());
-    // Create Input Stream, Output Stream
-    // call decrypt file
-    // close streams and return the name of the decrypted filename
+
+
+    try (
+      FileInputStream encrypted = new FileInputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toString());
+      FileOutputStream decrypted = new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toString() );
+    ) {
+      
+      this.decryptFile(encrypted, decrypted);
+    }
+    catch (Exception ex) {
+      log.error("Cannot Decrypt. {}", ex.getMessage());
+    }
     blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
     return blob;
   }

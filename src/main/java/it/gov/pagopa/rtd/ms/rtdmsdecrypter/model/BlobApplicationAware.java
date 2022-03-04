@@ -41,6 +41,8 @@ public class BlobApplicationAware {
   @Value("${decrypt.blobclient.targetContainer.rtd}")
   private String targetContainerRtd;
 
+  private String targetDir = "/tmp";
+
   private Pattern uriPattern = Pattern.compile("^.*containers/((ade|rtd)-transactions-[a-z0-9]{44})/blobs/((ADE|CSTAR).*)");
 
 
