@@ -1,6 +1,6 @@
 logging:
   level:
-    root: ERROR
+    root: WARN
   org:
     apache: OFF
     springframework: OFF

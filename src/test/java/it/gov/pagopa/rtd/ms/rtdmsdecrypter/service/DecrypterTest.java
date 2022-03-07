@@ -17,16 +17,40 @@ import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Iterator;
+import java.util.List;
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.function.context.config.ContextFunctionCatalogAutoConfiguration;
+import org.springframework.cloud.stream.binder.Binder;
+import org.springframework.cloud.stream.binder.BinderConfiguration;
+import org.springframework.cloud.stream.config.BinderFactoryAutoConfiguration;
+import org.springframework.cloud.stream.config.BindingServiceConfiguration;
+import org.springframework.cloud.stream.config.SpelExpressionConverterConfiguration;
+import org.springframework.cloud.stream.function.FunctionConfiguration;
+import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.cloud.stream.messaging.DirectWithAttributesChannel;
+import org.springframework.context.ApplicationContext;
+import org.springframework.kafka.annotation.KafkaListenerAnnotationBeanPostProcessor;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.support.ProducerListener;
+import org.springframework.messaging.Message;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.kafka.clients.NetworkClient;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPCompressedData;
@@ -44,11 +68,64 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ContextConfiguration(classes = {Decrypter.class})
+@TestPropertySource(value = {"classpath:application-nokafka.yml"}, inheritProperties = false)
 class DecrypterTest {
+
 
   @Autowired
   Decrypter decrypter;
+
+  @Autowired
+  ApplicationContext context;
+
+  // @MockBean
+  // KafkaAutoConfiguration kafkaAutoConfiguration;
+
+  // @MockBean
+  // BinderFactoryAutoConfiguration biderfactoey;
+
+  // @MockBean
+  // FunctionConfiguration conf;
+
+  // @MockBean
+
+  // @MockBean
+  // ContextFunctionCatalogAutoConfiguration prop;
+
+  // @MockBean
+  // SpelExpressionConverterConfiguration spelomf;
+
+
+  // @MockBean
+  // KafkaListenerAnnotationBeanPostProcessor kafkapost;
+ 
+  // @MockBean
+  // KafkaListenerEndpointRegistry kfkareg;
+  
+  // @MockBean
+  // KafkaAnnotationDrivenConfiguration kafkaAnnotationConf;
+
+  // @MockBean
+  // ProducerFactory<Object, Object> factory;
+
+  // @MockBean
+  // ProducerListener<Object, Object> listener;
+
+  // @MockBean
+  // NetworkClient client;
+
+  // @MockBean
+  // ConsumerFactory<Object, Object> consumer;
+
+  
+
+//  @MockBean
+//   BindingServiceConfiguration binding;
+
+//   @MockBean
+//   Consumer<Message<List<EventGridEvent>>> my_consumer;
+
 
   @Value("${decrypt.resources.base.path}")
   String resources;
