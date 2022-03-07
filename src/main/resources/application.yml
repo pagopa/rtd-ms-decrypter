@@ -70,7 +70,6 @@ spring:
             security:
               protocol: SASL_SSL
           consumerProperties:
-            autoStartup: false
             key: 
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
             value:
