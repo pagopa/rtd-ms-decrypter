@@ -1,14 +1,38 @@
-
 logging:
   level:
-    root: INFO
+    root: WARN
+  org:
+    apache: OFF
+    springframework: OFF
+    kafka: OFF
 
+decrypt:
+  resources:
+    base:
+      path: src/test/resources
+  private:
+    key: 
+      path: ${CSV_TRANSACTION_PRIVATE_KEY_PATH:${decrypt.resources.base.path}/certs/private_base64.key} # just for tests
+      password: ${CSV_TRANSACTION_PRIVATE_KEY_PASS:privatekeypass}
+  api:
+    baseurl: https://${CSV_TRANSACTION_DECRYPT_HOST:internal.it}/
+  blobclient:
+    basepath: storage
+    apikey: ${INTERNAL_SERVICES_API_KEY:myapikey}
+    targetContainer:
+      rtd: rtd-transactions-decrypted
+      ade: ade-transactions-decrypted
+  
+---
 spring:
+  config:
+    activate:
+      on-profile: test
   cloud:
     stream:
       bindings:
-        blobStorage-in-0: # name must match [handler name]-in-0
-          destination: ${KAFKA_TOPIC_BLOB_STORAGE_EVENTS}
+        blobStorageConsumer-in-0: # name must match [handler name]-in-0
+          destination: rtd-platform-events
           group: rtd-platform-events-consumer-group
           content-type: application/json
           binder: kafka
@@ -16,6 +40,27 @@ spring:
       kafka:
         binder:
           auto-create-topics: false
+          consumerProperties:
+            key: 
+              deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            value:
+              deserializer: org.apache.kafka.common.serialization.StringDeserializer
+---
+spring: 
+  config:
+    activate:
+      on-profile: default
+  cloud:
+    stream:
+      bindings:
+        blobStorageConsumer-in-0: # name must match [handler name]-in-0
+          destination: rtd-platform-events
+          group: rtd-platform-events-consumer-group
+          content-type: application/json
+          binder: kafka
+      kafka:
+        binder:
+          auto-create-topics: false 
           brokers: ${KAFKA_BROKER}          
           configuration:
             sasl:
@@ -25,6 +70,10 @@ spring:
             security:
               protocol: SASL_SSL
           consumerProperties:
+            key: 
+              deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            value:
+              deserializer: org.apache.kafka.common.serialization.StringDeserializer
             socket:
               connection:
                 setup:
@@ -32,10 +81,6 @@ spring:
                     max:
                       ms: 200000
                     ms: 100000
-            key: 
-              deserializer: org.apache.kafka.common.serialization.StringDeserializer
-            value:
-              deserializer: org.apache.kafka.common.serialization.StringDeserializer
             request:
               timeout:
                 ms: 60000

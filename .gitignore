@@ -125,3 +125,9 @@ Desktop.ini
 # ESLint
 ######################
 .eslintcache
+
+
+# Docker
+.env
+**/*.decrypted
+**/*.pgp
