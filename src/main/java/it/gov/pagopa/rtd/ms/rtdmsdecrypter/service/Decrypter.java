@@ -58,8 +58,7 @@ public class Decrypter implements IDecrypter {
 
   @PostConstruct
   private void readKey() throws IOException {
-    log.warn("Private Key: {}", Files.readString(Path.of(this.privateKeyPath)));
-    this.privateKey = new String(Base64.getDecoder().decode(Files.readString(Path.of(this.privateKeyPath)).getBytes(StandardCharsets.UTF_8)));
+    this.privateKey = new String(Base64.getMimeDecoder().decode(Files.readString(Path.of(this.privateKeyPath))));
   }
 
   public BlobApplicationAware decrypt(BlobApplicationAware blob) {
