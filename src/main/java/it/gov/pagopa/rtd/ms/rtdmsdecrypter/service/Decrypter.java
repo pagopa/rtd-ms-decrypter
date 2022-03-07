@@ -79,7 +79,7 @@ public class Decrypter implements IDecrypter {
   }
 
   @SneakyThrows
-  public void decryptFile(InputStream input, OutputStream output) {
+  protected void decryptFile(InputStream input, OutputStream output) {
 
     InputStream keyInput = IOUtils.toInputStream(this.privateKey, StandardCharsets.UTF_8);
     char[] passwd = this.privateKeyPassword.toCharArray();
