@@ -74,7 +74,9 @@ public class Decrypter implements IDecrypter {
     catch (Exception ex) {
       log.error("Cannot Decrypt. {}", ex.getMessage());
     }
+
     blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
+    log.info("Blob {} decrypted.", blob.getBlob());
     return blob;
   }
 
@@ -160,6 +162,7 @@ public class Decrypter implements IDecrypter {
       if (clear != null) {
         clear.close();
       }
+      log.info("File Decrypted");
     }
 
   }
