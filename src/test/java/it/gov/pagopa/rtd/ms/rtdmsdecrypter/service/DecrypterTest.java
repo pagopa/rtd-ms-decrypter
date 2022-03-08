@@ -1,16 +1,6 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchProviderException;
@@ -44,6 +34,8 @@ import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ContextConfiguration(classes = {Decrypter.class})
@@ -91,6 +83,32 @@ class DecrypterTest {
         new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
         new BufferedReader(new FileReader(Path.of(resources, "/file.pgp.csv.decrypted").toFile()))));
   }
+
+    @Test
+    void shouldThrowIOExceptionFromMalformedPGPFile() throws IOException, NoSuchProviderException, PGPException {
+
+        // Creates a malformed pgp file (invalid armor)
+        String pgpfile = "-----BEGIN PGP MESSAGE-----\n" +
+                "Version: BCPG v1.70\n" +
+                "\n" +
+                "hIwDkY2C9aRu58EBA/4iXjfcGwEWj2lb00IDGaQaTTTN+21H8Alk3njyfjWNFhIx\n" +
+                "wcBKRRzK4Ndi6a1LGlP5nwu00M0cGxhdC61dgUEw/AyTERtv1CyYE3RzEg/Ubg5Y\n" +
+                "RLMspoSHdt3lOyYVC/+fc2vi4fZAPUblRYp0LHeFMbI9ZifUBzUe42VSMQaYz9Js\n" +
+                "ASPH6Vgob2ra0vHm3dVT5EKfxdfgcm1ykcRw4kRVbmSTNkIsLQv0K7KgK2HT4BmkAxa\n" +
+                "AJ46hZYQFs2BT6zByv/P69aVFwd8o+pT3E8LSr/mGi5COwE92p64cy6A6+37HHkI\n" +
+                "YMpv7WS8CxB/AbkP\n" +
+                "=4BGg\n" +
+                "-----END PGP MESSAGE-----";
+        BufferedWriter malformedEncryptedFile = new BufferedWriter(new FileWriter(resources + "/malformedEncrypted.pgp"));
+        malformedEncryptedFile.write(pgpfile);
+        malformedEncryptedFile.close();
+
+        // Try to decrypt
+        FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
+        assertThrows(IOException.class, ()-> {decrypter.decryptFile(new FileInputStream(resources + "/malformedEncrypted.pgp"), myClearText);});
+
+        myClearText.close();
+    }
   
   @Test
   void shouldDecrypt() throws IOException, NoSuchProviderException, PGPException {
