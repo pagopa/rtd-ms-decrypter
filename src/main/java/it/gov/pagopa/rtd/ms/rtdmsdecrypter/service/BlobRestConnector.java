@@ -51,7 +51,9 @@ public class BlobRestConnector implements IBlobRestConnector {
     getBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
     
     try {
-      httpClient.execute(getBlob, new FileDownloadResponseHandler(new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile())));
+      OutputStream result = httpClient.execute(getBlob,
+          new FileDownloadResponseHandler(new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile())));
+      result.close();
     }
     catch (Exception ex) {
       log.error("GET Blob failed. {}", ex.getMessage());
@@ -67,7 +69,6 @@ public class BlobRestConnector implements IBlobRestConnector {
  
     FileEntity entity = new FileEntity(Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile(),
         ContentType.create("application/octet-stream"));
-    
 
     final HttpPut putBlob = new HttpPut(uri);
     putBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
