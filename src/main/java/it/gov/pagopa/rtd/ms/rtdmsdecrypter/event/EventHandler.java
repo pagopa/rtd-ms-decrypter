@@ -31,7 +31,7 @@ public class EventHandler {
 				.filter(b -> !BlobApplicationAware.Application.NOAPP.equals(b.getApp()))
 				.map(blobRestConnector::get)
 				.map(decrypter::decrypt)
-				//.map(blobRestConnector::put)
+				.map(blobRestConnector::put)
 				.collect(Collectors.toList());
 	}
 
