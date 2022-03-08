@@ -65,8 +65,8 @@ public class Decrypter implements IDecrypter {
 
 
     try (
-      FileInputStream encrypted = new FileInputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toString());
-      FileOutputStream decrypted = new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toString() );
+      FileInputStream encrypted = new FileInputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile());
+      FileOutputStream decrypted = new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile() );
     ) {
       
       this.decryptFile(encrypted, decrypted);
