@@ -35,11 +35,9 @@ public class BlobApplicationAware {
   private Status status;
   private String targetContainer;
 
-  @Value("${decrypt.blobclient.targetContainer.ade}")
-  private String targetContainerAde;
 
-  @Value("${decrypt.blobclient.targetContainer.rtd}")
-  private String targetContainerRtd;
+  private String targetContainerAde = "ade-transactions-decrypted";
+  private String targetContainerRtd = "rtd-transactions-decrypted";
 
   private String targetDir = "/tmp";
 
