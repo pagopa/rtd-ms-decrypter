@@ -1,10 +1,6 @@
 logging:
   level:
-    root: WARN
-  org:
-    apache: OFF
-    springframework: OFF
-    kafka: OFF
+    root: INFO
 
 decrypt:
   resources:
