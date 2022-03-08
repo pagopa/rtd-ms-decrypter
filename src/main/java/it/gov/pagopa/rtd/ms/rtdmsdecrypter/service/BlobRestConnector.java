@@ -73,14 +73,13 @@ public class BlobRestConnector implements IBlobRestConnector {
     putBlob.setEntity(entity);
 
     try {
-      CloseableHttpResponse  myResponse = httpClient.execute(putBlob);
+      CloseableHttpResponse myResponse = httpClient.execute(putBlob);
       assert (myResponse.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED);
-    }
-    catch (Exception ex) {
-    }
-    finally {
+      log.info("Blob {} created.", blob.getBlob());
+    } catch (Exception ex) {
+    } finally {
       blob.setStatus(BlobApplicationAware.Status.UPLOADED);
-		}
+    }
     return blob;
   }
 

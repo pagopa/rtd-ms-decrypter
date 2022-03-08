@@ -121,7 +121,7 @@ public class Decrypter implements IDecrypter {
       }
 
       if (sKey == null) {
-        throw new IllegalArgumentException("secret key for message not found.");
+        throw new IllegalArgumentException("Secret key for message not found.");
       }
 
       clear = pbe.getDataStream(new JcePublicKeyDataDecryptorFactoryBuilder()
@@ -145,9 +145,9 @@ public class Decrypter implements IDecrypter {
         IOUtils.copy(unencrypted, output);
 
       } else if (message instanceof PGPOnePassSignatureList) {
-        throw new PGPException("encrypted message contains a signed message - not literal data.");
+        throw new PGPException("Encrypted message contains a signed message - not literal data.");
       } else {
-        throw new PGPException("message is not a simple encrypted file - type unknown.");
+        throw new PGPException("Message is not a simple encrypted file - type unknown.");
       }
 
     } catch (PGPException e) {
@@ -157,9 +157,11 @@ public class Decrypter implements IDecrypter {
     } finally {
       keyInput.close();
       if (unencrypted != null) {
+        log.info("Closing unencrypted");
         unencrypted.close();
       }
       if (clear != null) {
+        log.info("Closing clear");
         clear.close();
       }
       log.info("File Decrypted");
