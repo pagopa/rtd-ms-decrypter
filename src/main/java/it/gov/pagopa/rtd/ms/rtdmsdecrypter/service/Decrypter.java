@@ -70,6 +70,7 @@ public class Decrypter implements IDecrypter {
     ) {
       
       this.decryptFile(encrypted, decrypted);
+      decrypted.flush();
     }
     catch (Exception ex) {
       log.error("Cannot Decrypt. {}", ex.getMessage());
