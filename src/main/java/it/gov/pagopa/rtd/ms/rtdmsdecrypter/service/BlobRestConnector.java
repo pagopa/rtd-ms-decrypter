@@ -63,11 +63,12 @@ public class BlobRestConnector implements IBlobRestConnector {
 
   public BlobApplicationAware put(BlobApplicationAware blob) {
 
-    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob.getBlob();
+    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob.getBlob() + ".decrypted";
 
-    FileEntity entity = new FileEntity(new File(Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toString()),
+    FileEntity entity = new FileEntity(Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile(),
         ContentType.create("application/octet-stream"));
     
+
     final HttpPut putBlob = new HttpPut(uri);
     putBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
     putBlob.setEntity(entity);
@@ -75,7 +76,7 @@ public class BlobRestConnector implements IBlobRestConnector {
     try {
       CloseableHttpResponse myResponse = httpClient.execute(putBlob);
       assert (myResponse.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED);
-      log.info("Blob {} created.", blob.getBlob());
+      log.info("Created blob {}.", uri);
     } catch (Exception ex) {
     } finally {
       blob.setStatus(BlobApplicationAware.Status.UPLOADED);
