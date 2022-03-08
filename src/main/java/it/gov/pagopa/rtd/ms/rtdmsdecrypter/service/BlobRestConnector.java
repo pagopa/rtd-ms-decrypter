@@ -72,6 +72,8 @@ public class BlobRestConnector implements IBlobRestConnector {
 
     final HttpPut putBlob = new HttpPut(uri);
     putBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
+    putBlob.setHeader(new BasicHeader("x-ms-blob-type", "BlockBlob"));
+    putBlob.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
     putBlob.setEntity(entity);
 
     try {
