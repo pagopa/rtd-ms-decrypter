@@ -71,7 +71,6 @@ public class Decrypter implements IDecrypter {
     ) {
       
       this.decryptFile(encrypted, decrypted);
-      decrypted.flush();
     }
     catch (Exception ex) {
       log.error("Cannot Decrypt. {}", ex.getMessage());
@@ -146,7 +145,9 @@ public class Decrypter implements IDecrypter {
         unencrypted = ld.getInputStream();
 
         log.info("Copying decrypted stream");
-        StreamUtils.copy(unencrypted, output);
+        if (StreamUtils.copy(unencrypted, output) <= 0) {
+          throw new IOException("Can't extract data from encrypted file");
+        }
 
       } else if (message instanceof PGPOnePassSignatureList) {
         throw new PGPException("Encrypted message contains a signed message - not literal data.");
