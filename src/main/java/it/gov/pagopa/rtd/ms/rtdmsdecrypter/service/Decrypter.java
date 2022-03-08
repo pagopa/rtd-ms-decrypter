@@ -149,6 +149,7 @@ public class Decrypter implements IDecrypter {
       }
 
     } catch (PGPException e) {
+      log.error("PGPException {}", e.getMessage());
       throw e;
 
     } finally {
