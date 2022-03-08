@@ -37,6 +37,7 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyDataDecryptorFactory
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 
@@ -143,7 +144,9 @@ public class Decrypter implements IDecrypter {
         PGPLiteralData ld = (PGPLiteralData) message;
 
         unencrypted = ld.getInputStream();
-        IOUtils.copy(unencrypted, output);
+
+        log.info("Copying decrypted stream");
+        StreamUtils.copy(unencrypted, output);
 
       } else if (message instanceof PGPOnePassSignatureList) {
         throw new PGPException("Encrypted message contains a signed message - not literal data.");
