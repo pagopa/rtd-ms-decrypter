@@ -80,7 +80,6 @@ public class BlobRestConnector implements IBlobRestConnector {
     }
     finally {
       blob.setStatus(BlobApplicationAware.Status.UPLOADED);
-			IOUtils.closeQuietly(httpClient);
 		}
     return blob;
   }
