@@ -11,7 +11,7 @@ decrypt:
       path: ${CSV_TRANSACTION_PRIVATE_KEY_PATH:${decrypt.resources.base.path}/certs/private_base64.key} # just for tests
       password: ${CSV_TRANSACTION_PRIVATE_KEY_PASS:privatekeypass}
   api:
-    baseurl: https://${CSV_TRANSACTION_DECRYPT_HOST:internal.it}/
+    baseurl: https://${CSV_TRANSACTION_DECRYPT_HOST:internal.it}
   blobclient:
     basepath: storage
     apikey: ${INTERNAL_SERVICES_API_KEY:myapikey}
