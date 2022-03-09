@@ -1,6 +1,5 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,7 +14,6 @@ import org.springframework.util.StreamUtils;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ResponseHandler;
@@ -31,7 +29,6 @@ import org.apache.http.message.BasicHeader;
 @Slf4j
 public class BlobRestConnector implements IBlobRestConnector {
 
-
   @Value("${decrypt.api.baseurl}")
   private String baseUrl;
 
@@ -43,7 +40,7 @@ public class BlobRestConnector implements IBlobRestConnector {
 
   @Autowired
   CloseableHttpClient httpClient;
-  
+
   public BlobApplicationAware get(BlobApplicationAware blob) {
 
     String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob.getBlob();
@@ -51,7 +48,9 @@ public class BlobRestConnector implements IBlobRestConnector {
     getBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
     
     try {
-      httpClient.execute(getBlob, new FileDownloadResponseHandler(new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile())));
+      OutputStream result = httpClient.execute(getBlob,
+          new FileDownloadResponseHandler(new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile())));
+      result.close();
     }
     catch (Exception ex) {
       log.error("GET Blob failed. {}", ex.getMessage());
@@ -63,28 +62,30 @@ public class BlobRestConnector implements IBlobRestConnector {
 
   public BlobApplicationAware put(BlobApplicationAware blob) {
 
-    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob.getBlob();
-
-    FileEntity entity = new FileEntity(new File(Path.of(blob.getTargetDir(), blob.getBlob()).toString()),
+    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob.getBlob() + ".decrypted";
+ 
+    FileEntity entity = new FileEntity(Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile(),
         ContentType.create("application/octet-stream"));
-    
+
     final HttpPut putBlob = new HttpPut(uri);
     putBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
+    putBlob.setHeader(new BasicHeader("x-ms-blob-type", "BlockBlob"));
+    putBlob.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
     putBlob.setEntity(entity);
 
     try {
-      CloseableHttpResponse  myResponse = httpClient.execute(putBlob);
-      assert (myResponse.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED);
+      CloseableHttpResponse myResponse = httpClient.execute(putBlob);
+      int status = myResponse.getStatusLine().getStatusCode();
+      if (status == HttpStatus.SC_CREATED) {
+        blob.setStatus(BlobApplicationAware.Status.UPLOADED);
+      } else {
+        log.error("Can't create blob {}. Invalid HTTP response: {}, {}", uri, status, myResponse.getStatusLine().getReasonPhrase());
+      }
+    } catch (Exception ex) {
+      log.error("Can't create blob {}. Unexpected error: {}", uri, ex.getMessage());
     }
-    catch (Exception ex) {
-    }
-    finally {
-      blob.setStatus(BlobApplicationAware.Status.UPLOADED);
-			IOUtils.closeQuietly(httpClient);
-		}
     return blob;
   }
-
 
   static class FileDownloadResponseHandler implements ResponseHandler<OutputStream> {
 

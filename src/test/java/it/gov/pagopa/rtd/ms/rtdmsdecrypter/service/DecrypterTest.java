@@ -106,7 +106,7 @@ class DecrypterTest {
 
     // encrypt with the same routine used by batch service
     FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
-    this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(), this.readPublicKey(publicKey), true, true);
+    this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(), this.readPublicKey(publicKey), false, true);
 
     
     BlobApplicationAware fakeBlob = new BlobApplicationAware(

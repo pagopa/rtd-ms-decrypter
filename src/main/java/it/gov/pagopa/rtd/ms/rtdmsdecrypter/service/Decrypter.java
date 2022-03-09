@@ -37,6 +37,7 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyDataDecryptorFactory
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 
@@ -65,8 +66,8 @@ public class Decrypter implements IDecrypter {
 
 
     try (
-      FileInputStream encrypted = new FileInputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toString());
-      FileOutputStream decrypted = new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toString() );
+      FileInputStream encrypted = new FileInputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile());
+      FileOutputStream decrypted = new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile() );
     ) {
       
       this.decryptFile(encrypted, decrypted);
@@ -74,7 +75,9 @@ public class Decrypter implements IDecrypter {
     catch (Exception ex) {
       log.error("Cannot Decrypt. {}", ex.getMessage());
     }
+
     blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
+    log.info("Blob {} decrypted.", blob.getBlob());
     return blob;
   }
 
@@ -119,7 +122,7 @@ public class Decrypter implements IDecrypter {
       }
 
       if (sKey == null) {
-        throw new IllegalArgumentException("secret key for message not found.");
+        throw new IllegalArgumentException("Secret key for message not found.");
       }
 
       clear = pbe.getDataStream(new JcePublicKeyDataDecryptorFactoryBuilder()
@@ -140,25 +143,33 @@ public class Decrypter implements IDecrypter {
         PGPLiteralData ld = (PGPLiteralData) message;
 
         unencrypted = ld.getInputStream();
-        IOUtils.copy(unencrypted, output);
+
+        log.info("Copying decrypted stream");
+        if (StreamUtils.copy(unencrypted, output) <= 0) {
+          throw new IOException("Can't extract data from encrypted file");
+        }
 
       } else if (message instanceof PGPOnePassSignatureList) {
-        throw new PGPException("encrypted message contains a signed message - not literal data.");
+        throw new PGPException("Encrypted message contains a signed message - not literal data.");
       } else {
-        throw new PGPException("message is not a simple encrypted file - type unknown.");
+        throw new PGPException("Message is not a simple encrypted file - type unknown.");
       }
 
     } catch (PGPException e) {
+      log.error("PGPException {}", e.getMessage());
       throw e;
 
     } finally {
       keyInput.close();
       if (unencrypted != null) {
+        log.info("Closing unencrypted");
         unencrypted.close();
       }
       if (clear != null) {
+        log.info("Closing clear");
         clear.close();
       }
+      log.info("File Decrypted");
     }
 
   }

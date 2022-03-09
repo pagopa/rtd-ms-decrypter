@@ -3,8 +3,6 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.beans.factory.annotation.Value;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -35,11 +33,9 @@ public class BlobApplicationAware {
   private Status status;
   private String targetContainer;
 
-  @Value("${decrypt.blobclient.targetContainer.ade}")
-  private String targetContainerAde;
 
-  @Value("${decrypt.blobclient.targetContainer.rtd}")
-  private String targetContainerRtd;
+  private String targetContainerAde = "ade-transactions-decrypted";
+  private String targetContainerRtd = "rtd-transactions-decrypted";
 
   private String targetDir = "/tmp";
 
