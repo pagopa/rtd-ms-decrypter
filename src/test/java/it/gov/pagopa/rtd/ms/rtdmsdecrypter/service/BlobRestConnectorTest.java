@@ -9,7 +9,6 @@ import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Path;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
@@ -19,9 +18,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -50,54 +49,55 @@ class BlobRestConnectorTest {
   private final static String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
   private final static String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
 
+  private BlobApplicationAware blobIn;
+
+  @BeforeEach
+  public void setUp() {
+    blobIn = new BlobApplicationAware("/blobServices/default/containers/" + container + "/blobs/" + blobName);
+  }
+
   @Test
-  void shouldGet(CapturedOutput output, @TempDir Path tempDir) throws IOException {
+  void shouldGet(CapturedOutput output) throws IOException {
     // Improvement idea: mock all the stuff needed in order to allow the FileDownloadResponseHandler
     // class to create a file in a temporary directory and test the content of the downloaded file
     // for an expected content.
-    BlobApplicationAware blob = new BlobApplicationAware("/blobServices/default/containers/" + container + "/blobs/" + blobName);
-
     OutputStream mockedOutputStream = mock(OutputStream.class);
     doReturn(mockedOutputStream).when(client).execute(any(HttpGet.class), any(BlobRestConnector.FileDownloadResponseHandler.class));
 
-    blob = blobRestConnector.get(blob);
+    BlobApplicationAware blobOut = blobRestConnector.get(blobIn);
 
     verify(client, times(1)).execute(any(HttpUriRequest.class), ArgumentMatchers.<ResponseHandler<OutputStream>>any());
-    assertEquals(BlobApplicationAware.Status.DOWNLOADED, blob.getStatus());
+    assertEquals(BlobApplicationAware.Status.DOWNLOADED, blobOut.getStatus());
     assertThat(output.getOut(), not(containsString("GET Blob failed")));
   }
 
   @Test
   void shouldPut(CapturedOutput output) throws IOException {
-    BlobApplicationAware blob = new BlobApplicationAware("/blobServices/default/containers/" + container + "/blobs/" + blobName);
-
     StatusLine mockedStatusLine = mock(StatusLine.class);
     doReturn(HttpStatus.SC_CREATED).when(mockedStatusLine).getStatusCode();
     CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
     doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
     doReturn(mockedResponse).when(client).execute(any(HttpPut.class));
 
-    blobRestConnector.put(blob);
+    BlobApplicationAware blobOut = blobRestConnector.put(blobIn);
 
     verify(client, times(1)).execute(any(HttpPut.class));
-    assertEquals(BlobApplicationAware.Status.UPLOADED, blob.getStatus());
+    assertEquals(BlobApplicationAware.Status.UPLOADED, blobOut.getStatus());
     assertThat(output.getOut(), not(containsString("Can't create blob")));
   }
 
   @Test
   void shouldNotPut(CapturedOutput output) throws IOException {
-    BlobApplicationAware blob = new BlobApplicationAware("/blobServices/default/containers/" + container + "/blobs/" + blobName);
-
     StatusLine mockedStatusLine = mock(StatusLine.class);
     doReturn(HttpStatus.SC_INTERNAL_SERVER_ERROR).when(mockedStatusLine).getStatusCode();
     CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
     doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
     doReturn(mockedResponse).when(client).execute(any(HttpPut.class));
 
-    blob = blobRestConnector.put(blob);
+    BlobApplicationAware blobOut = blobRestConnector.put(blobIn);
 
     verify(client, times(1)).execute(any(HttpPut.class));
-    assertEquals(BlobApplicationAware.Status.RECEIVED, blob.getStatus());
+    assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
     assertThat(output.getOut(), containsString("Invalid HTTP response: 500"));
   }
 }
