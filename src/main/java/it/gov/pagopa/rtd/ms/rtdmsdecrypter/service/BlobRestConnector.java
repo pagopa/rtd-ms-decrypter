@@ -1,6 +1,5 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,7 +14,6 @@ import org.springframework.util.StreamUtils;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ResponseHandler;
@@ -31,7 +29,6 @@ import org.apache.http.message.BasicHeader;
 @Slf4j
 public class BlobRestConnector implements IBlobRestConnector {
 
-
   @Value("${decrypt.api.baseurl}")
   private String baseUrl;
 
@@ -43,7 +40,7 @@ public class BlobRestConnector implements IBlobRestConnector {
 
   @Autowired
   CloseableHttpClient httpClient;
-  
+
   public BlobApplicationAware get(BlobApplicationAware blob) {
 
     String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob.getBlob();
@@ -79,18 +76,16 @@ public class BlobRestConnector implements IBlobRestConnector {
     try {
       CloseableHttpResponse myResponse = httpClient.execute(putBlob);
       int status = myResponse.getStatusLine().getStatusCode();
-      if ( status != HttpStatus.SC_CREATED)
-      {
-        log.error("Can't create blob {}. Http Response: {}, {}", uri, status, myResponse.getStatusLine().getReasonPhrase());
+      if (status == HttpStatus.SC_CREATED) {
+        blob.setStatus(BlobApplicationAware.Status.UPLOADED);
+      } else {
+        log.error("Can't create blob {}. Invalid HTTP response: {}, {}", uri, status, myResponse.getStatusLine().getReasonPhrase());
       }
     } catch (Exception ex) {
-      log.error("Can't create blob {}. Error: {}", uri, ex.getMessage());
-    } finally {
-      blob.setStatus(BlobApplicationAware.Status.UPLOADED);
+      log.error("Can't create blob {}. Unexpected error: {}", uri, ex.getMessage());
     }
     return blob;
   }
-
 
   static class FileDownloadResponseHandler implements ResponseHandler<OutputStream> {
 
