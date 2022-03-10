@@ -105,11 +105,7 @@ public class BlobApplicationAware {
     }
 
     //Check for progressive value
-    if((uriTokens[4] == null) || !uriTokens[4].matches("[0-9]{3}")){
-        return false;
-    }
-
-    return true;
+    return (uriTokens[4] != null) && uriTokens[4].matches("[0-9]{3}");
   }
 
 }
