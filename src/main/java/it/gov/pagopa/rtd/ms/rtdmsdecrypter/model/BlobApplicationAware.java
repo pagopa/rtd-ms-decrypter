@@ -40,7 +40,6 @@ public class BlobApplicationAware {
   private String targetDir = "/tmp";
 
   //Note: This pattern does not support leap years
-  //TODO Maybe a check for the presence of a real ABI code should be performed
   //The following pattern matches PagoPA file name's standard
   //  Specifics can be found at: https://docs.pagopa.it/digital-transaction-register/v/digital-transaction-filter/acquirer-integration-with-pagopa-centrostella/integration/standard-pagopa-file-transactions
   // It is separated in lines to be easily read and maintained:
