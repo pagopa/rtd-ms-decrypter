@@ -45,6 +45,8 @@ public class BlobApplicationAware {
 
   private Pattern uriPattern = Pattern.compile("^.*containers/((ade|rtd)-transactions-[a-z0-9]{44})/blobs/((ADE|CSTAR)(\\.)(.*))");
 
+  private String WRONG_FORMAT_NAME_WARNING_MSG = "Wrong name format:";
+
   public BlobApplicationAware(String uri) {
     blobUri = uri;
     status = Status.INIT;
@@ -66,17 +68,17 @@ public class BlobApplicationAware {
           app = Application.RTD;
           targetContainer = targetContainerRtd;
         } else {
-          log.warn("Wrong name format:"+blobUri);
+          log.warn(WRONG_FORMAT_NAME_WARNING_MSG+blobUri);
           app = Application.NOAPP;
         }
       }
       else {
-        log.warn("Wrong name format:"+blobUri);
+        log.warn(WRONG_FORMAT_NAME_WARNING_MSG+blobUri);
         app = Application.NOAPP;
       }
     }
     else {
-      log.warn("Wrong name format:"+blobUri);
+      log.warn(WRONG_FORMAT_NAME_WARNING_MSG+blobUri);
       app = Application.NOAPP;
     }
   }
