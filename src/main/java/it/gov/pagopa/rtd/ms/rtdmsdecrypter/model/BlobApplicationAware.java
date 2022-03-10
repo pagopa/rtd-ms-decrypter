@@ -98,7 +98,7 @@ public class BlobApplicationAware {
     daysformat.setLenient(false);
 
     try {
-      System.out.println(daysformat.parse(uriTokens[2]+uriTokens[3]));
+      daysformat.parse(uriTokens[2]+uriTokens[3]);
     }
     catch (ParseException e){
       return false;
