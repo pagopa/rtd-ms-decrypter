@@ -142,6 +142,7 @@ class DecrypterTest {
       ));
   }
 
+  //TODO Test the content of the blob, throwing an exception in case of malformed blob (see decrypt method in service/Decrypter.java)
 
   // This routine should be factored out in a common module
   // https://github.com/pagopa/rtd-ms-transaction-filter/blob/76ef81bd58be8c9a9d417735c87ad1c08360a091/api/batch/src/main/java/it/gov/pagopa/rtd/transaction_filter/batch/encryption/EncryptUtil.java#L194

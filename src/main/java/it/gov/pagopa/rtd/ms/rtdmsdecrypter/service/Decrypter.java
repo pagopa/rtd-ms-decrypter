@@ -73,6 +73,7 @@ public class Decrypter implements IDecrypter {
       this.decryptFile(encrypted, decrypted);
     }
     catch (Exception ex) {
+      //TODO should throw an IOException just like decryptFile, this creates problems in the event handler where the method chaining doesn't allow Exception throws
       log.error("Cannot Decrypt. {}", ex.getMessage());
     }
 
