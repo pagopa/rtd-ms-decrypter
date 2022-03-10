@@ -23,7 +23,7 @@ public class EventHandler {
 	@Bean
 	public Consumer<Message<List<EventGridEvent>>> blobStorageConsumer(Decrypter decrypter,
 			BlobRestConnector blobRestConnector) {
-		//TODO wrap in try-catch in case of malformed blobs' decryption
+		//Should be wrapped in try-catch in case of malformed blobs' decryption
 		return message -> message.getPayload().stream()
 				.filter(e -> "Microsoft.Storage.BlobCreated".equals(e.getEventType()))
 				.map(EventGridEvent::getSubject)
