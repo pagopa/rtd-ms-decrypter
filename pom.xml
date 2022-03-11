@@ -10,9 +10,9 @@
     <!-- lookup parent from repository -->
   </parent>
   <groupId>it.gov.pagopa.rtd.ms</groupId>
-  <artifactId>rtd-ms-decrypterImpl</artifactId>
+  <artifactId>rtd-ms-decrypter</artifactId>
   <version>1.0.1</version>
-  <name>rtd-ms-decrypterImpl</name>
+  <name>rtd-ms-decrypter</name>
   <description>Microservice capable of decrypting PGP files</description>
   <properties>
     <java.version>11</java.version>
