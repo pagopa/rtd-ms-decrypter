@@ -38,13 +38,13 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodG
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ContextConfiguration(classes = {Decrypter.class})
+@ContextConfiguration(classes = {DecrypterImpl.class})
 @TestPropertySource(value = {"classpath:application-nokafka.yml"}, inheritProperties = false)
-class DecrypterTest {
+class DecrypterImplTest {
 
 
   @Autowired
-  Decrypter decrypter;
+  DecrypterImpl decrypterImpl;
 
   @Value("${decrypt.resources.base.path}")
   String resources;
@@ -56,7 +56,7 @@ class DecrypterTest {
   void shouldDecodeBase64File() throws IOException {
     // After constuction, Decrypter method readKey is called, so the key is in
     // private attribute
-    assertEquals(Files.readString(Path.of(resources, "certs/private.key")), decrypter.getPrivateKey());
+    assertEquals(Files.readString(Path.of(resources, "certs/private.key")), decrypterImpl.getPrivateKey());
   }
 
   @Test
@@ -76,7 +76,7 @@ class DecrypterTest {
     FileInputStream myEncrypted = new FileInputStream(resources + "/encrypted.pgp");
     FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
 
-    decrypter.decryptFile(myEncrypted, myClearText);
+    decrypterImpl.decryptFile(myEncrypted, myClearText);
     myClearText.close();
 
     assertTrue(IOUtils.contentEquals(
@@ -89,7 +89,8 @@ class DecrypterTest {
 
         // Try to decrypt a malformed encrypted file
         FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
-        assertThrows(IOException.class, ()-> {decrypter.decryptFile(new FileInputStream(resources + "/malformedEncrypted.pgp"), myClearText);});
+        assertThrows(IOException.class, ()-> {
+          decrypterImpl.decryptFile(new FileInputStream(resources + "/malformedEncrypted.pgp"), myClearText);});
 
         myClearText.close();
     }
@@ -117,7 +118,7 @@ class DecrypterTest {
     // decrypt and compare
     fakeBlob.setTargetDir(resources);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
-    decrypter.decrypt(fakeBlob);
+    decrypterImpl.decrypt(fakeBlob);
 
 
     assertTrue(IOUtils.contentEquals(

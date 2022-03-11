@@ -24,8 +24,8 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ActiveProfiles;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
-import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnector;
-import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.Decrypter;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 
 @SpringBootTest
 @EmbeddedKafka(topics = {
@@ -38,10 +38,10 @@ class EventHandlerTest {
   Consumer<Message<List<EventGridEvent>>> my_consumer;
 
   @MockBean
-  private BlobRestConnector blobRestConnector;
+  private BlobRestConnectorImpl blobRestConnectorImpl;
   
   @MockBean
-  private Decrypter decrypter;
+  private DecrypterImpl decrypterImpl;
 
   @Test
   void blobUriShouldPassRegex(CapturedOutput output) {
@@ -58,7 +58,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(1)).get(any());
+    verify(blobRestConnectorImpl, times(1)).get(any());
     assertThat(output.getOut(), not(containsString("Wrong name format:")));
   }
 
@@ -77,7 +77,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 
@@ -96,7 +96,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 
@@ -115,7 +115,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(1)).get(any());
+    verify(blobRestConnectorImpl, times(1)).get(any());
     assertThat(output.getOut(), not(containsString("Wrong name format:")));
   }
 
@@ -134,7 +134,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 
@@ -153,7 +153,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 
@@ -172,7 +172,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 
@@ -191,7 +191,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 
@@ -210,7 +210,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 
@@ -229,7 +229,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 
@@ -248,7 +248,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 
@@ -267,7 +267,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 
@@ -286,7 +286,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 
@@ -305,7 +305,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 
@@ -324,7 +324,7 @@ class EventHandlerTest {
     my_list.add(my_event);
     Message<List<EventGridEvent>> msg = MessageBuilder.withPayload(my_list).build();
     my_consumer.accept(msg);
-    verify(blobRestConnector, times(0)).get(any());
+    verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Wrong name format:"));
   }
 

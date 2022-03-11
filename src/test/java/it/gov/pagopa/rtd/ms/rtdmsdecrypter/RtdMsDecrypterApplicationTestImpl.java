@@ -2,8 +2,8 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.event.EventHandler;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
-import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnector;
-import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.Decrypter;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ActiveProfiles;
@@ -31,16 +31,16 @@ import java.time.Duration;
 @ActiveProfiles("test")
 @EmbeddedKafka(topics = {
     "rtd-platform-events" }, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
-class RtdMsDecrypterApplicationTest {
+class RtdMsDecrypterApplicationTestImpl {
 
   @MockBean
-  Decrypter decrypter;
+  DecrypterImpl decrypterImpl;
 
   @SpyBean
   EventHandler handler;
 
   @MockBean
-  BlobRestConnector blobRestConnector;
+  BlobRestConnectorImpl blobRestConnectorImpl;
 
   @Autowired
   private DirectWithAttributesChannel channel;
@@ -64,7 +64,7 @@ class RtdMsDecrypterApplicationTest {
       channel.send(MessageBuilder.withPayload(my_list).build());
 
       // decrypt() is an inner call. Check first
-      verify(decrypter, times(1)).decrypt(any());
+      verify(decrypterImpl, times(1)).decrypt(any());
       verify(handler, times(1)).blobStorageConsumer(any(), any());
 
     });

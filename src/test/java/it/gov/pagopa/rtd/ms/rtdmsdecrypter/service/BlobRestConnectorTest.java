@@ -41,7 +41,7 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 class BlobRestConnectorTest {
 
   @Autowired
-  BlobRestConnector blobRestConnector;
+  BlobRestConnectorImpl blobRestConnectorImpl;
 
   @MockBean
   CloseableHttpClient client;
@@ -62,9 +62,9 @@ class BlobRestConnectorTest {
     // class to create a file in a temporary directory and test the content of the downloaded file
     // for an expected content.
     OutputStream mockedOutputStream = mock(OutputStream.class);
-    doReturn(mockedOutputStream).when(client).execute(any(HttpGet.class), any(BlobRestConnector.FileDownloadResponseHandler.class));
+    doReturn(mockedOutputStream).when(client).execute(any(HttpGet.class), any(BlobRestConnectorImpl.FileDownloadResponseHandler.class));
 
-    BlobApplicationAware blobOut = blobRestConnector.get(blobIn);
+    BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobIn);
 
     verify(client, times(1)).execute(any(HttpUriRequest.class), ArgumentMatchers.<ResponseHandler<OutputStream>>any());
     assertEquals(BlobApplicationAware.Status.DOWNLOADED, blobOut.getStatus());
@@ -79,7 +79,7 @@ class BlobRestConnectorTest {
     doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
     doReturn(mockedResponse).when(client).execute(any(HttpPut.class));
 
-    BlobApplicationAware blobOut = blobRestConnector.put(blobIn);
+    BlobApplicationAware blobOut = blobRestConnectorImpl.put(blobIn);
 
     verify(client, times(1)).execute(any(HttpPut.class));
     assertEquals(BlobApplicationAware.Status.UPLOADED, blobOut.getStatus());
@@ -94,7 +94,7 @@ class BlobRestConnectorTest {
     doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
     doReturn(mockedResponse).when(client).execute(any(HttpPut.class));
 
-    BlobApplicationAware blobOut = blobRestConnector.put(blobIn);
+    BlobApplicationAware blobOut = blobRestConnectorImpl.put(blobIn);
 
     verify(client, times(1)).execute(any(HttpPut.class));
     assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());

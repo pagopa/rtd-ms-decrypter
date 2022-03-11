@@ -7,9 +7,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class RtdMsDecrypterApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(RtdMsDecrypterApplication.class, args);
-
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(RtdMsDecrypterApplication.class, args);
+  }
 
 }

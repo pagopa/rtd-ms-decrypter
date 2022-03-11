@@ -1,8 +1,8 @@
-# rtd-ms-decrypter
+# rtd-ms-decrypterImpl
 # Read Me First
 The following was discovered as part of building this project:
 
-* The original package name 'it.gov.pagopa.rtd.ms.rtd-ms-decrypter' is invalid and this project uses 'it.gov.pagopa.rtd.ms.rtdmsdecrypter' instead.
+* The original package name 'it.gov.pagopa.rtd.ms.rtd-ms-decrypterImpl' is invalid and this project uses 'it.gov.pagopa.rtd.ms.rtdmsdecrypter' instead.
 
 # Getting Started
 
