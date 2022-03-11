@@ -5,7 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Getter
 @Setter
-@NoArgsConstructor
 @Slf4j
 public class BlobApplicationAware {
 
