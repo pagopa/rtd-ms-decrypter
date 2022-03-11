@@ -47,7 +47,6 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(value = {"classpath:application-nokafka.yml"}, inheritProperties = false)
 class DecrypterTest {
 
-
   @Autowired
   DecrypterImpl decrypterImpl;
 
@@ -59,7 +58,7 @@ class DecrypterTest {
 
   @Test
   void shouldDecodeBase64File() throws IOException {
-    // After constuction, Decrypter method readKey is called, so the key is in
+    // After construction, Decrypter method readKey is called, so the key is in
     // private attribute
     assertEquals(Files.readString(Path.of(resources, "certs/private.key")),
         decrypterImpl.getPrivateKey());

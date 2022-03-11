@@ -58,11 +58,11 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
           new FileDownloadResponseHandler(
               new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile())));
       result.close();
+      blob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     } catch (Exception ex) {
       log.error("GET Blob failed. {}", ex.getMessage());
     }
 
-    blob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     return blob;
   }
 

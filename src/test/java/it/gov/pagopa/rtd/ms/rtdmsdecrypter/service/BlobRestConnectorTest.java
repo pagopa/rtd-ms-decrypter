@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -73,6 +74,19 @@ class BlobRestConnectorTest {
         ArgumentMatchers.<ResponseHandler<OutputStream>>any());
     assertEquals(BlobApplicationAware.Status.DOWNLOADED, blobOut.getStatus());
     assertThat(output.getOut(), not(containsString("GET Blob failed")));
+  }
+
+  @Test
+  void shouldFail(CapturedOutput output) throws IOException {
+    doThrow(IOException.class).when(client)
+        .execute(any(HttpGet.class), any(BlobRestConnectorImpl.FileDownloadResponseHandler.class));
+
+    BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobIn);
+
+    verify(client, times(1)).execute(any(HttpUriRequest.class),
+        ArgumentMatchers.<ResponseHandler<OutputStream>>any());
+    assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
+    assertThat(output.getOut(), containsString("GET Blob failed"));
   }
 
   @Test
