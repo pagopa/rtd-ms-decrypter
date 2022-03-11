@@ -93,6 +93,8 @@ public class Decrypter implements IDecrypter {
     InputStream unencrypted = null;
     InputStream clear = null;
 
+    boolean successfulDecryption = true;
+
     try {
       JcaPGPObjectFactory pgpF = new JcaPGPObjectFactory(input);
       PGPEncryptedDataList encrypted;
@@ -158,9 +160,12 @@ public class Decrypter implements IDecrypter {
 
     } catch (PGPException e) {
       log.error("PGPException {}", e.getMessage());
+      successfulDecryption=false;
       throw e;
     }
     catch (IOException e) {
+      log.error("IOException {}", e.getMessage());
+      successfulDecryption=false;
       throw e;
     }
       finally {
@@ -173,7 +178,7 @@ public class Decrypter implements IDecrypter {
         log.info("Closing clear");
         clear.close();
       }
-      log.info("File Decrypted");
+      if(successfulDecryption) log.info("File Decrypted");
     }
 
   }
