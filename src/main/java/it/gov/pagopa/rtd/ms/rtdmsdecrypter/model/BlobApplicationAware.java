@@ -9,18 +9,27 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Class representing a blob-stored transactions file, and it's processing state.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
 @Slf4j
 public class BlobApplicationAware {
 
+  /**
+   * Enumeration of managed applications (i.e. 'verticals')
+   */
   public enum Application {
     RTD,
     ADE,
     NOAPP
   }
 
+  /**
+   * File lifecycle statuses.
+   */
   public enum Status {
     INIT,
     RECEIVED,
@@ -46,6 +55,11 @@ public class BlobApplicationAware {
 
   private static final String WRONG_FORMAT_NAME_WARNING_MSG = "Wrong name format:";
 
+  /**
+   * Constructor.
+   *
+   * @param uri the blob URI
+   */
   public BlobApplicationAware(String uri) {
     blobUri = uri;
     status = Status.INIT;

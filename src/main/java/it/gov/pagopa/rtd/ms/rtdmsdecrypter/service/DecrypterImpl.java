@@ -38,6 +38,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
+/**
+ * Class implementing PGP decryption logic.
+ */
 @Service
 @Slf4j
 @Getter
@@ -51,13 +54,18 @@ public class DecrypterImpl implements Decrypter {
 
   private String privateKey;
 
-
   @PostConstruct
   private void readKey() throws IOException {
     this.privateKey = new String(
         Base64.getMimeDecoder().decode(Files.readString(Path.of(this.privateKeyPath))));
   }
 
+  /**
+   * Constructor.
+   *
+   * @param blob a blob containing a PGP encrypted transactions file.
+   * @return an unencrypted blob
+   */
   public BlobApplicationAware decrypt(BlobApplicationAware blob) {
 
     try (

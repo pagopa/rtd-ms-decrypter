@@ -22,6 +22,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
+/**
+ * Concrete implementation of a BlobRestConnector interface.
+ */
 @Service
 @Slf4j
 public class BlobRestConnectorImpl implements BlobRestConnector {
@@ -38,6 +41,12 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   @Autowired
   CloseableHttpClient httpClient;
 
+  /**
+   * Constructor.
+   *
+   * @param blob a blob that has been received but not downloaded
+   * @return a locally available blob
+   */
   public BlobApplicationAware get(BlobApplicationAware blob) {
 
     String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob.getBlob();
@@ -57,6 +66,12 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     return blob;
   }
 
+  /**
+   * Uploads a blob to remote storage.
+   *
+   * @param blob a blob locally available
+   * @return an uploaded blob
+   */
   public BlobApplicationAware put(BlobApplicationAware blob) {
 
     String uri =

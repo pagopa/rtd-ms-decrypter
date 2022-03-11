@@ -18,6 +18,9 @@ import org.apache.http.ssl.SSLContexts;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Thread safe HTTP client implementing pooling.
+ */
 @Configuration
 public class ThreadSafeHttpClient {
 

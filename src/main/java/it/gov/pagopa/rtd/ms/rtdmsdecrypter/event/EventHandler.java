@@ -12,10 +12,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 
+/**
+ * Component defining the processing steps in response to storage events.
+ */
 @Configuration
 @Getter
 public class EventHandler {
 
+  /**
+   * Constructor.
+   *
+   * @param decrypterImpl an instance of a Decrypter
+   * @param blobRestConnectorImpl an instance of a blobRestConnector
+   * @return a consumer for Event Grid events
+   */
   @Bean
   public Consumer<Message<List<EventGridEvent>>> blobStorageConsumer(DecrypterImpl decrypterImpl,
       BlobRestConnectorImpl blobRestConnectorImpl) {
