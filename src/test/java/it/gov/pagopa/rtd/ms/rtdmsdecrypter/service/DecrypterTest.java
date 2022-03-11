@@ -1,16 +1,6 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchProviderException;
@@ -44,6 +34,8 @@ import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ContextConfiguration(classes = {Decrypter.class})
@@ -91,6 +83,16 @@ class DecrypterTest {
         new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
         new BufferedReader(new FileReader(Path.of(resources, "/file.pgp.csv.decrypted").toFile()))));
   }
+
+    @Test
+    void shouldThrowIOExceptionFromMalformedPGPFile() throws IOException, NoSuchProviderException, PGPException {
+
+        // Try to decrypt a malformed encrypted file
+        FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
+        assertThrows(IOException.class, ()-> {decrypter.decryptFile(new FileInputStream(resources + "/malformedEncrypted.pgp"), myClearText);});
+
+        myClearText.close();
+    }
   
   @Test
   void shouldDecrypt() throws IOException, NoSuchProviderException, PGPException {
@@ -123,7 +125,6 @@ class DecrypterTest {
         new BufferedReader(new FileReader(Path.of(resources, fakeBlob.getBlob() + ".decrypted").toFile()))
       ));
   }
-
 
   // This routine should be factored out in a common module
   // https://github.com/pagopa/rtd-ms-transaction-filter/blob/76ef81bd58be8c9a9d417735c87ad1c08360a091/api/batch/src/main/java/it/gov/pagopa/rtd/transaction_filter/batch/encryption/EncryptUtil.java#L194

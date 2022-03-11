@@ -73,6 +73,7 @@ public class Decrypter implements IDecrypter {
       this.decryptFile(encrypted, decrypted);
     }
     catch (Exception ex) {
+      //Should throw an IOException just like decryptFile, this creates problems in the event handler where the method chaining doesn't allow Exception throws
       log.error("Cannot Decrypt. {}", ex.getMessage());
     }
 
@@ -91,6 +92,8 @@ public class Decrypter implements IDecrypter {
     input = PGPUtil.getDecoderStream(input);
     InputStream unencrypted = null;
     InputStream clear = null;
+
+    boolean successfulDecryption = true;
 
     try {
       JcaPGPObjectFactory pgpF = new JcaPGPObjectFactory(input);
@@ -157,9 +160,15 @@ public class Decrypter implements IDecrypter {
 
     } catch (PGPException e) {
       log.error("PGPException {}", e.getMessage());
+      successfulDecryption=false;
       throw e;
-
-    } finally {
+    }
+    catch (IOException e) {
+      log.error("IOException {}", e.getMessage());
+      successfulDecryption=false;
+      throw e;
+    }
+      finally {
       keyInput.close();
       if (unencrypted != null) {
         log.info("Closing unencrypted");
@@ -169,7 +178,7 @@ public class Decrypter implements IDecrypter {
         log.info("Closing clear");
         clear.close();
       }
-      log.info("File Decrypted");
+      if(successfulDecryption) log.info("File Decrypted");
     }
 
   }
