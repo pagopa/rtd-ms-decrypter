@@ -72,18 +72,19 @@ public class DecrypterImpl implements Decrypter {
         FileInputStream encrypted = new FileInputStream(
             Path.of(blob.getTargetDir(), blob.getBlob()).toFile());
         FileOutputStream decrypted = new FileOutputStream(
-            Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile());
+            Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile())
     ) {
 
       this.decryptFile(encrypted, decrypted);
+      blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
+      log.info("Blob {} decrypted.", blob.getBlob());
+
     } catch (Exception ex) {
       // Should throw an IOException just like decryptFile, this creates problems in the event
       // handler where the method chaining doesn't allow Exception throws
       log.error("Cannot Decrypt. {}", ex.getMessage());
     }
 
-    blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
-    log.info("Blob {} decrypted.", blob.getBlob());
     return blob;
   }
 
