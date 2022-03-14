@@ -88,8 +88,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     putBlob.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
     putBlob.setEntity(entity);
 
-    try {
-      CloseableHttpResponse myResponse = httpClient.execute(putBlob);
+    try (CloseableHttpResponse myResponse = httpClient.execute(putBlob)) {
       int status = myResponse.getStatusLine().getStatusCode();
       if (status == HttpStatus.SC_CREATED) {
         blob.setStatus(BlobApplicationAware.Status.UPLOADED);
