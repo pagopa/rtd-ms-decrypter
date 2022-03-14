@@ -52,6 +52,7 @@ public class BlobApplicationAware {
       "^.*containers/((ade|rtd)-transactions-[a-z0-9]{44})/blobs/((ADE|CSTAR)(\\.)(.*))");
 
   private static final String WRONG_FORMAT_NAME_WARNING_MSG = "Wrong name format:";
+  private static final String EVENT_NOT_OF_INTEREST_WARNING_MSG = "Event not of interest:";
 
   /**
    * Constructor.
@@ -88,7 +89,7 @@ public class BlobApplicationAware {
         app = Application.NOAPP;
       }
     } else {
-      log.warn(WRONG_FORMAT_NAME_WARNING_MSG + blobUri);
+      log.info(EVENT_NOT_OF_INTEREST_WARNING_MSG + blobUri);
       app = Application.NOAPP;
     }
   }
