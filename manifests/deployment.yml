@@ -23,6 +23,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: rtddecrypter
+            - secretRef:
+                name: application-insights
           env:
             - name: KAFKA_TOPIC_BLOB_STORAGE_EVENTS
               valueFrom:
