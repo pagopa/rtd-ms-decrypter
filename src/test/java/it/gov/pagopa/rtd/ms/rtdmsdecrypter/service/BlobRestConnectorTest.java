@@ -5,11 +5,15 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import java.io.IOException;
 import java.io.OutputStream;
-
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ResponseHandler;
@@ -30,18 +34,16 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 
-import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
-
 
 @SpringBootTest
 @ActiveProfiles("test")
 @EmbeddedKafka(topics = {
-  "rtd-platform-events" }, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
+    "rtd-platform-events"}, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
 @ExtendWith(OutputCaptureExtension.class)
 class BlobRestConnectorTest {
 
   @Autowired
-  BlobRestConnector blobRestConnector;
+  BlobRestConnectorImpl blobRestConnectorImpl;
 
   @MockBean
   CloseableHttpClient client;
@@ -53,7 +55,8 @@ class BlobRestConnectorTest {
 
   @BeforeEach
   public void setUp() {
-    blobIn = new BlobApplicationAware("/blobServices/default/containers/" + container + "/blobs/" + blobName);
+    blobIn = new BlobApplicationAware(
+        "/blobServices/default/containers/" + container + "/blobs/" + blobName);
   }
 
   @Test
@@ -62,13 +65,28 @@ class BlobRestConnectorTest {
     // class to create a file in a temporary directory and test the content of the downloaded file
     // for an expected content.
     OutputStream mockedOutputStream = mock(OutputStream.class);
-    doReturn(mockedOutputStream).when(client).execute(any(HttpGet.class), any(BlobRestConnector.FileDownloadResponseHandler.class));
+    doReturn(mockedOutputStream).when(client)
+        .execute(any(HttpGet.class), any(BlobRestConnectorImpl.FileDownloadResponseHandler.class));
 
-    BlobApplicationAware blobOut = blobRestConnector.get(blobIn);
+    BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobIn);
 
-    verify(client, times(1)).execute(any(HttpUriRequest.class), ArgumentMatchers.<ResponseHandler<OutputStream>>any());
+    verify(client, times(1)).execute(any(HttpUriRequest.class),
+        ArgumentMatchers.<ResponseHandler<OutputStream>>any());
     assertEquals(BlobApplicationAware.Status.DOWNLOADED, blobOut.getStatus());
     assertThat(output.getOut(), not(containsString("GET Blob failed")));
+  }
+
+  @Test
+  void shouldFail(CapturedOutput output) throws IOException {
+    doThrow(IOException.class).when(client)
+        .execute(any(HttpGet.class), any(BlobRestConnectorImpl.FileDownloadResponseHandler.class));
+
+    BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobIn);
+
+    verify(client, times(1)).execute(any(HttpUriRequest.class),
+        ArgumentMatchers.<ResponseHandler<OutputStream>>any());
+    assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
+    assertThat(output.getOut(), containsString("GET Blob failed"));
   }
 
   @Test
@@ -79,7 +97,7 @@ class BlobRestConnectorTest {
     doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
     doReturn(mockedResponse).when(client).execute(any(HttpPut.class));
 
-    BlobApplicationAware blobOut = blobRestConnector.put(blobIn);
+    BlobApplicationAware blobOut = blobRestConnectorImpl.put(blobIn);
 
     verify(client, times(1)).execute(any(HttpPut.class));
     assertEquals(BlobApplicationAware.Status.UPLOADED, blobOut.getStatus());
@@ -94,7 +112,7 @@ class BlobRestConnectorTest {
     doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
     doReturn(mockedResponse).when(client).execute(any(HttpPut.class));
 
-    BlobApplicationAware blobOut = blobRestConnector.put(blobIn);
+    BlobApplicationAware blobOut = blobRestConnectorImpl.put(blobIn);
 
     verify(client, times(1)).execute(any(HttpPut.class));
     assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());

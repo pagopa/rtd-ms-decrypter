@@ -1,76 +1,73 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-
 
 /**
- * Properties of an event published to an Event Grid topic.
- * https://docs.microsoft.com/en-us/azure/event-grid/event-schema
+ * Properties of an event published to an Event Grid topic. https://docs.microsoft.com/en-us/azure/event-grid/event-schema
  */
 @NoArgsConstructor
 @Getter
 @Setter
 public class EventGridEvent {
-    /**
-     * An unique identifier for the event.
-     */
-    @JsonProperty(value = "id", required = true)
-    private String id;
 
-    /**
-     * The resource path of the event source.
-     */
-    @JsonProperty(value = "topic")
-    private String topic;
+  /**
+   * A unique identifier for the event.
+   */
+  @JsonProperty(value = "id", required = true)
+  private String id;
 
-    /**
-     * A resource path relative to the topic path.
-     */
-    @JsonProperty(value = "subject", required = true)
-    private String subject;
+  /**
+   * The resource path of the event source.
+   */
+  @JsonProperty(value = "topic")
+  private String topic;
 
-    /**
-     * Event data specific to the event type.
-     */
-    @JsonProperty(value = "data", required = true)
-    private Object data;
+  /**
+   * A resource path relative to the topic path.
+   */
+  @JsonProperty(value = "subject", required = true)
+  private String subject;
 
-    /**
-     * The type of the event that occurred.
-     */
-    @JsonProperty(value = "eventType", required = true)
-    private String eventType;
+  /**
+   * Event data specific to the event type.
+   */
+  @JsonProperty(value = "data", required = true)
+  private Object data;
 
-    /**
-     * The time (in UTC) the event was generated.
-     */
-    //@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+  /**
+   * The type of the event that occurred.
+   */
+  @JsonProperty(value = "eventType", required = true)
+  private String eventType;
 
-    @JsonProperty(value = "eventTime", required = true)
-    private LocalDateTime eventTime;
+  /**
+   * The time (in UTC) the event was generated.
+   */
+  //@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+  @JsonSerialize(using = LocalDateTimeSerializer.class)
+  @JsonDeserialize(using = LocalDateTimeDeserializer.class)
 
-    /**
-     * The schema version of the event metadata.
-     */
-    @JsonProperty(value = "metadataVersion", access = JsonProperty.Access.WRITE_ONLY)
-    private String metadataVersion;
+  @JsonProperty(value = "eventTime", required = true)
+  private LocalDateTime eventTime;
 
-    /**
-     * The schema version of the data object.
-     */
-    @JsonProperty(value = "dataVersion", required = true)
-    private String dataVersion;
+  /**
+   * The schema version of the event metadata.
+   */
+  @JsonProperty(value = "metadataVersion", access = JsonProperty.Access.WRITE_ONLY)
+  private String metadataVersion;
+
+  /**
+   * The schema version of the data object.
+   */
+  @JsonProperty(value = "dataVersion", required = true)
+  private String dataVersion;
 }
