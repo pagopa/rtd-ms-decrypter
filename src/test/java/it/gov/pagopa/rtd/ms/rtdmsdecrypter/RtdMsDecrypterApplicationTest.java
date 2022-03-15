@@ -83,7 +83,9 @@ class RtdMsDecrypterApplicationTest {
       channel.send(MessageBuilder.withPayload(my_list).build());
 
       // decrypt() is an inner call. Check first
+      verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(1)).decrypt(any());
+      verify(blobRestConnectorImpl, times(1)).put(any());
       verify(handler, times(1)).blobStorageConsumer(any(), any());
 
     });
@@ -106,14 +108,16 @@ class RtdMsDecrypterApplicationTest {
       channel.send(MessageBuilder.withPayload(my_list).build());
 
       // decrypt() is an inner call. Check first
+      verify(blobRestConnectorImpl, times(0)).get(any());
       verify(decrypterImpl, times(0)).decrypt(any());
+      verify(blobRestConnectorImpl, times(0)).put(any());
       verify(handler, times(1)).blobStorageConsumer(any(), any());
       assertThat(output.getOut(), containsString("Wrong name format:"));
     });
   }
 
   @Test
-  void shouldFilterMessageForFailedgGet(CapturedOutput output) {
+  void shouldFilterMessageForFailedgGet() {
 
     EventGridEvent my_event = new EventGridEvent();
     my_event.setId(myID);
@@ -132,13 +136,15 @@ class RtdMsDecrypterApplicationTest {
       channel.send(MessageBuilder.withPayload(my_list).build());
 
       // decrypt() is an inner call. Check first
+      verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(0)).decrypt(any());
+      verify(blobRestConnectorImpl, times(0)).put(any());
       verify(handler, times(1)).blobStorageConsumer(any(), any());
     });
   }
 
   @Test
-  void shouldFilterMessageForFailedDecrypt(CapturedOutput output) {
+  void shouldFilterMessageForFailedDecrypt() {
 
     EventGridEvent my_event = new EventGridEvent();
     my_event.setId(myID);
@@ -158,13 +164,15 @@ class RtdMsDecrypterApplicationTest {
       channel.send(MessageBuilder.withPayload(my_list).build());
 
       // decrypt() is an inner call. Check first
+      verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(1)).decrypt(any());
+      verify(blobRestConnectorImpl, times(0)).put(any());
       verify(handler, times(1)).blobStorageConsumer(any(), any());
     });
   }
 
   @Test
-  void shouldFilterMessageForFailedPut(CapturedOutput output) {
+  void shouldFilterMessageForFailedPut() {
 
     EventGridEvent my_event = new EventGridEvent();
     my_event.setId(myID);
@@ -187,7 +195,9 @@ class RtdMsDecrypterApplicationTest {
       channel.send(MessageBuilder.withPayload(my_list).build());
 
       // decrypt() is an inner call. Check first
+      verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(1)).decrypt(any());
+      verify(blobRestConnectorImpl, times(1)).put(any());
       verify(handler, times(1)).blobStorageConsumer(any(), any());
     });
   }
