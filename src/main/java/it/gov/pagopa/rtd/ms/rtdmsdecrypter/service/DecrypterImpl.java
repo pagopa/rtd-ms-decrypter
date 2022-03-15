@@ -99,8 +99,6 @@ public class DecrypterImpl implements Decrypter {
     InputStream unencrypted = null;
     InputStream clear = null;
 
-    boolean successfulDecryption = true;
-
     try {
       JcaPGPObjectFactory pgpF = new JcaPGPObjectFactory(input);
       PGPEncryptedDataList encrypted;
@@ -159,13 +157,12 @@ public class DecrypterImpl implements Decrypter {
         throw new PGPException("Message is not a simple encrypted file - type unknown.");
       }
 
+      log.info("File Decrypted");
     } catch (PGPException e) {
       log.error("PGPException {}", e.getMessage());
-      successfulDecryption = false;
       throw e;
     } catch (IOException e) {
       log.error("IOException {}", e.getMessage());
-      successfulDecryption = false;
       throw e;
     } finally {
       keyInput.close();
@@ -176,9 +173,6 @@ public class DecrypterImpl implements Decrypter {
       if (clear != null) {
         log.info("Closing clear");
         clear.close();
-      }
-      if (successfulDecryption) {
-        log.info("File Decrypted");
       }
     }
 
