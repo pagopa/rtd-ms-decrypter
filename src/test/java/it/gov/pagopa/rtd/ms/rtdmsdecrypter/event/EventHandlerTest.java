@@ -15,7 +15,6 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import org.apache.kafka.common.protocol.types.Field.Str;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;

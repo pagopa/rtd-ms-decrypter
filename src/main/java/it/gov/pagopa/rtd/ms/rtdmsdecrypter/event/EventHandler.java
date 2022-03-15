@@ -1,12 +1,10 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.event;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
-import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.Getter;
