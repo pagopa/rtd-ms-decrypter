@@ -82,7 +82,7 @@ public class DecrypterImpl implements Decrypter {
     } catch (Exception ex) {
       // Should throw an IOException just like decryptFile, this creates problems in the event
       // handler where the method chaining doesn't allow Exception throws
-      log.error("Cannot Decrypt. {}", ex.getMessage());
+      log.error("Cannot decrypt {}: {}", blob.getBlob(), ex.getMessage());
     }
 
     return blob;
