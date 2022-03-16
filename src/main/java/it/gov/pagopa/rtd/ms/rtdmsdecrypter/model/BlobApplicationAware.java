@@ -1,5 +1,7 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
@@ -33,7 +35,8 @@ public class BlobApplicationAware {
     RECEIVED,
     DOWNLOADED,
     DECRYPTED,
-    UPLOADED
+    UPLOADED,
+    DELETED
   }
 
   private String blobUri;
@@ -154,8 +157,8 @@ public class BlobApplicationAware {
     File blobEncrypted = Path.of(targetDir, blob).toFile();
     File blobDecrypted = Path.of(targetDir, blob + ".decrypted").toFile();
 
-    boolean encryptedDeleted;
-    boolean decryptedDeleted;
+    boolean encryptedDeleted = false;
+    boolean decryptedDeleted = false;
 
     //For both files check whether they are present and, if so, if their deletion has been successful
     //  In case of failure the process isn't blocked
@@ -179,6 +182,9 @@ public class BlobApplicationAware {
       log.warn(MISSING_FILE_WARNING_MSG + blobDecrypted.getPath());
     }
 
+    if (encryptedDeleted && decryptedDeleted) {
+      status = Status.DELETED;
+    }
     //False is returned to filter and get rid of the event
     return false;
   }
