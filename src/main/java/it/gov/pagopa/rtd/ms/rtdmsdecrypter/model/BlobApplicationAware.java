@@ -146,6 +146,39 @@ public class BlobApplicationAware {
     return (uriTokens[5] != null) && uriTokens[5].matches("[0-9]{3}");
   }
 
+  public boolean localCleanup() {
+    //Get the path to both encrypted and decrypted local blob files
+    File blobEncrypted = Path.of(targetDir, blob).toFile();
+    File blobDecrypted = Path.of(targetDir, blob + ".decrypted").toFile();
+
+    boolean encryptedDeleted;
+    boolean decryptedDeleted;
+
+    //For both files check whether they are present and, if so, if their deletion has been successful
+    //  In case of failure the process isn't blocked
+    //  Instead, warning are logged
+
+    if (blobEncrypted.exists()) {
+      encryptedDeleted = blobEncrypted.delete();
+      if (!encryptedDeleted) {
+        log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobEncrypted.getPath());
+      }
+    } else {
+      log.warn(MISSING_FILE_WARNING_MSG + blobEncrypted.getPath());
+    }
+
+    if (blobDecrypted.exists()) {
+      decryptedDeleted = blobDecrypted.delete();
+      if (!decryptedDeleted) {
+        log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobDecrypted.getPath());
+      }
+    } else {
+      log.warn(MISSING_FILE_WARNING_MSG + blobDecrypted.getPath());
+    }
+
+    //False is returned to filter and get rid of the event
+    return false;
+  }
 }
   
 
