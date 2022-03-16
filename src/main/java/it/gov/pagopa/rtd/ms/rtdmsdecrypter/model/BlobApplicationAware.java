@@ -152,6 +152,11 @@ public class BlobApplicationAware {
     return (uriTokens[5] != null) && uriTokens[5].matches("[0-9]{3}");
   }
 
+  /**
+   * This method deletes the local files left by the blob handling (get, decrypt, put).
+   *
+   * @return false, in order to filter the event in the event handler
+   */
   public boolean localCleanup() {
     //Get the path to both encrypted and decrypted local blob files
     File blobEncrypted = Path.of(targetDir, blob).toFile();
@@ -160,9 +165,12 @@ public class BlobApplicationAware {
     boolean encryptedDeleted = false;
     boolean decryptedDeleted = false;
 
-    //For both files check whether they are present and, if so, if their deletion has been successful
-    //  In case of failure the process isn't blocked
-    //  Instead, warning are logged
+    /**
+     * For both files check whether they are present.
+     * If so, if their deletion has been successful.
+     * In case of failure the process isn't blocked.
+     * Instead, warning are logged.
+     */
 
     if (blobEncrypted.exists()) {
       encryptedDeleted = blobEncrypted.delete();
