@@ -55,6 +55,9 @@ public class BlobApplicationAware {
   private static final String CONFLICTING_SERVICE_WARNING_MSG = "Conflicting service in URI:";
   private static final String EVENT_NOT_OF_INTEREST_WARNING_MSG = "Event not of interest:";
 
+  private static final String MISSING_FILE_WARNING_MSG = "Local blob file missing for deletion:";
+  private static final String FAIL_FILE_DELETE_WARNING_MSG = "Failed to delete local blob file:";
+
   /**
    * Constructor.
    *
