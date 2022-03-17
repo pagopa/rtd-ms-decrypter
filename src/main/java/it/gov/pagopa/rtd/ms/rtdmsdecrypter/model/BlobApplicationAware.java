@@ -1,5 +1,8 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
@@ -33,7 +36,8 @@ public class BlobApplicationAware {
     RECEIVED,
     DOWNLOADED,
     DECRYPTED,
-    UPLOADED
+    UPLOADED,
+    DELETED
   }
 
   private String blobUri;
@@ -54,6 +58,8 @@ public class BlobApplicationAware {
   private static final String WRONG_FORMAT_NAME_WARNING_MSG = "Wrong name format:";
   private static final String CONFLICTING_SERVICE_WARNING_MSG = "Conflicting service in URI:";
   private static final String EVENT_NOT_OF_INTEREST_WARNING_MSG = "Event not of interest:";
+
+  private static final String FAIL_FILE_DELETE_WARNING_MSG = "Failed to delete local blob file:";
 
   /**
    * Constructor.
@@ -146,6 +152,46 @@ public class BlobApplicationAware {
     return (uriTokens[5] != null) && uriTokens[5].matches("[0-9]{3}");
   }
 
+  /**
+   * This method deletes the local files left by the blob handling (get, decrypt, put).
+   *
+   * @return false, in order to filter the event in the event handler
+   */
+  public boolean localCleanup() {
+    //Get the path to both encrypted and decrypted local blob files
+    Path blobEncrypted = Path.of(targetDir, blob);
+    Path blobDecrypted = Path.of(targetDir, blob + ".decrypted");
+
+    boolean encryptedDeleted = false;
+    boolean decryptedDeleted = false;
+
+    //
+    // For both files check whether they are present.
+    // If so, if their deletion has been successful.
+    // In case of failure the process isn't blocked.
+    // Instead, warning are logged.
+    //
+
+    try {
+      Files.delete(blobEncrypted);
+      encryptedDeleted = true;
+    } catch (IOException ex) {
+      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobEncrypted + " (" + ex.getMessage() + ")");
+    }
+
+    try {
+      Files.delete(blobDecrypted);
+      decryptedDeleted = true;
+    } catch (IOException ex) {
+      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobDecrypted + " (" + ex.getMessage() + ")");
+    }
+
+    if (encryptedDeleted && decryptedDeleted) {
+      status = Status.DELETED;
+    }
+    //False is returned to filter and get rid of the event
+    return false;
+  }
 }
   
 
