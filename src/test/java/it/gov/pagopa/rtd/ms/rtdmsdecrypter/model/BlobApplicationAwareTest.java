@@ -84,7 +84,7 @@ class BlobApplicationAwareTest {
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
 
     fakeBlob.localCleanup();
-    assertThat(output.getOut(), containsString("Local blob file missing for deletion:"));
+    assertThat(output.getOut(), containsString("Failed to delete local blob file:"));
   }
 
   @Test
@@ -101,7 +101,7 @@ class BlobApplicationAwareTest {
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
 
     fakeBlob.localCleanup();
-    assertThat(output.getOut(), containsString("Local blob file missing for deletion:"));
+    assertThat(output.getOut(), containsString("Failed to delete local blob file:"));
   }
 
 }
