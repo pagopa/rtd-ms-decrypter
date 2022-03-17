@@ -165,12 +165,12 @@ public class BlobApplicationAware {
     boolean encryptedDeleted = false;
     boolean decryptedDeleted = false;
 
-    /**
-     * For both files check whether they are present.
-     * If so, if their deletion has been successful.
-     * In case of failure the process isn't blocked.
-     * Instead, warning are logged.
-     */
+    //
+    // For both files check whether they are present.
+    // If so, if their deletion has been successful.
+    // In case of failure the process isn't blocked.
+    // Instead, warning are logged.
+    //
 
     if (blobEncrypted.exists()) {
       encryptedDeleted = blobEncrypted.delete();
