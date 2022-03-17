@@ -160,7 +160,6 @@ public class BlobApplicationAware {
    */
   public boolean localCleanup() {
     //Get the path to both encrypted and decrypted local blob files
-    //File blobEncrypted = Path.of(targetDir, blob).toFile();
     Path blobEncrypted = Path.of(targetDir, blob);
     Path blobDecrypted = Path.of(targetDir, blob + ".decrypted");
 
