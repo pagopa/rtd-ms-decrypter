@@ -1,7 +1,8 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
-import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
@@ -159,8 +160,9 @@ public class BlobApplicationAware {
    */
   public boolean localCleanup() {
     //Get the path to both encrypted and decrypted local blob files
-    File blobEncrypted = Path.of(targetDir, blob).toFile();
-    File blobDecrypted = Path.of(targetDir, blob + ".decrypted").toFile();
+    //File blobEncrypted = Path.of(targetDir, blob).toFile();
+    Path blobEncrypted = Path.of(targetDir, blob);
+    Path blobDecrypted = Path.of(targetDir, blob + ".decrypted");
 
     boolean encryptedDeleted = false;
     boolean decryptedDeleted = false;
@@ -172,22 +174,26 @@ public class BlobApplicationAware {
     // Instead, warning are logged.
     //
 
-    if (blobEncrypted.exists()) {
-      encryptedDeleted = blobEncrypted.delete();
-      if (!encryptedDeleted) {
-        log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobEncrypted.getPath());
+    if (Files.exists(blobEncrypted)) {
+      try {
+        Files.delete(blobEncrypted);
+        encryptedDeleted = true;
+      } catch (IOException ex) {
+        log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobEncrypted + " (" + ex.getMessage() + ")");
       }
     } else {
-      log.warn(MISSING_FILE_WARNING_MSG + blobEncrypted.getPath());
+      log.warn(MISSING_FILE_WARNING_MSG + blobEncrypted);
     }
 
-    if (blobDecrypted.exists()) {
-      decryptedDeleted = blobDecrypted.delete();
-      if (!decryptedDeleted) {
-        log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobDecrypted.getPath());
+    if (Files.exists(blobDecrypted)) {
+      try {
+        Files.delete(blobDecrypted);
+        decryptedDeleted = true;
+      } catch (IOException ex) {
+        log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobDecrypted + " (" + ex.getMessage() + ")");
       }
     } else {
-      log.warn(MISSING_FILE_WARNING_MSG + blobDecrypted.getPath());
+      log.warn(MISSING_FILE_WARNING_MSG + blobDecrypted);
     }
 
     if (encryptedDeleted && decryptedDeleted) {
