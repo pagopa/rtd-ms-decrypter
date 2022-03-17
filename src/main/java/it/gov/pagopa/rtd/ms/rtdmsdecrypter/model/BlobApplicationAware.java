@@ -59,7 +59,6 @@ public class BlobApplicationAware {
   private static final String CONFLICTING_SERVICE_WARNING_MSG = "Conflicting service in URI:";
   private static final String EVENT_NOT_OF_INTEREST_WARNING_MSG = "Event not of interest:";
 
-  private static final String MISSING_FILE_WARNING_MSG = "Local blob file missing for deletion:";
   private static final String FAIL_FILE_DELETE_WARNING_MSG = "Failed to delete local blob file:";
 
   /**
@@ -173,26 +172,18 @@ public class BlobApplicationAware {
     // Instead, warning are logged.
     //
 
-    if (Files.exists(blobEncrypted)) {
-      try {
-        Files.delete(blobEncrypted);
-        encryptedDeleted = true;
-      } catch (IOException ex) {
-        log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobEncrypted + " (" + ex.getMessage() + ")");
-      }
-    } else {
-      log.warn(MISSING_FILE_WARNING_MSG + blobEncrypted);
+    try {
+      Files.delete(blobEncrypted);
+      encryptedDeleted = true;
+    } catch (IOException ex) {
+      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobEncrypted + " (" + ex.getMessage() + ")");
     }
 
-    if (Files.exists(blobDecrypted)) {
-      try {
-        Files.delete(blobDecrypted);
-        decryptedDeleted = true;
-      } catch (IOException ex) {
-        log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobDecrypted + " (" + ex.getMessage() + ")");
-      }
-    } else {
-      log.warn(MISSING_FILE_WARNING_MSG + blobDecrypted);
+    try {
+      Files.delete(blobDecrypted);
+      decryptedDeleted = true;
+    } catch (IOException ex) {
+      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobDecrypted + " (" + ex.getMessage() + ")");
     }
 
     if (encryptedDeleted && decryptedDeleted) {
