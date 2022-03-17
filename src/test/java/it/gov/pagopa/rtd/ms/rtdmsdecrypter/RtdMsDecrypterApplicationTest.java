@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.event.EventHandler;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
@@ -45,11 +46,14 @@ class RtdMsDecrypterApplicationTest {
   @MockBean
   BlobRestConnectorImpl blobRestConnectorImpl;
 
+  @MockBean
+  BlobApplicationAware blobApplicationAware;
+
   @Autowired
   private DirectWithAttributesChannel channel;
 
   private final String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
-  private final String blob = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
+  private final String blob = "CSTAR.99910.TRNLOG.20220316.103107.001.csv.pgp";
   private final String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blob;
 
   private final String myID = "my_id";
@@ -71,12 +75,18 @@ class RtdMsDecrypterApplicationTest {
     BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobDecrypted = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobUploaded = new BlobApplicationAware(blobUri);
+
     blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobDecrypted.setStatus(BlobApplicationAware.Status.DECRYPTED);
     blobUploaded.setStatus(BlobApplicationAware.Status.UPLOADED);
+
     doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
     doReturn(blobDecrypted).when(decrypterImpl).decrypt(any(BlobApplicationAware.class));
-    doReturn(blobUploaded).when(blobRestConnectorImpl).put(any(BlobApplicationAware.class));
+    doReturn(blobApplicationAware).when(blobRestConnectorImpl).put(any(BlobApplicationAware.class));
+
+    //Mock of the interested blob's methods
+    doReturn(Status.UPLOADED).when(blobApplicationAware).getStatus();
+    doReturn(false).when(blobApplicationAware).localCleanup();
 
     await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
 
@@ -86,6 +96,7 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(1)).decrypt(any());
       verify(blobRestConnectorImpl, times(1)).put(any());
+      verify(blobApplicationAware, times(1)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any());
 
     });
@@ -111,6 +122,7 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(0)).get(any());
       verify(decrypterImpl, times(0)).decrypt(any());
       verify(blobRestConnectorImpl, times(0)).put(any());
+      verify(blobApplicationAware, times(0)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any());
       assertThat(output.getOut(), containsString("Wrong name format:"));
     });
@@ -139,6 +151,7 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(0)).decrypt(any());
       verify(blobRestConnectorImpl, times(0)).put(any());
+      verify(blobApplicationAware, times(0)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any());
     });
   }
@@ -167,6 +180,7 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(1)).decrypt(any());
       verify(blobRestConnectorImpl, times(0)).put(any());
+      verify(blobApplicationAware, times(0)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any());
     });
   }
@@ -198,6 +212,7 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(1)).decrypt(any());
       verify(blobRestConnectorImpl, times(1)).put(any());
+      verify(blobApplicationAware, times(0)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any());
     });
   }
