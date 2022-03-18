@@ -189,7 +189,6 @@ public class BlobApplicationAware {
     if (encryptedDeleted && decryptedDeleted) {
       status = Status.DELETED;
     }
-
     return this;
   }
 }

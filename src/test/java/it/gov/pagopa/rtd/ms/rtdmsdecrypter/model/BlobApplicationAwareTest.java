@@ -65,7 +65,7 @@ class BlobApplicationAwareTest {
     BlobApplicationAware fakeBlob = new BlobApplicationAware(
         "/blobServices/default/containers/" + container + "/blobs/" + blobName);
     fakeBlob.setTargetDir(resources);
-
+    
     assertEquals(Status.DELETED, fakeBlob.localCleanup().getStatus());
   }
 
