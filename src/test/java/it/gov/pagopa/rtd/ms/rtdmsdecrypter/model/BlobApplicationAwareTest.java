@@ -2,9 +2,10 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -64,9 +65,8 @@ class BlobApplicationAwareTest {
     BlobApplicationAware fakeBlob = new BlobApplicationAware(
         "/blobServices/default/containers/" + container + "/blobs/" + blobName);
     fakeBlob.setTargetDir(resources);
-    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
-
-    assertFalse(fakeBlob.localCleanup());
+    
+    assertEquals(Status.DELETED, fakeBlob.localCleanup().getStatus());
   }
 
   @Test
