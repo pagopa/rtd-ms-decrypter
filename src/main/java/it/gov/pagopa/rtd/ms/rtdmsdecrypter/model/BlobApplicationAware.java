@@ -157,7 +157,7 @@ public class BlobApplicationAware {
    *
    * @return false, in order to filter the event in the event handler
    */
-  public boolean localCleanup() {
+  public BlobApplicationAware localCleanup() {
     //Get the path to both encrypted and decrypted local blob files
     Path blobEncrypted = Path.of(targetDir, blob);
     Path blobDecrypted = Path.of(targetDir, blob + ".decrypted");
@@ -166,31 +166,31 @@ public class BlobApplicationAware {
     boolean decryptedDeleted = false;
 
     //
-    // For both files check whether they are present.
-    // If so, if their deletion has been successful.
+    // For both files check whether their deletion has been successful.
     // In case of failure the process isn't blocked.
     // Instead, warning are logged.
+    // DELETED status is set only if both files are deleted correctly.
     //
 
     try {
       Files.delete(blobEncrypted);
       encryptedDeleted = true;
     } catch (IOException ex) {
-      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobEncrypted + " (" + ex.getMessage() + ")");
+      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobEncrypted + " (" + ex + ")");
     }
 
     try {
       Files.delete(blobDecrypted);
       decryptedDeleted = true;
     } catch (IOException ex) {
-      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobDecrypted + " (" + ex.getMessage() + ")");
+      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobDecrypted + " (" + ex + ")");
     }
 
     if (encryptedDeleted && decryptedDeleted) {
       status = Status.DELETED;
     }
-    //False is returned to filter and get rid of the event
-    return false;
+
+    return this;
   }
 }
   
