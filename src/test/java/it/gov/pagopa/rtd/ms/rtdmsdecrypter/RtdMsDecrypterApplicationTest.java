@@ -75,18 +75,20 @@ class RtdMsDecrypterApplicationTest {
     BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobDecrypted = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobUploaded = new BlobApplicationAware(blobUri);
+    BlobApplicationAware blobDeleted = new BlobApplicationAware(blobUri);
 
     blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobDecrypted.setStatus(BlobApplicationAware.Status.DECRYPTED);
     blobUploaded.setStatus(BlobApplicationAware.Status.UPLOADED);
+    blobDeleted.setStatus(BlobApplicationAware.Status.DELETED);
 
     doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
     doReturn(blobDecrypted).when(decrypterImpl).decrypt(any(BlobApplicationAware.class));
     doReturn(blobApplicationAware).when(blobRestConnectorImpl).put(any(BlobApplicationAware.class));
 
     //Mock of the interested blob's methods
+    doReturn(blobDeleted).when(blobApplicationAware).localCleanup();
     doReturn(Status.UPLOADED).when(blobApplicationAware).getStatus();
-    doReturn(false).when(blobApplicationAware).localCleanup();
 
     await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
 
