@@ -111,10 +111,11 @@ class DecrypterTest {
       throws IOException, NoSuchProviderException, PGPException {
 
     // Try to decrypt a malformed encrypted file
+    FileInputStream myMalformedEncrypted = new FileInputStream(
+        resources + "/malformedEncrypted.pgp");
     FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
     assertThrows(IOException.class, () -> {
-      decrypterImpl.decryptFile(new FileInputStream(resources + "/malformedEncrypted.pgp"),
-          myClearText);
+      decrypterImpl.decryptFile(myMalformedEncrypted, myClearText);
     });
 
     myClearText.close();
