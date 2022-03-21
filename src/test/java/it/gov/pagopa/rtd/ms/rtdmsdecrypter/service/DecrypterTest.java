@@ -1,8 +1,14 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import java.io.BufferedReader;
@@ -36,15 +42,19 @@ import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @ContextConfiguration(classes = {DecrypterImpl.class})
 @TestPropertySource(value = {"classpath:application-nokafka.yml"}, inheritProperties = false)
+@ExtendWith(OutputCaptureExtension.class)
 class DecrypterTest {
 
   @Autowired
@@ -55,6 +65,11 @@ class DecrypterTest {
 
   @Value("${decrypt.private.key.password}")
   String privateKeyPassword;
+
+  String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
+  String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
+  BlobApplicationAware fakeBlob = new BlobApplicationAware(
+      "/blobServices/default/containers/" + container + "/blobs/" + blobName);
 
   @Test
   void shouldDecodeBase64File() throws IOException {
@@ -108,8 +123,33 @@ class DecrypterTest {
   @Test
   void shouldDecrypt() throws IOException, NoSuchProviderException, PGPException {
 
-    String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
-    String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
+    // generate file
+    String sourceFileName = "cleartext.csv";
+
+    // Read the publicKey
+    FileInputStream publicKey = new FileInputStream(
+        Path.of(resources, "/certs/public.key").toString());
+
+    // encrypt with the same routine used by batch service
+    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+    this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
+        this.readPublicKey(publicKey), false, true);
+
+    // decrypt and compare
+    fakeBlob.setTargetDir(resources);
+    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    decrypterImpl.decrypt(fakeBlob);
+
+    assertTrue(IOUtils.contentEquals(
+        new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
+        new BufferedReader(
+            new FileReader(Path.of(resources, fakeBlob.getBlob() + ".decrypted").toFile()))
+    ));
+  }
+
+  @Test
+  void shouldThrowDecryptNoData(CapturedOutput output)
+      throws IOException, NoSuchProviderException, PGPException {
 
     // generate file
     String sourceFileName = "cleartext.csv";
@@ -123,19 +163,128 @@ class DecrypterTest {
     this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
         this.readPublicKey(publicKey), false, true);
 
-    BlobApplicationAware fakeBlob = new BlobApplicationAware(
-        "/blobServices/default/containers/" + container + "/blobs/" + blobName);
+    //Partially mocked decrypter
+    DecrypterImpl mockDecrypterImpl = mock(DecrypterImpl.class);
 
-    // decrypt and compare
+    when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
+    doThrow(new IOException("Can't extract data from encrypted file")).when(mockDecrypterImpl)
+        .decryptFile(any(), any());
+
     fakeBlob.setTargetDir(resources);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
-    decrypterImpl.decrypt(fakeBlob);
+    mockDecrypterImpl.decrypt(fakeBlob);
 
-    assertTrue(IOUtils.contentEquals(
-        new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
-        new BufferedReader(
-            new FileReader(Path.of(resources, fakeBlob.getBlob() + ".decrypted").toFile()))
-    ));
+    assertThat(output.getOut(), containsString("Can't extract data from encrypted file"));
+  }
+
+  @Test
+  void shouldFailDecryptNoSecretKey(CapturedOutput output)
+      throws IOException, NoSuchProviderException, PGPException {
+
+    //Partially mocked decrypter
+    DecrypterImpl mockDecrypterImpl = mock(DecrypterImpl.class);
+
+    when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
+    doThrow(new IllegalArgumentException("Secret key for message not found.")).when(
+        mockDecrypterImpl).decryptFile(any(), any());
+
+    fakeBlob.setTargetDir(resources);
+    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    mockDecrypterImpl.decrypt(fakeBlob);
+
+    assertThat(output.getOut(), containsString("Secret key for message not found."));
+  }
+
+  @Test
+  void shouldNotDecryptNoData(CapturedOutput output)
+      throws IOException, NoSuchProviderException, PGPException {
+
+    // generate file
+    String sourceFileName = "cleartext.csv";
+
+    // Read the publicKey
+    FileInputStream publicKey = new FileInputStream(
+        Path.of(resources, "/certs/public.key").toString());
+
+    // encrypt with the same routine used by batch service
+    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+    this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
+        this.readPublicKey(publicKey), false, true);
+
+    //Partially mocked decrypter
+    DecrypterImpl mockDecrypterImpl = mock(DecrypterImpl.class);
+
+    when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
+    doThrow(new IOException("Can't extract data from encrypted file")).when(mockDecrypterImpl)
+        .decryptFile(any(), any());
+
+    fakeBlob.setTargetDir(resources);
+    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    mockDecrypterImpl.decrypt(fakeBlob);
+
+    assertThat(output.getOut(), containsString("Can't extract data from encrypted file"));
+  }
+
+  @Test
+  void shouldNotDecryptNoLiteralData(CapturedOutput output)
+      throws IOException, NoSuchProviderException, PGPException {
+
+    String sourceFileName = "cleartext.csv";
+
+    // Read the publicKey
+    FileInputStream publicKey = new FileInputStream(
+        Path.of(resources, "/certs/public.key").toString());
+
+    // encrypt with the same routine used by batch service
+    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+    this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
+        this.readPublicKey(publicKey), false, true);
+
+    //Partially mocked decrypter
+    DecrypterImpl mockDecrypterImpl = mock(DecrypterImpl.class);
+
+    when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
+    doThrow(
+        new PGPException("Encrypted message contains a signed message - not literal data.")).when(
+        mockDecrypterImpl).decryptFile(any(), any());
+
+    fakeBlob.setTargetDir(resources);
+    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    mockDecrypterImpl.decrypt(fakeBlob);
+
+    assertThat(output.getOut(),
+        containsString("Encrypted message contains a signed message - not literal data."));
+  }
+
+  @Test
+  void shouldNotDecryptTypeUnknown(CapturedOutput output)
+      throws IOException, NoSuchProviderException, PGPException {
+
+    // generate file
+    String sourceFileName = "cleartext.csv";
+
+    // Read the publicKey
+    FileInputStream publicKey = new FileInputStream(
+        Path.of(resources, "/certs/public.key").toString());
+
+    // encrypt with the same routine used by batch service
+    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+    this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
+        this.readPublicKey(publicKey), false, true);
+
+    //Partially mocked decrypter
+    DecrypterImpl mockDecrypterImpl = mock(DecrypterImpl.class);
+
+    when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
+    doThrow(new PGPException("Message is not a simple encrypted file - type unknown.")).when(
+        mockDecrypterImpl).decryptFile(any(), any());
+
+    fakeBlob.setTargetDir(resources);
+    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    mockDecrypterImpl.decrypt(fakeBlob);
+
+    assertThat(output.getOut(),
+        containsString("Message is not a simple encrypted file - type unknown."));
   }
 
   // This routine should be factored out in a common module
