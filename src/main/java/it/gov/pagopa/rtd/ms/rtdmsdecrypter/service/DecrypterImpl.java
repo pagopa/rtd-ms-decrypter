@@ -161,11 +161,7 @@ public class DecrypterImpl implements Decrypter {
       }
 
       log.info("File Decrypted");
-    } catch (IOException e) {
-      System.out.println(e.getMessage());
-      throw e;
-    }
-      finally {
+    } finally {
       keyInput.close();
       if (unencrypted != null) {
         log.info("Closing unencrypted");
