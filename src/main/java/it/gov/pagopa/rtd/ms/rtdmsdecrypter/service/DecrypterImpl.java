@@ -91,7 +91,8 @@ public class DecrypterImpl implements Decrypter {
   }
 
   @SneakyThrows
-  protected void decryptFile(InputStream input, OutputStream output) throws IOException, PGPException{
+  protected void decryptFile(InputStream input, OutputStream output)
+      throws IOException, PGPException {
 
     InputStream keyInput = IOUtils.toInputStream(this.privateKey, StandardCharsets.UTF_8);
     char[] passwd = this.privateKeyPassword.toCharArray();
@@ -160,7 +161,11 @@ public class DecrypterImpl implements Decrypter {
       }
 
       log.info("File Decrypted");
-    } finally {
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
+      throw e;
+    }
+      finally {
       keyInput.close();
       if (unencrypted != null) {
         log.info("Closing unencrypted");
