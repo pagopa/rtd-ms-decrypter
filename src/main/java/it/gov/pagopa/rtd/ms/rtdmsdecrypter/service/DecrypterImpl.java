@@ -79,17 +79,19 @@ public class DecrypterImpl implements Decrypter {
       blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
       log.info("Blob {} decrypted.", blob.getBlob());
 
-    } catch (Exception ex) {
-      // Should throw an IOException just like decryptFile, this creates problems in the event
-      // handler where the method chaining doesn't allow Exception throws
-      log.error("Cannot decrypt {}: {}", blob.getBlob(), ex.getMessage());
+    } catch (IOException e) {
+      log.warn("{}: {}", e.getMessage(), blob.getBlob());
+    } catch (PGPException e) {
+      log.error("Cannot decrypt {}: {}", blob.getBlob(), e.getMessage());
+    } catch (IllegalArgumentException e) {
+      log.error("Cannot decrypt {}: {}", blob.getBlob(), e.getMessage());
     }
 
     return blob;
   }
 
   @SneakyThrows
-  protected void decryptFile(InputStream input, OutputStream output) {
+  protected void decryptFile(InputStream input, OutputStream output) throws IOException, PGPException{
 
     InputStream keyInput = IOUtils.toInputStream(this.privateKey, StandardCharsets.UTF_8);
     char[] passwd = this.privateKeyPassword.toCharArray();
@@ -158,12 +160,6 @@ public class DecrypterImpl implements Decrypter {
       }
 
       log.info("File Decrypted");
-    } catch (PGPException e) {
-      log.error("PGPException {}", e.getMessage());
-      throw e;
-    } catch (IOException e) {
-      log.error("IOException {}", e.getMessage());
-      throw e;
     } finally {
       keyInput.close();
       if (unencrypted != null) {
