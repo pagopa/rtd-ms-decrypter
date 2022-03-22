@@ -122,6 +122,33 @@ class DecrypterTest {
   }
 
   @Test
+  void shouldThrowIllegalArgumentExceptionFromNoData()
+      throws IOException, NoSuchProviderException, PGPException {
+
+    // Read the publicKey
+    FileInputStream publicKey = new FileInputStream(resources + "/certs/public.key");
+
+    // Encrypt an empty file
+    FileOutputStream myEmpty = new FileOutputStream(
+        resources + "/emptyFile");
+    FileOutputStream myEmptyEncrypted = new FileOutputStream(
+        resources + "/emptyEncrypted.pgp");
+    this.encryptFile(myEmptyEncrypted, resources + "/emptyFile", this.readPublicKey(publicKey),
+        true, true);
+    myEmpty.close();
+
+    FileInputStream myEncryptedEmpty = new FileInputStream(resources + "/emptyEncrypted.pgp");
+    FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
+
+    // Try to decrypt the empty file, resulting in an IllegalArgumentException
+    assertThrows(IllegalArgumentException.class, () -> {
+      decrypterImpl.decryptFile(myEncryptedEmpty, myClearText);
+    });
+
+    myClearText.close();
+  }
+
+  @Test
   void shouldDecrypt() throws IOException, NoSuchProviderException, PGPException {
 
     // generate file
