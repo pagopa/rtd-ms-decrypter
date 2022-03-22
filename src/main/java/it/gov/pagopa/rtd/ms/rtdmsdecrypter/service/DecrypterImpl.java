@@ -90,7 +90,6 @@ public class DecrypterImpl implements Decrypter {
     return blob;
   }
 
-  @SneakyThrows
   protected void decryptFile(InputStream input, OutputStream output)
       throws IOException, PGPException {
 
