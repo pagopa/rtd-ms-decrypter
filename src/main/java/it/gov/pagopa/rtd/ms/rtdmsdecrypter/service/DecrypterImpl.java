@@ -14,7 +14,6 @@ import java.util.Base64;
 import java.util.Iterator;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -79,11 +78,11 @@ public class DecrypterImpl implements Decrypter {
       blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
       log.info("Blob {} decrypted.", blob.getBlob());
 
-    } catch (IOException e) {
+    } catch (IllegalArgumentException e) {
       log.warn("{}: {}", e.getMessage(), blob.getBlob());
     } catch (PGPException e) {
       log.error("Cannot decrypt {}: {}", blob.getBlob(), e.getMessage());
-    } catch (IllegalArgumentException e) {
+    } catch (IOException e) {
       log.error("Cannot decrypt {}: {}", blob.getBlob(), e.getMessage());
     }
 
@@ -126,7 +125,7 @@ public class DecrypterImpl implements Decrypter {
       }
 
       if (secretKey == null) {
-        throw new IllegalArgumentException("Secret key for message not found.");
+        throw new PGPException("Secret key for message not found.");
       }
 
       clear = pbe.getDataStream(new JcePublicKeyDataDecryptorFactoryBuilder()
@@ -150,7 +149,7 @@ public class DecrypterImpl implements Decrypter {
 
         log.info("Copying decrypted stream");
         if (StreamUtils.copy(unencrypted, output) <= 0) {
-          throw new IOException("Can't extract data from encrypted file");
+          throw new IllegalArgumentException("Can't extract data from encrypted file");
         }
 
       } else if (message instanceof PGPOnePassSignatureList) {
