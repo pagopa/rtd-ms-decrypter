@@ -149,7 +149,7 @@ class DecrypterTest {
   }
 
   @Test
-  void shouldThrowDecryptNoData(CapturedOutput output)
+  void shouldWarnNoData(CapturedOutput output)
       throws IOException, NoSuchProviderException, PGPException {
 
     // generate file
@@ -168,7 +168,8 @@ class DecrypterTest {
     DecrypterImpl mockDecrypterImpl = mock(DecrypterImpl.class);
 
     when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
-    doThrow(new IOException("Can't extract data from encrypted file")).when(mockDecrypterImpl)
+    doThrow(new IllegalArgumentException("Can't extract data from encrypted file")).when(
+            mockDecrypterImpl)
         .decryptFile(any(), any());
 
     fakeBlob.setTargetDir(resources);
@@ -186,7 +187,7 @@ class DecrypterTest {
     DecrypterImpl mockDecrypterImpl = mock(DecrypterImpl.class);
 
     when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
-    doThrow(new IllegalArgumentException("Secret key for message not found.")).when(
+    doThrow(new PGPException("Secret key for message not found.")).when(
         mockDecrypterImpl).decryptFile(any(), any());
 
     fakeBlob.setTargetDir(resources);
@@ -194,36 +195,6 @@ class DecrypterTest {
     mockDecrypterImpl.decrypt(fakeBlob);
 
     assertThat(output.getOut(), containsString("Secret key for message not found."));
-  }
-
-  @Test
-  void shouldNotDecryptNoData(CapturedOutput output)
-      throws IOException, NoSuchProviderException, PGPException {
-
-    // generate file
-    String sourceFileName = "cleartext.csv";
-
-    // Read the publicKey
-    FileInputStream publicKey = new FileInputStream(
-        Path.of(resources, "/certs/public.key").toString());
-
-    // encrypt with the same routine used by batch service
-    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
-    this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
-        this.readPublicKey(publicKey), false, true);
-
-    //Partially mocked decrypter
-    DecrypterImpl mockDecrypterImpl = mock(DecrypterImpl.class);
-
-    when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
-    doThrow(new IOException("Can't extract data from encrypted file")).when(mockDecrypterImpl)
-        .decryptFile(any(), any());
-
-    fakeBlob.setTargetDir(resources);
-    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
-    mockDecrypterImpl.decrypt(fakeBlob);
-
-    assertThat(output.getOut(), containsString("Can't extract data from encrypted file"));
   }
 
   @Test
