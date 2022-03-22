@@ -198,6 +198,37 @@ class DecrypterTest {
   }
 
   @Test
+  void shouldNotDecryptIOException(CapturedOutput output)
+      throws IOException, NoSuchProviderException, PGPException {
+
+    String sourceFileName = "cleartext.csv";
+
+    // Read the publicKey
+    FileInputStream publicKey = new FileInputStream(
+        Path.of(resources, "/certs/public.key").toString());
+
+    // encrypt with the same routine used by batch service
+    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+    this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
+        this.readPublicKey(publicKey), false, true);
+
+    //Partially mocked decrypter
+    DecrypterImpl mockDecrypterImpl = mock(DecrypterImpl.class);
+
+    when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
+    doThrow(
+        new IOException("invalid armor")).when(
+        mockDecrypterImpl).decryptFile(any(), any());
+
+    fakeBlob.setTargetDir(resources);
+    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    mockDecrypterImpl.decrypt(fakeBlob);
+
+    assertThat(output.getOut(),
+        containsString("invalid armor"));
+  }
+
+  @Test
   void shouldNotDecryptNoLiteralData(CapturedOutput output)
       throws IOException, NoSuchProviderException, PGPException {
 
