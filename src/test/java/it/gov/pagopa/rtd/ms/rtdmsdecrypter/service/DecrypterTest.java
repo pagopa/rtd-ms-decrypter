@@ -105,25 +105,29 @@ class DecrypterTest {
         new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
         new BufferedReader(
             new FileReader(Path.of(resources, "/file.pgp.csv.decrypted").toFile()))));
+
+    cleanLocalTestFiles("encrypted.pgp", "file.pgp.csv.decrypted");
   }
 
   @Test
-  void shouldThrowIOExceptionFromMalformedPGPFile()
+  void shouldThrowIOExceptionFromDecryptingMalformedPGPFile()
       throws IOException, NoSuchProviderException, PGPException {
 
     // Try to decrypt a malformed encrypted file
     FileInputStream myMalformedEncrypted = new FileInputStream(
         resources + "/malformedEncrypted.pgp");
-    FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
+    FileOutputStream myClearText = new FileOutputStream(resources + "/malformedFile.decrypted");
     assertThrows(IOException.class, () -> {
       decrypterImpl.decryptFile(myMalformedEncrypted, myClearText);
     });
 
     myClearText.close();
+    //Do NOT delete the malformedEncrypted.pgp with the cleanup method, it's not recreated
+    cleanLocalTestFiles("malformedFile.decrypted");
   }
 
   @Test
-  void shouldThrowIllegalArgumentExceptionFromNoData()
+  void shouldThrowIllegalArgumentExceptionFromDecryptingEncryptedNoData()
       throws IOException, NoSuchProviderException, PGPException {
 
     // Read the publicKey
@@ -132,21 +136,25 @@ class DecrypterTest {
     // Encrypt an empty file
     FileOutputStream myEmpty = new FileOutputStream(
         resources + "/emptyFile");
-    FileOutputStream myEmptyEncrypted = new FileOutputStream(
-        resources + "/emptyEncrypted.pgp");
-    this.encryptFile(myEmptyEncrypted, resources + "/emptyFile", this.readPublicKey(publicKey),
+    FileOutputStream myEmptyEncryptedOutput = new FileOutputStream(
+        resources + "/emptyFile.pgp");
+    this.encryptFile(myEmptyEncryptedOutput, resources + "/emptyFile",
+        this.readPublicKey(publicKey),
         true, true);
     myEmpty.close();
+    myEmptyEncryptedOutput.close();
 
-    FileInputStream myEncryptedEmpty = new FileInputStream(resources + "/emptyEncrypted.pgp");
-    FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
+    FileInputStream myEmptyEncryptedInput = new FileInputStream(resources + "/emptyFile.pgp");
+    FileOutputStream myClearText = new FileOutputStream(resources + "/emptyFile.decrypted");
 
     // Try to decrypt the empty file, resulting in an IllegalArgumentException
     assertThrows(IllegalArgumentException.class, () -> {
-      decrypterImpl.decryptFile(myEncryptedEmpty, myClearText);
+      decrypterImpl.decryptFile(myEmptyEncryptedInput, myClearText);
     });
-
+    myEmptyEncryptedInput.close();
     myClearText.close();
+
+    cleanLocalTestFiles("emptyFile", "emptyFile.pgp", "emptyFile.decrypted");
   }
 
   @Test
@@ -197,8 +205,6 @@ class DecrypterTest {
 
     // encrypt with the same routine used by batch service
     FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
-    this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
-        this.readPublicKey(publicKey), false, true);
 
     //Partially mocked decrypter
     DecrypterImpl mockDecrypterImpl = mock(DecrypterImpl.class);
