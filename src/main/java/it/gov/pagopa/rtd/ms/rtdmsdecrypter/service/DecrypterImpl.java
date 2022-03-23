@@ -14,6 +14,7 @@ import java.util.Base64;
 import java.util.Iterator;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -76,7 +77,7 @@ public class DecrypterImpl implements Decrypter {
             Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile())
     ) {
 
-      this.decryptFile(encrypted, decrypted);
+      this.decryptFile(encrypted, decrypted, blob.getBlob());
       blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
       log.info("Blob {} decrypted.", blob.getBlob());
 
@@ -100,7 +101,7 @@ public class DecrypterImpl implements Decrypter {
     return blob;
   }
 
-  protected void decryptFile(InputStream input, OutputStream output)
+  protected void decryptFile(InputStream input, OutputStream output, String blobName)
       throws IOException, PGPException {
 
     InputStream keyInput = IOUtils.toInputStream(this.privateKey, StandardCharsets.UTF_8);
@@ -158,7 +159,7 @@ public class DecrypterImpl implements Decrypter {
 
         unencrypted = ld.getInputStream();
 
-        log.info("Copying decrypted stream");
+        log.info("Copying decrypted stream from {}", blobName);
         if (StreamUtils.copy(unencrypted, output) <= 0) {
           throw new IllegalArgumentException("Can't extract data from encrypted file");
         }
@@ -169,15 +170,15 @@ public class DecrypterImpl implements Decrypter {
         throw new PGPException("Message is not a simple encrypted file - type unknown.");
       }
 
-      log.info("File Decrypted");
+      log.info("File {} decrypted", blobName);
     } finally {
       keyInput.close();
       if (unencrypted != null) {
-        log.info("Closing unencrypted");
+        log.info("Closing unencrypted {}", blobName+".decrypted");
         unencrypted.close();
       }
       if (clear != null) {
-        log.info("Closing clear");
+        log.info("Closing clear stream taken from {}'s decryption", blobName);
         clear.close();
       }
     }
