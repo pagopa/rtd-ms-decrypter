@@ -75,7 +75,7 @@ public class DecrypterImpl implements Decrypter {
             Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile())
     ) {
 
-      this.decryptFile(encrypted, decrypted);
+      this.decryptFile(encrypted, decrypted, blob.getBlob());
       blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
       log.info("Blob {} decrypted.", blob.getBlob());
 
@@ -89,7 +89,7 @@ public class DecrypterImpl implements Decrypter {
   }
 
   @SneakyThrows
-  protected void decryptFile(InputStream input, OutputStream output) {
+  protected void decryptFile(InputStream input, OutputStream output, String blobName) {
 
     InputStream keyInput = IOUtils.toInputStream(this.privateKey, StandardCharsets.UTF_8);
     char[] passwd = this.privateKeyPassword.toCharArray();
@@ -146,7 +146,7 @@ public class DecrypterImpl implements Decrypter {
 
         unencrypted = ld.getInputStream();
 
-        log.info("Copying decrypted stream");
+        log.info("Copying decrypted stream from {}", blobName);
         if (StreamUtils.copy(unencrypted, output) <= 0) {
           throw new IOException("Can't extract data from encrypted file");
         }
@@ -157,7 +157,7 @@ public class DecrypterImpl implements Decrypter {
         throw new PGPException("Message is not a simple encrypted file - type unknown.");
       }
 
-      log.info("File Decrypted");
+      log.info("File {} decrypted", blobName);
     } catch (PGPException e) {
       log.error("PGPException {}", e.getMessage());
       throw e;
@@ -167,11 +167,11 @@ public class DecrypterImpl implements Decrypter {
     } finally {
       keyInput.close();
       if (unencrypted != null) {
-        log.info("Closing unencrypted");
+        log.info("Closing unencrypted {}", blobName+".decrypted");
         unencrypted.close();
       }
       if (clear != null) {
-        log.info("Closing clear");
+        log.info("Closing clear stream taken from {}'s decryption", blobName);
         clear.close();
       }
     }
