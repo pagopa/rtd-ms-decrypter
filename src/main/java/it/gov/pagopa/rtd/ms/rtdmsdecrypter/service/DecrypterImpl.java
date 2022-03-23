@@ -105,7 +105,7 @@ public class DecrypterImpl implements Decrypter {
 
       Object object = pgpF.nextObject();
       // The first object might be a PGP marker packet.
-      if (object instanceof PGPEncryptedDataList) {
+      if (object instanceof PGPEncryptedDataList && true) {
         encrypted = (PGPEncryptedDataList) object;
       } else {
         encrypted = (PGPEncryptedDataList) pgpF.nextObject();
