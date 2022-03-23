@@ -82,7 +82,7 @@ class DecrypterTest {
     FileInputStream myEncrypted = new FileInputStream(resources + "/encrypted.pgp");
     FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
 
-    decrypterImpl.decryptFile(myEncrypted, myClearText);
+    decrypterImpl.decryptFile(myEncrypted, myClearText, "encrypted.pgp");
     myClearText.close();
 
     assertTrue(IOUtils.contentEquals(
@@ -99,7 +99,7 @@ class DecrypterTest {
     FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
     assertThrows(IOException.class, () -> {
       decrypterImpl.decryptFile(new FileInputStream(resources + "/malformedEncrypted.pgp"),
-          myClearText);
+          myClearText, "malformedEncrypted.pgp");
     });
 
     myClearText.close();
