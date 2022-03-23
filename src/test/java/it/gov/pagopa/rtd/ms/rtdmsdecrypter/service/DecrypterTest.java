@@ -387,4 +387,19 @@ class DecrypterTest {
     throw new IllegalArgumentException("Can't find encryption key in key ring.");
   }
 
+  /**
+   * Some tests create local files. This method is called at the end of them to clean up those
+   * temporary files, avoiding clogging the resource directory during testing.
+   *
+   * @param filenames varargs of local file names to be deleted.
+   */
+  void cleanLocalTestFiles(String... filenames) {
+    try {
+      for (String f : filenames) {
+        Files.delete(Path.of(resources, f));
+      }
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+    }
+  }
 }
