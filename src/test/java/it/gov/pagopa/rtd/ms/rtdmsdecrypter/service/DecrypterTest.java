@@ -3,6 +3,7 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -173,6 +174,12 @@ class DecrypterTest {
         new BufferedReader(
             new FileReader(Path.of(resources, fakeBlob.getBlob() + ".decrypted").toFile()))
     ));
+
+    //Check if the local blob and the decrypted one aren't cleaned up
+    assertTrue(Files.exists(Path.of(resources, blobName)) && Files.exists(
+        Path.of(resources, blobName + ".decrypted")));
+
+    cleanLocalTestFiles(blobName, blobName + ".decrypted");
   }
 
   @Test
@@ -185,6 +192,8 @@ class DecrypterTest {
     // Read the publicKey
     FileInputStream publicKey = new FileInputStream(
         Path.of(resources, "/certs/public.key").toString());
+
+    String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp.nodata";
 
     // encrypt with the same routine used by batch service
     FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
@@ -199,11 +208,16 @@ class DecrypterTest {
             mockDecrypterImpl)
         .decryptFile(any(), any());
 
+    BlobApplicationAware fakeBlob = new BlobApplicationAware(
+        "/blobServices/default/containers/" + container + "/blobs/" + blobName);
     fakeBlob.setTargetDir(resources);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     mockDecrypterImpl.decrypt(fakeBlob);
 
     assertThat(output.getOut(), containsString("Can't extract data from encrypted file"));
+
+    //Check if the local blob is cleaned up
+    assertFalse(Files.exists(Path.of(resources, blobName)));
   }
 
   @Test
@@ -217,11 +231,20 @@ class DecrypterTest {
     doThrow(new PGPException("Secret key for message not found.")).when(
         mockDecrypterImpl).decryptFile(any(), any());
 
+    String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp.nosecretkey";
+    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+
+    BlobApplicationAware fakeBlob = new BlobApplicationAware(
+        "/blobServices/default/containers/" + container + "/blobs/" + blobName);
+
     fakeBlob.setTargetDir(resources);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     mockDecrypterImpl.decrypt(fakeBlob);
 
     assertThat(output.getOut(), containsString("Secret key for message not found."));
+
+    //Check if the local blob is cleaned up
+    assertFalse(Files.exists(Path.of(resources, blobName)));
   }
 
   @Test
@@ -253,6 +276,9 @@ class DecrypterTest {
 
     assertThat(output.getOut(),
         containsString("invalid armor"));
+
+    //Check if the local blob is cleaned up
+    assertFalse(Files.exists(Path.of(resources, blobName)));
   }
 
   @Test
@@ -284,6 +310,9 @@ class DecrypterTest {
 
     assertThat(output.getOut(),
         containsString("Encrypted message contains a signed message - not literal data."));
+
+    //Check if the local blob is cleaned up
+    assertFalse(Files.exists(Path.of(resources, blobName)));
   }
 
   @Test
@@ -315,6 +344,9 @@ class DecrypterTest {
 
     assertThat(output.getOut(),
         containsString("Message is not a simple encrypted file - type unknown."));
+
+    //Check if the local blob is cleaned up
+    assertFalse(Files.exists(Path.of(resources, blobName)));
   }
 
   // This routine should be factored out in a common module
