@@ -81,7 +81,8 @@ class DecrypterTest {
   }
 
   @Test
-  void shouldDecryptFile() throws IOException, NoSuchProviderException, PGPException {
+  void shouldDecryptFile(CapturedOutput output)
+      throws IOException, NoSuchProviderException, PGPException {
 
     // generate file
     String sourceFileName = "cleartext.csv";
@@ -98,13 +99,18 @@ class DecrypterTest {
     FileInputStream myEncrypted = new FileInputStream(resources + "/encrypted.pgp");
     FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
 
-    decrypterImpl.decryptFile(myEncrypted, myClearText);
+    decrypterImpl.decryptFile(myEncrypted, myClearText, "encrypted.pgp");
     myClearText.close();
 
     assertTrue(IOUtils.contentEquals(
         new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
         new BufferedReader(
             new FileReader(Path.of(resources, "/file.pgp.csv.decrypted").toFile()))));
+
+    //Ensures, through log info, that all file decrypting steps are done
+    assertThat(output.getOut(), containsString("Copying decrypted stream:"));
+    assertThat(output.getOut(), containsString("Closing:"));
+    assertThat(output.getOut(), containsString("Closing clear stream:"));
 
     cleanLocalTestFiles("encrypted.pgp", "file.pgp.csv.decrypted");
   }
@@ -118,7 +124,7 @@ class DecrypterTest {
         resources + "/malformedEncrypted.pgp");
     FileOutputStream myClearText = new FileOutputStream(resources + "/malformedFile.decrypted");
     assertThrows(IOException.class, () -> {
-      decrypterImpl.decryptFile(myMalformedEncrypted, myClearText);
+      decrypterImpl.decryptFile(myMalformedEncrypted, myClearText, "malformedEncrypted.pgp");
     });
 
     myClearText.close();
@@ -127,7 +133,7 @@ class DecrypterTest {
   }
 
   @Test
-  void shouldThrowIllegalArgumentExceptionFromDecryptingEncryptedNoData()
+  void shouldThrowIllegalArgumentExceptionFromDecryptingEncryptedNoData(CapturedOutput output)
       throws IOException, NoSuchProviderException, PGPException {
 
     // Read the publicKey
@@ -149,16 +155,22 @@ class DecrypterTest {
 
     // Try to decrypt the empty file, resulting in an IllegalArgumentException
     assertThrows(IllegalArgumentException.class, () -> {
-      decrypterImpl.decryptFile(myEmptyEncryptedInput, myClearText);
+      decrypterImpl.decryptFile(myEmptyEncryptedInput, myClearText, blobName);
     });
     myEmptyEncryptedInput.close();
     myClearText.close();
+
+    //Ensures, through log info, that the correct decrypting steps are done
+    assertThat(output.getOut(), containsString("Copying decrypted stream:"));
+    assertThat(output.getOut(), containsString("Closing:"));
+    assertThat(output.getOut(), containsString("Closing clear stream:"));
 
     cleanLocalTestFiles("emptyFile", "emptyFile.pgp", "emptyFile.decrypted");
   }
 
   @Test
-  void shouldDecrypt() throws IOException, NoSuchProviderException, PGPException {
+  void shouldDecrypt(CapturedOutput output)
+      throws IOException, NoSuchProviderException, PGPException {
 
     // generate file
     String sourceFileName = "cleartext.csv";
@@ -187,6 +199,12 @@ class DecrypterTest {
     assertTrue(Files.exists(Path.of(resources, blobName)) && Files.exists(
         Path.of(resources, blobName + ".decrypted")));
 
+    //Ensures, through log info, that all decrypting steps are done
+    assertThat(output.getOut(), containsString("Copying decrypted stream:"));
+    assertThat(output.getOut(), containsString("Closing:"));
+    assertThat(output.getOut(), containsString("Closing clear stream:"));
+    assertThat(output.getOut(), containsString("Blob decrypted:"));
+
     cleanLocalTestFiles(blobName, blobName + ".decrypted");
   }
 
@@ -212,7 +230,7 @@ class DecrypterTest {
     when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
     doThrow(new IllegalArgumentException("Can't extract data from encrypted file")).when(
             mockDecrypterImpl)
-        .decryptFile(any(), any());
+        .decryptFile(any(), any(), any());
 
     BlobApplicationAware fakeBlob = new BlobApplicationAware(
         "/blobServices/default/containers/" + container + "/blobs/" + blobName);
@@ -235,7 +253,7 @@ class DecrypterTest {
 
     when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
     doThrow(new PGPException("Secret key for message not found.")).when(
-        mockDecrypterImpl).decryptFile(any(), any());
+        mockDecrypterImpl).decryptFile(any(), any(), any());
 
     String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp.nosecretkey";
     FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
@@ -274,7 +292,7 @@ class DecrypterTest {
     when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
     doThrow(
         new IOException("invalid armor")).when(
-        mockDecrypterImpl).decryptFile(any(), any());
+        mockDecrypterImpl).decryptFile(any(), any(), any());
 
     fakeBlob.setTargetDir(resources);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
@@ -308,7 +326,7 @@ class DecrypterTest {
     when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
     doThrow(
         new PGPException("Encrypted message contains a signed message - not literal data.")).when(
-        mockDecrypterImpl).decryptFile(any(), any());
+        mockDecrypterImpl).decryptFile(any(), any(), any());
 
     fakeBlob.setTargetDir(resources);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
@@ -342,7 +360,7 @@ class DecrypterTest {
 
     when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
     doThrow(new PGPException("Message is not a simple encrypted file - type unknown.")).when(
-        mockDecrypterImpl).decryptFile(any(), any());
+        mockDecrypterImpl).decryptFile(any(), any(), any());
 
     fakeBlob.setTargetDir(resources);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);

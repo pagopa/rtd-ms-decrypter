@@ -76,9 +76,9 @@ public class DecrypterImpl implements Decrypter {
             Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile())
     ) {
 
-      this.decryptFile(encrypted, decrypted);
+      this.decryptFile(encrypted, decrypted, blob.getBlob());
       blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
-      log.info("Blob {} decrypted.", blob.getBlob());
+      log.info("Blob decrypted: {}", blob.getBlob());
 
     } catch (IllegalArgumentException e) {
       log.warn("{}: {}", e.getMessage(), blob.getBlob());
@@ -92,7 +92,7 @@ public class DecrypterImpl implements Decrypter {
     }
 
     // If the decrypt failed this call to localCleanup ensures that no local files are left
-    // On a non-failing scenario the event reaches the end of the handler and the cleanup method is called
+    // On a non-failing scenario the files are cleaned at the end of the handler
     if (decryptFailed) {
       blob.localCleanup();
     }
@@ -100,7 +100,7 @@ public class DecrypterImpl implements Decrypter {
     return blob;
   }
 
-  protected void decryptFile(InputStream input, OutputStream output)
+  protected void decryptFile(InputStream input, OutputStream output, String blobName)
       throws IOException, PGPException {
 
     InputStream keyInput = IOUtils.toInputStream(this.privateKey, StandardCharsets.UTF_8);
@@ -158,7 +158,7 @@ public class DecrypterImpl implements Decrypter {
 
         unencrypted = ld.getInputStream();
 
-        log.info("Copying decrypted stream");
+        log.info("Copying decrypted stream: {}", blobName);
         if (StreamUtils.copy(unencrypted, output) <= 0) {
           throw new IllegalArgumentException("Can't extract data from encrypted file");
         }
@@ -169,15 +169,14 @@ public class DecrypterImpl implements Decrypter {
         throw new PGPException("Message is not a simple encrypted file - type unknown.");
       }
 
-      log.info("File Decrypted");
     } finally {
       keyInput.close();
       if (unencrypted != null) {
-        log.info("Closing unencrypted");
+        log.info("Closing: {}", blobName + ".decrypted");
         unencrypted.close();
       }
       if (clear != null) {
-        log.info("Closing clear");
+        log.info("Closing clear stream: {}", blobName);
         clear.close();
       }
     }
