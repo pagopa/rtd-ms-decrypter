@@ -170,7 +170,6 @@ public class DecrypterImpl implements Decrypter {
         throw new PGPException("Message is not a simple encrypted file - type unknown.");
       }
 
-      log.info("File {} decrypted", blobName);
     } finally {
       keyInput.close();
       if (unencrypted != null) {
