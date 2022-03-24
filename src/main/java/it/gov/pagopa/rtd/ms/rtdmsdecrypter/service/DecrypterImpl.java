@@ -78,7 +78,7 @@ public class DecrypterImpl implements Decrypter {
 
       this.decryptFile(encrypted, decrypted, blob.getBlob());
       blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
-      log.info("Blob {} decrypted.", blob.getBlob());
+      log.info("Blob decrypted: {}", blob.getBlob());
 
     } catch (IllegalArgumentException e) {
       log.warn("{}: {}", e.getMessage(), blob.getBlob());
@@ -158,7 +158,7 @@ public class DecrypterImpl implements Decrypter {
 
         unencrypted = ld.getInputStream();
 
-        log.info("Copying decrypted stream from {}", blobName);
+        log.info("Copying decrypted stream: {}", blobName);
         if (StreamUtils.copy(unencrypted, output) <= 0) {
           throw new IllegalArgumentException("Can't extract data from encrypted file");
         }
@@ -172,11 +172,11 @@ public class DecrypterImpl implements Decrypter {
     } finally {
       keyInput.close();
       if (unencrypted != null) {
-        log.info("Closing unencrypted {}", blobName+".decrypted");
+        log.info("Closing: {}", blobName + ".decrypted");
         unencrypted.close();
       }
       if (clear != null) {
-        log.info("Closing clear stream taken from {}'s decryption", blobName);
+        log.info("Closing clear stream: {}", blobName);
         clear.close();
       }
     }
