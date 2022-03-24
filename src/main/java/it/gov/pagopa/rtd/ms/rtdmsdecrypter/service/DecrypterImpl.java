@@ -92,7 +92,7 @@ public class DecrypterImpl implements Decrypter {
     }
 
     // If the decrypt failed this call to localCleanup ensures that no local files are left
-    // On a non-failing scenario the event reaches the end of the handler and the cleanup method is called
+    // On a non-failing scenario the files are cleaned at the end of the handler
     if (decryptFailed) {
       blob.localCleanup();
     }
