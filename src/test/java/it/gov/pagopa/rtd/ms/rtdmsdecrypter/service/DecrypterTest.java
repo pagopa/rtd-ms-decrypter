@@ -3,6 +3,7 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -104,25 +105,29 @@ class DecrypterTest {
         new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
         new BufferedReader(
             new FileReader(Path.of(resources, "/file.pgp.csv.decrypted").toFile()))));
+
+    cleanLocalTestFiles("encrypted.pgp", "file.pgp.csv.decrypted");
   }
 
   @Test
-  void shouldThrowIOExceptionFromMalformedPGPFile()
+  void shouldThrowIOExceptionFromDecryptingMalformedPGPFile()
       throws IOException, NoSuchProviderException, PGPException {
 
     // Try to decrypt a malformed encrypted file
     FileInputStream myMalformedEncrypted = new FileInputStream(
         resources + "/malformedEncrypted.pgp");
-    FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
+    FileOutputStream myClearText = new FileOutputStream(resources + "/malformedFile.decrypted");
     assertThrows(IOException.class, () -> {
       decrypterImpl.decryptFile(myMalformedEncrypted, myClearText);
     });
 
     myClearText.close();
+    //Do NOT delete the malformedEncrypted.pgp with the cleanup method, it's not recreated
+    cleanLocalTestFiles("malformedFile.decrypted");
   }
 
   @Test
-  void shouldThrowIllegalArgumentExceptionFromNoData()
+  void shouldThrowIllegalArgumentExceptionFromDecryptingEncryptedNoData()
       throws IOException, NoSuchProviderException, PGPException {
 
     // Read the publicKey
@@ -131,21 +136,25 @@ class DecrypterTest {
     // Encrypt an empty file
     FileOutputStream myEmpty = new FileOutputStream(
         resources + "/emptyFile");
-    FileOutputStream myEmptyEncrypted = new FileOutputStream(
-        resources + "/emptyEncrypted.pgp");
-    this.encryptFile(myEmptyEncrypted, resources + "/emptyFile", this.readPublicKey(publicKey),
+    FileOutputStream myEmptyEncryptedOutput = new FileOutputStream(
+        resources + "/emptyFile.pgp");
+    this.encryptFile(myEmptyEncryptedOutput, resources + "/emptyFile",
+        this.readPublicKey(publicKey),
         true, true);
     myEmpty.close();
+    myEmptyEncryptedOutput.close();
 
-    FileInputStream myEncryptedEmpty = new FileInputStream(resources + "/emptyEncrypted.pgp");
-    FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
+    FileInputStream myEmptyEncryptedInput = new FileInputStream(resources + "/emptyFile.pgp");
+    FileOutputStream myClearText = new FileOutputStream(resources + "/emptyFile.decrypted");
 
     // Try to decrypt the empty file, resulting in an IllegalArgumentException
     assertThrows(IllegalArgumentException.class, () -> {
-      decrypterImpl.decryptFile(myEncryptedEmpty, myClearText);
+      decrypterImpl.decryptFile(myEmptyEncryptedInput, myClearText);
     });
-
+    myEmptyEncryptedInput.close();
     myClearText.close();
+
+    cleanLocalTestFiles("emptyFile", "emptyFile.pgp", "emptyFile.decrypted");
   }
 
   @Test
@@ -173,6 +182,12 @@ class DecrypterTest {
         new BufferedReader(
             new FileReader(Path.of(resources, fakeBlob.getBlob() + ".decrypted").toFile()))
     ));
+
+    //Check if the local blob and the decrypted one aren't cleaned up
+    assertTrue(Files.exists(Path.of(resources, blobName)) && Files.exists(
+        Path.of(resources, blobName + ".decrypted")));
+
+    cleanLocalTestFiles(blobName, blobName + ".decrypted");
   }
 
   @Test
@@ -186,10 +201,10 @@ class DecrypterTest {
     FileInputStream publicKey = new FileInputStream(
         Path.of(resources, "/certs/public.key").toString());
 
+    String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp.nodata";
+
     // encrypt with the same routine used by batch service
     FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
-    this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
-        this.readPublicKey(publicKey), false, true);
 
     //Partially mocked decrypter
     DecrypterImpl mockDecrypterImpl = mock(DecrypterImpl.class);
@@ -199,11 +214,16 @@ class DecrypterTest {
             mockDecrypterImpl)
         .decryptFile(any(), any());
 
+    BlobApplicationAware fakeBlob = new BlobApplicationAware(
+        "/blobServices/default/containers/" + container + "/blobs/" + blobName);
     fakeBlob.setTargetDir(resources);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     mockDecrypterImpl.decrypt(fakeBlob);
 
     assertThat(output.getOut(), containsString("Can't extract data from encrypted file"));
+
+    //Check if the local blob is cleaned up
+    assertFalse(Files.exists(Path.of(resources, blobName)));
   }
 
   @Test
@@ -217,11 +237,20 @@ class DecrypterTest {
     doThrow(new PGPException("Secret key for message not found.")).when(
         mockDecrypterImpl).decryptFile(any(), any());
 
+    String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp.nosecretkey";
+    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+
+    BlobApplicationAware fakeBlob = new BlobApplicationAware(
+        "/blobServices/default/containers/" + container + "/blobs/" + blobName);
+
     fakeBlob.setTargetDir(resources);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     mockDecrypterImpl.decrypt(fakeBlob);
 
     assertThat(output.getOut(), containsString("Secret key for message not found."));
+
+    //Check if the local blob is cleaned up
+    assertFalse(Files.exists(Path.of(resources, blobName)));
   }
 
   @Test
@@ -253,6 +282,9 @@ class DecrypterTest {
 
     assertThat(output.getOut(),
         containsString("invalid armor"));
+
+    //Check if the local blob is cleaned up
+    assertFalse(Files.exists(Path.of(resources, blobName)));
   }
 
   @Test
@@ -284,6 +316,9 @@ class DecrypterTest {
 
     assertThat(output.getOut(),
         containsString("Encrypted message contains a signed message - not literal data."));
+
+    //Check if the local blob is cleaned up
+    assertFalse(Files.exists(Path.of(resources, blobName)));
   }
 
   @Test
@@ -315,6 +350,9 @@ class DecrypterTest {
 
     assertThat(output.getOut(),
         containsString("Message is not a simple encrypted file - type unknown."));
+
+    //Check if the local blob is cleaned up
+    assertFalse(Files.exists(Path.of(resources, blobName)));
   }
 
   // This routine should be factored out in a common module
@@ -387,4 +425,19 @@ class DecrypterTest {
     throw new IllegalArgumentException("Can't find encryption key in key ring.");
   }
 
+  /**
+   * Some tests create local files. This method is called at the end of them to clean up those
+   * temporary files, avoiding clogging the resource directory during testing.
+   *
+   * @param filenames varargs of local file names to be deleted.
+   */
+  void cleanLocalTestFiles(String... filenames) {
+    try {
+      for (String f : filenames) {
+        Files.delete(Path.of(resources, f));
+      }
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+    }
+  }
 }

@@ -67,6 +67,8 @@ public class DecrypterImpl implements Decrypter {
    */
   public BlobApplicationAware decrypt(BlobApplicationAware blob) {
 
+    boolean decryptFailed = false;
+
     try (
         FileInputStream encrypted = new FileInputStream(
             Path.of(blob.getTargetDir(), blob.getBlob()).toFile());
@@ -80,10 +82,19 @@ public class DecrypterImpl implements Decrypter {
 
     } catch (IllegalArgumentException e) {
       log.warn("{}: {}", e.getMessage(), blob.getBlob());
+      decryptFailed = true;
     } catch (PGPException e) {
       log.error("Cannot decrypt {}: {}", blob.getBlob(), e.getMessage());
+      decryptFailed = true;
     } catch (IOException e) {
       log.error("Cannot decrypt {}: {}", blob.getBlob(), e.getMessage());
+      decryptFailed = true;
+    }
+
+    // If the decrypt failed this call to localCleanup ensures that no local files are left
+    // On a non-failing scenario the event reaches the end of the handler and the cleanup method is called
+    if (decryptFailed) {
+      blob.localCleanup();
     }
 
     return blob;
