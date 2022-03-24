@@ -81,7 +81,8 @@ class DecrypterTest {
   }
 
   @Test
-  void shouldDecryptFile() throws IOException, NoSuchProviderException, PGPException {
+  void shouldDecryptFile(CapturedOutput output)
+      throws IOException, NoSuchProviderException, PGPException {
 
     // generate file
     String sourceFileName = "cleartext.csv";
@@ -106,6 +107,11 @@ class DecrypterTest {
         new BufferedReader(
             new FileReader(Path.of(resources, "/file.pgp.csv.decrypted").toFile()))));
 
+    //Ensures, through log info, that all file decrypting steps are done
+    assertThat(output.getOut(), containsString("Copying decrypted stream:"));
+    assertThat(output.getOut(), containsString("Closing:"));
+    assertThat(output.getOut(), containsString("Closing clear stream:"));
+
     cleanLocalTestFiles("encrypted.pgp", "file.pgp.csv.decrypted");
   }
 
@@ -127,7 +133,7 @@ class DecrypterTest {
   }
 
   @Test
-  void shouldThrowIllegalArgumentExceptionFromDecryptingEncryptedNoData()
+  void shouldThrowIllegalArgumentExceptionFromDecryptingEncryptedNoData(CapturedOutput output)
       throws IOException, NoSuchProviderException, PGPException {
 
     // Read the publicKey
@@ -154,11 +160,17 @@ class DecrypterTest {
     myEmptyEncryptedInput.close();
     myClearText.close();
 
+    //Ensures, through log info, that the correct decrypting steps are done
+    assertThat(output.getOut(), containsString("Copying decrypted stream:"));
+    assertThat(output.getOut(), containsString("Closing:"));
+    assertThat(output.getOut(), containsString("Closing clear stream:"));
+
     cleanLocalTestFiles("emptyFile", "emptyFile.pgp", "emptyFile.decrypted");
   }
 
   @Test
-  void shouldDecrypt() throws IOException, NoSuchProviderException, PGPException {
+  void shouldDecrypt(CapturedOutput output)
+      throws IOException, NoSuchProviderException, PGPException {
 
     // generate file
     String sourceFileName = "cleartext.csv";
@@ -186,6 +198,12 @@ class DecrypterTest {
     //Check if the local blob and the decrypted one aren't cleaned up
     assertTrue(Files.exists(Path.of(resources, blobName)) && Files.exists(
         Path.of(resources, blobName + ".decrypted")));
+
+    //Ensures, through log info, that all decrypting steps are done
+    assertThat(output.getOut(), containsString("Copying decrypted stream:"));
+    assertThat(output.getOut(), containsString("Closing:"));
+    assertThat(output.getOut(), containsString("Closing clear stream:"));
+    assertThat(output.getOut(), containsString("Blob decrypted:"));
 
     cleanLocalTestFiles(blobName, blobName + ".decrypted");
   }
