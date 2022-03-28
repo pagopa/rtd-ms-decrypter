@@ -12,7 +12,6 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -21,15 +20,6 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class BlobSplitterImpl implements BlobSplitter {
-
-  @Value("${decrypt.api.baseurl}")
-  private String baseUrl;
-
-  @Value("${decrypt.blobclient.apikey}")
-  private String blobApiKey;
-
-  @Value("${decrypt.blobclient.basepath}")
-  private String blobBasePath;
 
   /**
    * Method that spli the content of a blob in chunks of n lines.
