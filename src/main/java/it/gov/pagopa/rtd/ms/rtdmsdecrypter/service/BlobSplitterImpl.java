@@ -58,13 +58,11 @@ public class BlobSplitterImpl implements BlobSplitter {
         try (Writer writer = Channels.newWriter(new FileOutputStream(blobPath + "." + chunkNum,
                 true).getChannel(),
             StandardCharsets.UTF_8)) {
-          System.out.println(blob.getTargetDir() + "/" + blob.getBlob() + "." + chunkNum);
           i = 0;
           while (i < n) {
             if (it.hasNext()) {
               String line = it.nextLine();
               writer.append(line).append("\n");
-              System.out.println(line);
             } else {
               break;
             }
