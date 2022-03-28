@@ -73,7 +73,6 @@ public class BlobSplitterImpl implements BlobSplitter {
         chunkNum++;
       }
     } catch (IOException e) {
-      e.printStackTrace();
       log.error("Missing file:{}", Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted"));
     }
 
