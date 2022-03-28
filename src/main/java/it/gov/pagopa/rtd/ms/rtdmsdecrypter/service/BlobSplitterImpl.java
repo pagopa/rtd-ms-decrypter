@@ -40,6 +40,8 @@ public class BlobSplitterImpl implements BlobSplitter {
    */
   public List<BlobApplicationAware> split(BlobApplicationAware blob, int n) {
 
+    String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toString();
+
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
 
     //Incremental integer for chunk numbering
@@ -50,11 +52,10 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     try (
         LineIterator it = FileUtils.lineIterator(
-            Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile(), "UTF-8")
+            Path.of(blobPath).toFile(), "UTF-8")
     ) {
       while (it.hasNext()) {
-        try (Writer writer = Channels.newWriter(new FileOutputStream(
-                blob.getTargetDir() + "/" + blob.getBlob() + ".decrypted" + "." + chunkNum,
+        try (Writer writer = Channels.newWriter(new FileOutputStream(blobPath + "." + chunkNum,
                 true).getChannel(),
             StandardCharsets.UTF_8)) {
           System.out.println(blob.getTargetDir() + "/" + blob.getBlob() + "." + chunkNum);
@@ -73,7 +74,7 @@ public class BlobSplitterImpl implements BlobSplitter {
         chunkNum++;
       }
     } catch (IOException e) {
-      log.error("Missing file:{}", Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted"));
+      log.error("Missing file:{}", blobPath);
     }
 
     return blobSplit;
