@@ -36,8 +36,6 @@ class BlobSplitterTest {
   @Value("${decrypt.resources.base.path}")
   String resources;
 
-  @Value("${decrypt.private.key.password}")
-  String privateKeyPassword;
 
   String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
   String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
