@@ -34,7 +34,7 @@ public class BlobSplitterImpl implements BlobSplitter {
    * @return a list of blobs that represent the split blob.
    */
   public Stream<BlobApplicationAware> split(BlobApplicationAware blob) {
-    int n = 100000;
+    int n = 1;
     String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toString();
 
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
