@@ -65,7 +65,6 @@ public class BlobSplitterImpl implements BlobSplitter {
           }
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
               blob.getBlobUri() + "." + chunkNum);
-          tmpBlob.setStatus(Status.DOWNLOADED);
           blobSplit.add(tmpBlob);
         }
         chunkNum++;
