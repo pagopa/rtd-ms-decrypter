@@ -18,7 +18,9 @@ decrypt:
     targetContainer:
       rtd: rtd-transactions-decrypted
       ade: ade-transactions-decrypted
-  
+
+splitter:
+  threshold: 100000
 ---
 spring:
   config:
