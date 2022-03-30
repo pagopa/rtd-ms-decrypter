@@ -1,7 +1,6 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
-import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Writer;
@@ -10,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.stream.Stream;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
@@ -20,11 +20,12 @@ import org.springframework.stereotype.Service;
  * Concrete implementation of a BlobSplitter interface.
  */
 @Service
+@Setter
 @Slf4j
 public class BlobSplitterImpl implements BlobSplitter {
 
   //Max number of lines allowed in one blob chunk.
-  @Value("${splitter.threshold}")
+  @Value("${decrypt.splitter.threshold}")
   private int lineThreshold;
 
   /**
@@ -34,7 +35,6 @@ public class BlobSplitterImpl implements BlobSplitter {
    * @return a list of blobs that represent the split blob.
    */
   public Stream<BlobApplicationAware> split(BlobApplicationAware blob) {
-    int n = 1;
     String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toString();
 
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
