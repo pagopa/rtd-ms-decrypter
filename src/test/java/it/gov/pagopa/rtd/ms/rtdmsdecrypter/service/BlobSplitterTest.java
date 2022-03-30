@@ -53,6 +53,7 @@ class BlobSplitterTest {
 
     fakeBlob.setTargetDir(resources);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    blobSplitterImpl.setLineThreshold(1);
 
     assertEquals(3, blobSplitterImpl.split(fakeBlob).count());
 
@@ -69,6 +70,7 @@ class BlobSplitterTest {
 
     fakeBlob.setTargetDir(resources);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    blobSplitterImpl.setLineThreshold(1);
 
     blobSplitterImpl.split(fakeBlob);
     assertThat(output.getOut(), containsString("Missing blob file:"));
