@@ -54,7 +54,7 @@ public class BlobSplitterImpl implements BlobSplitter {
                 true).getChannel(),
             StandardCharsets.UTF_8)) {
           i = 0;
-          while (i < n) {
+          while (i < lineThreshold) {
             if (it.hasNext()) {
               String line = it.nextLine();
               writer.append(line).append("\n");
