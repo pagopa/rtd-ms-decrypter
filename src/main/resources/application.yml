@@ -7,7 +7,7 @@ decrypt:
     base:
       path: src/test/resources
   private:
-    key: 
+    key:
       path: ${CSV_TRANSACTION_PRIVATE_KEY_PATH:${decrypt.resources.base.path}/certs/private_base64.key} # just for tests
       password: ${CSV_TRANSACTION_PRIVATE_KEY_PASS:privatekeypass}
   api:
@@ -18,9 +18,8 @@ decrypt:
     targetContainer:
       rtd: rtd-transactions-decrypted
       ade: ade-transactions-decrypted
-
-splitter:
-  threshold: 100000
+  splitter:
+    threshold: 10000
 ---
 spring:
   config:
@@ -39,12 +38,12 @@ spring:
         binder:
           auto-create-topics: false
           consumerProperties:
-            key: 
+            key:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
             value:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
 ---
-spring: 
+spring:
   config:
     activate:
       on-profile: default
@@ -58,8 +57,8 @@ spring:
           binder: kafka
       kafka:
         binder:
-          auto-create-topics: false 
-          brokers: ${KAFKA_BROKER}          
+          auto-create-topics: false
+          brokers: ${KAFKA_BROKER}
           configuration:
             sasl:
               jaas:
@@ -68,7 +67,7 @@ spring:
             security:
               protocol: SASL_SSL
           consumerProperties:
-            key: 
+            key:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
             value:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
