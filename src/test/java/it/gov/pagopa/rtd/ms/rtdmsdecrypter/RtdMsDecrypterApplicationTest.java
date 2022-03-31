@@ -61,7 +61,7 @@ class RtdMsDecrypterApplicationTest {
   private final String myEventType = "Microsoft.Storage.BlobCreated";
 
   @Test
-  void myshouldConsumeMessageAndCallDecrypter() {
+  void shouldConsumeMessageAndCallDecrypter() {
 
     EventGridEvent my_event = new EventGridEvent();
     my_event.setId(myID);
