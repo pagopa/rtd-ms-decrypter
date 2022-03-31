@@ -42,7 +42,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   CloseableHttpClient httpClient;
 
   /**
-   * Constructor.
+   * Method that allows the download of the blob from a remote storage.
    *
    * @param blob a blob that has been received but not downloaded
    * @return a locally available blob
