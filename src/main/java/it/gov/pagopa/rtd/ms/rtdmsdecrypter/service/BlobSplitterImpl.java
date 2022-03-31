@@ -41,6 +41,9 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
 
+    //Flag for fail split
+    boolean failSplit = false;
+
     //Incremental integer for chunk numbering
     int chunkNum = 0;
 
@@ -74,8 +77,12 @@ public class BlobSplitterImpl implements BlobSplitter {
       }
     } catch (IOException e) {
       log.error("Missing blob file:{}", blobPath);
+      failSplit = true;
     }
 
+    if (!failSplit) {
+      log.info("Obtained {} chunk/s from blob:{}", chunkNum, blob.getBlob());
+    }
     return blobSplit.stream();
   }
 }
