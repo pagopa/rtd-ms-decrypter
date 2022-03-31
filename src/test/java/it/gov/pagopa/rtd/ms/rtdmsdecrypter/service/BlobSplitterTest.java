@@ -6,10 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
@@ -43,7 +41,7 @@ class BlobSplitterTest {
       "/blobServices/default/containers/" + container + "/blobs/" + blobName);
 
   @Test
-  void shouldSplit() throws IOException {
+  void shouldSplit(CapturedOutput output) throws IOException {
 
     String transactions = "cleartext.csv";
 
@@ -56,6 +54,28 @@ class BlobSplitterTest {
     blobSplitterImpl.setLineThreshold(1);
 
     assertEquals(3, blobSplitterImpl.split(fakeBlob).count());
+    assertThat(output.getOut(), containsString("Obtained 3 chunk/s from blob:"));
+
+    cleanLocalTestFiles(blobName);
+  }
+
+  //This test, contrary to the previous one, tests the scenario where the file run out of lines
+  // before reaching the threshold.
+  @Test
+  void shouldSplitReminder(CapturedOutput output) throws IOException {
+
+    String transactions = "cleartext.csv";
+
+    FileOutputStream decrypted = new FileOutputStream(
+        Path.of(resources, blobName + ".decrypted").toString());
+    Files.copy(Path.of(resources, transactions), decrypted);
+
+    fakeBlob.setTargetDir(resources);
+    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    blobSplitterImpl.setLineThreshold(2);
+
+    assertEquals(2, blobSplitterImpl.split(fakeBlob).count());
+    assertThat(output.getOut(), containsString("Obtained 2 chunk/s from blob:"));
 
     cleanLocalTestFiles(blobName);
   }
