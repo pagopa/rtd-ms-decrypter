@@ -38,7 +38,7 @@ public class BlobSplitterImpl implements BlobSplitter {
    */
   public Stream<BlobApplicationAware> split(BlobApplicationAware blob) {
     String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toString();
-    lineThreshold = 1;
+
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
 
     //Incremental integer for chunk numbering
