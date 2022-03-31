@@ -1,5 +1,7 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
+import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status.SPLIT;
+
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -36,7 +38,7 @@ public class BlobSplitterImpl implements BlobSplitter {
    */
   public Stream<BlobApplicationAware> split(BlobApplicationAware blob) {
     String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toString();
-
+    lineThreshold = 1;
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
 
     //Incremental integer for chunk numbering
@@ -65,6 +67,7 @@ public class BlobSplitterImpl implements BlobSplitter {
           }
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
               blob.getBlobUri() + "." + chunkNum);
+          tmpBlob.setStatus(SPLIT);
           blobSplit.add(tmpBlob);
         }
         chunkNum++;
