@@ -36,6 +36,7 @@ public class BlobApplicationAware {
     RECEIVED,
     DOWNLOADED,
     DECRYPTED,
+    SPLIT,
     UPLOADED,
     DELETED
   }
