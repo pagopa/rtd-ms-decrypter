@@ -29,7 +29,7 @@ public class BlobSplitterImpl implements BlobSplitter {
   private int lineThreshold;
 
   /**
-   * Method that spli the content of a blob in chunks of n lines.
+   * Method that split the content of a blob in chunks of n lines.
    *
    * @param blob to be split.
    * @return a list of blobs that represent the split blob.
