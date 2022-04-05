@@ -43,7 +43,7 @@ import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,8 +77,8 @@ class DecrypterTest {
   BlobApplicationAware fakeBlob = new BlobApplicationAware(
       "/blobServices/default/containers/" + container + "/blobs/" + blobName);
 
-  @AfterAll
-  static void cleanTmpFiles() {
+  @AfterEach
+  void cleanTmpFiles() {
     cleanup(Path.of("src/test/resources/tmp"));
   }
 
