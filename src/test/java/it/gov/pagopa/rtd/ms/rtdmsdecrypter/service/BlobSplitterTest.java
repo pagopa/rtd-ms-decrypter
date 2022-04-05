@@ -1,5 +1,6 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
+import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.TestFilesCleanup.cleanup;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,6 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,11 +37,18 @@ class BlobSplitterTest {
   @Value("${decrypt.resources.base.path}")
   String resources;
 
+  @Value("${decrypt.resources.base.path}/tmp")
+  String tmpDirectory;
 
   String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
   String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
   BlobApplicationAware fakeBlob = new BlobApplicationAware(
       "/blobServices/default/containers/" + container + "/blobs/" + blobName);
+
+  @AfterEach
+  void cleanTmpFiles() {
+    cleanup(Path.of("src/test/resources/tmp"));
+  }
 
   @Test
   void shouldSplit(CapturedOutput output) throws IOException {
@@ -46,17 +56,16 @@ class BlobSplitterTest {
     String transactions = "cleartext.csv";
 
     FileOutputStream decrypted = new FileOutputStream(
-        Path.of(resources, blobName + ".decrypted").toString());
+        Path.of(tmpDirectory, blobName + ".decrypted").toString());
     Files.copy(Path.of(resources, transactions), decrypted);
 
-    fakeBlob.setTargetDir(resources);
+    fakeBlob.setTargetDir(tmpDirectory);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobSplitterImpl.setLineThreshold(1);
 
     assertEquals(3, blobSplitterImpl.split(fakeBlob).count());
     assertThat(output.getOut(), containsString("Obtained 3 chunk/s from blob:"));
 
-    cleanLocalTestFiles(blobName);
   }
 
   //This test, contrary to the previous one, tests the scenario where the file run out of lines
@@ -67,17 +76,16 @@ class BlobSplitterTest {
     String transactions = "cleartext.csv";
 
     FileOutputStream decrypted = new FileOutputStream(
-        Path.of(resources, blobName + ".decrypted").toString());
+        Path.of(tmpDirectory, blobName + ".decrypted").toString());
     Files.copy(Path.of(resources, transactions), decrypted);
 
-    fakeBlob.setTargetDir(resources);
+    fakeBlob.setTargetDir(tmpDirectory);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobSplitterImpl.setLineThreshold(2);
 
     assertEquals(2, blobSplitterImpl.split(fakeBlob).count());
     assertThat(output.getOut(), containsString("Obtained 2 chunk/s from blob:"));
 
-    cleanLocalTestFiles(blobName);
   }
 
   @Test
@@ -85,36 +93,17 @@ class BlobSplitterTest {
 
     String transactions = "cleartext.csv";
 
-    FileOutputStream decrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+    FileOutputStream decrypted = new FileOutputStream(Path.of(tmpDirectory, blobName).toString());
     Files.copy(Path.of(resources, transactions), decrypted);
 
-    fakeBlob.setTargetDir(resources);
+    fakeBlob.setTargetDir(tmpDirectory);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobSplitterImpl.setLineThreshold(1);
 
     blobSplitterImpl.split(fakeBlob);
     assertThat(output.getOut(), containsString("Missing blob file:"));
 
-    cleanLocalTestFiles(blobName);
   }
 
-  /**
-   * Some tests create local files. This method is called at the end of them to clean up those
-   * temporary files, avoiding clogging the resource directory during testing.
-   *
-   * @param filenames varargs of local file names to be deleted.
-   */
-  void cleanLocalTestFiles(String... filenames) {
-    Pattern p = Pattern.compile(filenames[0] + ".*");
-    try {
-      for (File f : Objects.requireNonNull(Path.of(resources).toFile().listFiles())) {
-        if (p.matcher(f.getName()).matches()) {
-          Files.delete(Path.of(resources, f.getName()));
-        }
-      }
-    } catch (Exception e) {
-      System.err.println(e.getMessage());
-    }
-  }
 }
 
