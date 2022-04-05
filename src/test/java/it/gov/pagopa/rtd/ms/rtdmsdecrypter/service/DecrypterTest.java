@@ -1,5 +1,6 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
+import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.TestFilesCleanup.cleanup;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,6 +43,7 @@ import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +66,9 @@ class DecrypterTest {
   @Value("${decrypt.resources.base.path}")
   String resources;
 
+  @Value("${decrypt.resources.base.path}/tmp")
+  String tmpDirectory;
+
   @Value("${decrypt.private.key.password}")
   String privateKeyPassword;
 
@@ -71,6 +76,11 @@ class DecrypterTest {
   String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
   BlobApplicationAware fakeBlob = new BlobApplicationAware(
       "/blobServices/default/containers/" + container + "/blobs/" + blobName);
+
+  @AfterAll
+  static void cleanTmpFiles() {
+    cleanup(Path.of("src/test/resources/tmp"));
+  }
 
   @Test
   void shouldDecodeBase64File() throws IOException {
@@ -91,13 +101,13 @@ class DecrypterTest {
     FileInputStream publicKey = new FileInputStream(resources + "/certs/public.key");
 
     // encrypt with the same routine used by batch service
-    FileOutputStream encrypted = new FileOutputStream(resources + "/encrypted.pgp");
+    FileOutputStream encrypted = new FileOutputStream(tmpDirectory + "/encrypted.pgp");
     this.encryptFile(encrypted, resources + "/" + sourceFileName, this.readPublicKey(publicKey),
         true, true);
 
     // decrypt and compare
-    FileInputStream myEncrypted = new FileInputStream(resources + "/encrypted.pgp");
-    FileOutputStream myClearText = new FileOutputStream(resources + "/file.pgp.csv.decrypted");
+    FileInputStream myEncrypted = new FileInputStream(tmpDirectory + "/encrypted.pgp");
+    FileOutputStream myClearText = new FileOutputStream(tmpDirectory + "/file.pgp.csv.decrypted");
 
     decrypterImpl.decryptFile(myEncrypted, myClearText, "encrypted.pgp");
     myClearText.close();
@@ -105,31 +115,29 @@ class DecrypterTest {
     assertTrue(IOUtils.contentEquals(
         new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
         new BufferedReader(
-            new FileReader(Path.of(resources, "/file.pgp.csv.decrypted").toFile()))));
+            new FileReader(Path.of(tmpDirectory, "/file.pgp.csv.decrypted").toFile()))));
 
     //Ensures, through log info, that all file decrypting steps are done
     assertThat(output.getOut(), containsString("Copying decrypted stream:"));
     assertThat(output.getOut(), containsString("Closing:"));
     assertThat(output.getOut(), containsString("Closing clear stream:"));
 
-    cleanLocalTestFiles("encrypted.pgp", "file.pgp.csv.decrypted");
   }
 
   @Test
   void shouldThrowIOExceptionFromDecryptingMalformedPGPFile()
-      throws IOException, NoSuchProviderException, PGPException {
+      throws IOException {
 
     // Try to decrypt a malformed encrypted file
     FileInputStream myMalformedEncrypted = new FileInputStream(
         resources + "/malformedEncrypted.pgp");
-    FileOutputStream myClearText = new FileOutputStream(resources + "/malformedFile.decrypted");
+    FileOutputStream myClearText = new FileOutputStream(tmpDirectory + "/malformedFile.decrypted");
     assertThrows(IOException.class, () -> {
       decrypterImpl.decryptFile(myMalformedEncrypted, myClearText, "malformedEncrypted.pgp");
     });
 
     myClearText.close();
-    //Do NOT delete the malformedEncrypted.pgp with the cleanup method, it's not recreated
-    cleanLocalTestFiles("malformedFile.decrypted");
+
   }
 
   @Test
@@ -141,17 +149,17 @@ class DecrypterTest {
 
     // Encrypt an empty file
     FileOutputStream myEmpty = new FileOutputStream(
-        resources + "/emptyFile");
+        tmpDirectory + "/emptyFile");
     FileOutputStream myEmptyEncryptedOutput = new FileOutputStream(
-        resources + "/emptyFile.pgp");
-    this.encryptFile(myEmptyEncryptedOutput, resources + "/emptyFile",
+        tmpDirectory + "/emptyFile.pgp");
+    this.encryptFile(myEmptyEncryptedOutput, tmpDirectory + "/emptyFile",
         this.readPublicKey(publicKey),
         true, true);
     myEmpty.close();
     myEmptyEncryptedOutput.close();
 
-    FileInputStream myEmptyEncryptedInput = new FileInputStream(resources + "/emptyFile.pgp");
-    FileOutputStream myClearText = new FileOutputStream(resources + "/emptyFile.decrypted");
+    FileInputStream myEmptyEncryptedInput = new FileInputStream(tmpDirectory + "/emptyFile.pgp");
+    FileOutputStream myClearText = new FileOutputStream(tmpDirectory + "/emptyFile.decrypted");
 
     // Try to decrypt the empty file, resulting in an IllegalArgumentException
     assertThrows(IllegalArgumentException.class, () -> {
@@ -165,7 +173,6 @@ class DecrypterTest {
     assertThat(output.getOut(), containsString("Closing:"));
     assertThat(output.getOut(), containsString("Closing clear stream:"));
 
-    cleanLocalTestFiles("emptyFile", "emptyFile.pgp", "emptyFile.decrypted");
   }
 
   @Test
@@ -180,24 +187,24 @@ class DecrypterTest {
         Path.of(resources, "/certs/public.key").toString());
 
     // encrypt with the same routine used by batch service
-    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+    FileOutputStream encrypted = new FileOutputStream(Path.of(tmpDirectory, blobName).toString());
     this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
         this.readPublicKey(publicKey), false, true);
 
     // decrypt and compare
-    fakeBlob.setTargetDir(resources);
+    fakeBlob.setTargetDir(tmpDirectory);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     decrypterImpl.decrypt(fakeBlob);
 
     assertTrue(IOUtils.contentEquals(
         new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
         new BufferedReader(
-            new FileReader(Path.of(resources, fakeBlob.getBlob() + ".decrypted").toFile()))
+            new FileReader(Path.of(tmpDirectory, fakeBlob.getBlob() + ".decrypted").toFile()))
     ));
 
     //Check if the local blob and the decrypted one aren't cleaned up
-    assertTrue(Files.exists(Path.of(resources, blobName)) && Files.exists(
-        Path.of(resources, blobName + ".decrypted")));
+    assertTrue(Files.exists(Path.of(tmpDirectory, blobName)) && Files.exists(
+        Path.of(tmpDirectory, blobName + ".decrypted")));
 
     //Ensures, through log info, that all decrypting steps are done
     assertThat(output.getOut(), containsString("Copying decrypted stream:"));
@@ -205,24 +212,16 @@ class DecrypterTest {
     assertThat(output.getOut(), containsString("Closing clear stream:"));
     assertThat(output.getOut(), containsString("Blob decrypted:"));
 
-    cleanLocalTestFiles(blobName, blobName + ".decrypted");
   }
 
   @Test
   void shouldWarnNoData(CapturedOutput output)
-      throws IOException, NoSuchProviderException, PGPException {
-
-    // generate file
-    String sourceFileName = "cleartext.csv";
-
-    // Read the publicKey
-    FileInputStream publicKey = new FileInputStream(
-        Path.of(resources, "/certs/public.key").toString());
+      throws IOException, PGPException {
 
     String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp.nodata";
 
     // encrypt with the same routine used by batch service
-    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+    FileOutputStream encrypted = new FileOutputStream(Path.of(tmpDirectory, blobName).toString());
 
     //Partially mocked decrypter
     DecrypterImpl mockDecrypterImpl = mock(DecrypterImpl.class);
@@ -234,14 +233,14 @@ class DecrypterTest {
 
     BlobApplicationAware fakeBlob = new BlobApplicationAware(
         "/blobServices/default/containers/" + container + "/blobs/" + blobName);
-    fakeBlob.setTargetDir(resources);
+    fakeBlob.setTargetDir(tmpDirectory);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     mockDecrypterImpl.decrypt(fakeBlob);
 
     assertThat(output.getOut(), containsString("Can't extract data from encrypted file"));
 
-    //Check if the local blob is cleaned up
-    assertFalse(Files.exists(Path.of(resources, blobName)));
+    //Check if the local blob is cleaned up (given that it's empty)
+    assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
   }
 
   @Test
@@ -267,8 +266,8 @@ class DecrypterTest {
 
     assertThat(output.getOut(), containsString("Secret key for message not found."));
 
-    //Check if the local blob is cleaned up
-    assertFalse(Files.exists(Path.of(resources, blobName)));
+    //Check if the local blob is cleaned up (given that it empty key)
+    assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
   }
 
   @Test
@@ -282,7 +281,7 @@ class DecrypterTest {
         Path.of(resources, "/certs/public.key").toString());
 
     // encrypt with the same routine used by batch service
-    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+    FileOutputStream encrypted = new FileOutputStream(Path.of(tmpDirectory, blobName).toString());
     this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
         this.readPublicKey(publicKey), false, true);
 
@@ -294,7 +293,7 @@ class DecrypterTest {
         new IOException("invalid armor")).when(
         mockDecrypterImpl).decryptFile(any(), any(), any());
 
-    fakeBlob.setTargetDir(resources);
+    fakeBlob.setTargetDir(tmpDirectory);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     mockDecrypterImpl.decrypt(fakeBlob);
 
@@ -302,7 +301,7 @@ class DecrypterTest {
         containsString("invalid armor"));
 
     //Check if the local blob is cleaned up
-    assertFalse(Files.exists(Path.of(resources, blobName)));
+    assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
   }
 
   @Test
@@ -316,7 +315,7 @@ class DecrypterTest {
         Path.of(resources, "/certs/public.key").toString());
 
     // encrypt with the same routine used by batch service
-    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+    FileOutputStream encrypted = new FileOutputStream(Path.of(tmpDirectory, blobName).toString());
     this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
         this.readPublicKey(publicKey), false, true);
 
@@ -328,7 +327,7 @@ class DecrypterTest {
         new PGPException("Encrypted message contains a signed message - not literal data.")).when(
         mockDecrypterImpl).decryptFile(any(), any(), any());
 
-    fakeBlob.setTargetDir(resources);
+    fakeBlob.setTargetDir(tmpDirectory);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     mockDecrypterImpl.decrypt(fakeBlob);
 
@@ -336,7 +335,7 @@ class DecrypterTest {
         containsString("Encrypted message contains a signed message - not literal data."));
 
     //Check if the local blob is cleaned up
-    assertFalse(Files.exists(Path.of(resources, blobName)));
+    assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
   }
 
   @Test
@@ -351,7 +350,7 @@ class DecrypterTest {
         Path.of(resources, "/certs/public.key").toString());
 
     // encrypt with the same routine used by batch service
-    FileOutputStream encrypted = new FileOutputStream(Path.of(resources, blobName).toString());
+    FileOutputStream encrypted = new FileOutputStream(Path.of(tmpDirectory, blobName).toString());
     this.encryptFile(encrypted, Path.of(resources, sourceFileName).toString(),
         this.readPublicKey(publicKey), false, true);
 
@@ -362,7 +361,7 @@ class DecrypterTest {
     doThrow(new PGPException("Message is not a simple encrypted file - type unknown.")).when(
         mockDecrypterImpl).decryptFile(any(), any(), any());
 
-    fakeBlob.setTargetDir(resources);
+    fakeBlob.setTargetDir(tmpDirectory);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     mockDecrypterImpl.decrypt(fakeBlob);
 
@@ -370,7 +369,7 @@ class DecrypterTest {
         containsString("Message is not a simple encrypted file - type unknown."));
 
     //Check if the local blob is cleaned up
-    assertFalse(Files.exists(Path.of(resources, blobName)));
+    assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
   }
 
   // This routine should be factored out in a common module
@@ -443,19 +442,4 @@ class DecrypterTest {
     throw new IllegalArgumentException("Can't find encryption key in key ring.");
   }
 
-  /**
-   * Some tests create local files. This method is called at the end of them to clean up those
-   * temporary files, avoiding clogging the resource directory during testing.
-   *
-   * @param filenames varargs of local file names to be deleted.
-   */
-  void cleanLocalTestFiles(String... filenames) {
-    try {
-      for (String f : filenames) {
-        Files.delete(Path.of(resources, f));
-      }
-    } catch (Exception e) {
-      System.err.println(e.getMessage());
-    }
-  }
 }
