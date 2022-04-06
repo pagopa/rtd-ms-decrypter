@@ -1,16 +1,19 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
-import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.TestFilesCleanup.cleanup;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,25 +41,36 @@ class BlobSplitterTest {
 
   String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
   String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
-  BlobApplicationAware fakeBlob = new BlobApplicationAware(
-      "/blobServices/default/containers/" + container + "/blobs/" + blobName);
+  BlobApplicationAware fakeBlob;
 
-  @AfterEach
-  void cleanTmpFiles() {
-    cleanup(Path.of("src/test/resources/tmp"));
-  }
-
-  @Test
-  void shouldSplit(CapturedOutput output) throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
 
     String transactions = "cleartext.csv";
 
-    FileOutputStream decrypted = new FileOutputStream(
+    //Create the decrypted file
+    File decryptedFile = Path.of(tmpDirectory, blobName + ".decrypted").toFile();
+    decryptedFile.getParentFile().mkdirs();
+    decryptedFile.createNewFile();
+    FileOutputStream decryptedStream = new FileOutputStream(
         Path.of(tmpDirectory, blobName + ".decrypted").toString());
-    Files.copy(Path.of(resources, transactions), decrypted);
+    Files.copy(Path.of(resources, transactions), decryptedStream);
 
+    //Instantiate a fake blob with clear text content
+    fakeBlob = new BlobApplicationAware(
+        "/blobServices/default/containers/" + container + "/blobs/" + blobName);
     fakeBlob.setTargetDir(tmpDirectory);
-    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    fakeBlob.setStatus(Status.DECRYPTED);
+  }
+
+  @AfterEach
+  void cleanTmpFiles() throws IOException {
+    FileUtils.deleteDirectory(Path.of(tmpDirectory).toFile());
+  }
+
+  @Test
+  void shouldSplit(CapturedOutput output) {
+
     blobSplitterImpl.setLineThreshold(1);
 
     assertEquals(3, blobSplitterImpl.split(fakeBlob).count());
@@ -67,16 +81,8 @@ class BlobSplitterTest {
   //This test, contrary to the previous one, tests the scenario where the file run out of lines
   // before reaching the threshold.
   @Test
-  void shouldSplitReminder(CapturedOutput output) throws IOException {
+  void shouldSplitReminder(CapturedOutput output) {
 
-    String transactions = "cleartext.csv";
-
-    FileOutputStream decrypted = new FileOutputStream(
-        Path.of(tmpDirectory, blobName + ".decrypted").toString());
-    Files.copy(Path.of(resources, transactions), decrypted);
-
-    fakeBlob.setTargetDir(tmpDirectory);
-    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobSplitterImpl.setLineThreshold(2);
 
     assertEquals(2, blobSplitterImpl.split(fakeBlob).count());
@@ -87,12 +93,8 @@ class BlobSplitterTest {
   @Test
   void shouldNotSplitMissingFile(CapturedOutput output) throws IOException {
 
-    String transactions = "cleartext.csv";
-
-    FileOutputStream decrypted = new FileOutputStream(Path.of(tmpDirectory, blobName).toString());
-    Files.copy(Path.of(resources, transactions), decrypted);
-
-    fakeBlob.setTargetDir(tmpDirectory);
+    //Set the wrong directory for locating the decrypted fake blob
+    fakeBlob.setTargetDir(resources);
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobSplitterImpl.setLineThreshold(1);
 
