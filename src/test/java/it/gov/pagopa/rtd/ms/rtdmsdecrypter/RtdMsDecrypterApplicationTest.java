@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,17 +69,22 @@ class RtdMsDecrypterApplicationTest {
   private final String myID = "my_id";
   private final String myTopic = "my_topic";
   private final String myEventType = "Microsoft.Storage.BlobCreated";
+  private EventGridEvent myEvent;
+  List<EventGridEvent> myList;
+
+  @BeforeEach
+  void setUp() {
+    myEvent = new EventGridEvent();
+    myList = new ArrayList<EventGridEvent>();
+    myEvent.setId(myID);
+    myEvent.setTopic(myTopic);
+    myEvent.setEventType(myEventType);
+    myEvent.setSubject(blobUri);
+    myList.add(myEvent);
+  }
 
   @Test
-  void shouldConsumeMessageAndCallDecrypter() {
-
-    EventGridEvent my_event = new EventGridEvent();
-    my_event.setId(myID);
-    my_event.setTopic(myTopic);
-    my_event.setEventType(myEventType);
-    my_event.setSubject(blobUri);
-    List<EventGridEvent> my_list = new ArrayList<EventGridEvent>();
-    my_list.add(my_event);
+  void shouldConsumeMessage() {
 
     //Prepare fake blobs
     BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
@@ -112,7 +118,7 @@ class RtdMsDecrypterApplicationTest {
     await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
 
       //Send the message to the event grid
-      channel.send(MessageBuilder.withPayload(my_list).build());
+      channel.send(MessageBuilder.withPayload(myList).build());
 
       //Verify if every handling step is called the desired number of time
       verify(blobRestConnectorImpl, times(1)).get(any());
@@ -128,22 +134,14 @@ class RtdMsDecrypterApplicationTest {
   @Test
   void shouldFilterMessageForWrongService(CapturedOutput output) {
 
-    EventGridEvent my_event = new EventGridEvent();
-    my_event.setId(myID);
-    my_event.setTopic(myTopic);
-    my_event.setEventType(myEventType);
-
     //Set wrong blob name
-    my_event.setSubject("/blobServices/default/containers/" + container
+    myEvent.setSubject("/blobServices/default/containers/" + container
         + "/blobs/STAR.99910.TRNLOG.20220228.103107.001.csv.pgp");
-
-    List<EventGridEvent> my_list = new ArrayList<EventGridEvent>();
-    my_list.add(my_event);
 
     await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
 
       //Send the message to the event grid
-      channel.send(MessageBuilder.withPayload(my_list).build());
+      channel.send(MessageBuilder.withPayload(myList).build());
 
       //Verify if every handling step is called the desired number of time
       verify(blobRestConnectorImpl, times(0)).get(any());
@@ -160,14 +158,6 @@ class RtdMsDecrypterApplicationTest {
   @Test
   void shouldFilterMessageForFailedgGet() {
 
-    EventGridEvent my_event = new EventGridEvent();
-    my_event.setId(myID);
-    my_event.setTopic(myTopic);
-    my_event.setEventType(myEventType);
-    my_event.setSubject(blobUri);
-    List<EventGridEvent> my_list = new ArrayList<EventGridEvent>();
-    my_list.add(my_event);
-
     //Prepare fake blob
     BlobApplicationAware blobReceived = new BlobApplicationAware(blobUri);
 
@@ -181,7 +171,7 @@ class RtdMsDecrypterApplicationTest {
     await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
 
       //Send the message to the event grid
-      channel.send(MessageBuilder.withPayload(my_list).build());
+      channel.send(MessageBuilder.withPayload(myList).build());
 
       //Verify if every handling step is called the desired number of time
       verify(blobRestConnectorImpl, times(1)).get(any());
@@ -196,14 +186,6 @@ class RtdMsDecrypterApplicationTest {
 
   @Test
   void shouldFilterMessageForFailedDecrypt() {
-
-    EventGridEvent my_event = new EventGridEvent();
-    my_event.setId(myID);
-    my_event.setTopic(myTopic);
-    my_event.setEventType(myEventType);
-    my_event.setSubject(blobUri);
-    List<EventGridEvent> my_list = new ArrayList<EventGridEvent>();
-    my_list.add(my_event);
 
     //Prepare fake blob
     BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
@@ -221,7 +203,7 @@ class RtdMsDecrypterApplicationTest {
     await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
 
       //Send the message to the event grid
-      channel.send(MessageBuilder.withPayload(my_list).build());
+      channel.send(MessageBuilder.withPayload(myList).build());
 
       //Verify if every handling step is called the desired number of time
       verify(blobRestConnectorImpl, times(1)).get(any());
@@ -236,14 +218,6 @@ class RtdMsDecrypterApplicationTest {
 
   @Test
   void shouldFilterMessageForFailedSplit() {
-
-    EventGridEvent my_event = new EventGridEvent();
-    my_event.setId(myID);
-    my_event.setTopic(myTopic);
-    my_event.setEventType(myEventType);
-    my_event.setSubject(blobUri);
-    List<EventGridEvent> my_list = new ArrayList<EventGridEvent>();
-    my_list.add(my_event);
 
     //Prepare fake blobs
     BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
@@ -263,7 +237,7 @@ class RtdMsDecrypterApplicationTest {
     await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
 
       //Send the message to the event grid
-      channel.send(MessageBuilder.withPayload(my_list).build());
+      channel.send(MessageBuilder.withPayload(myList).build());
 
       //Verify if every handling step is called the desired number of time
       verify(blobRestConnectorImpl, times(1)).get(any());
@@ -276,14 +250,6 @@ class RtdMsDecrypterApplicationTest {
 
   @Test
   void shouldFilterMessageForFailedPut() {
-
-    EventGridEvent my_event = new EventGridEvent();
-    my_event.setId(myID);
-    my_event.setTopic(myTopic);
-    my_event.setEventType(myEventType);
-    my_event.setSubject(blobUri);
-    List<EventGridEvent> my_list = new ArrayList<EventGridEvent>();
-    my_list.add(my_event);
 
     //Prepare fake blobs
     BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
@@ -312,7 +278,7 @@ class RtdMsDecrypterApplicationTest {
     await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
 
       //Send the message to the event grid
-      channel.send(MessageBuilder.withPayload(my_list).build());
+      channel.send(MessageBuilder.withPayload(myList).build());
 
       //Verify if every handling step is called the desired number of time
       verify(blobRestConnectorImpl, times(1)).get(any());
