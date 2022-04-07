@@ -47,6 +47,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -246,20 +248,23 @@ class DecrypterTest {
     assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
   }
 
-  @Test
-  void shouldFailDecryptNoSecretKey(CapturedOutput output)
+  @ParameterizedTest
+  @ValueSource(strings = {"Secret key for message not found.",
+      "Encrypted message contains a signed message - not literal data.",
+      "Message is not a simple encrypted file - type unknown."})
+  void shouldFailDecryptPGPException(String error, CapturedOutput output)
       throws IOException, PGPException {
 
     //Mock decrypter behaviour
     when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
-    doThrow(new PGPException("Secret key for message not found.")).when(
+    doThrow(new PGPException(error)).when(
         mockDecrypterImpl).decryptFile(any(), any(), any());
 
     mockDecrypterImpl.decrypt(fakeBlob);
 
-    assertThat(output.getOut(), containsString("Secret key for message not found."));
+    assertThat(output.getOut(), containsString(error));
 
-    //Check if the local blob is cleaned up (given that it empty key)
+    //Check if the local blob is cleaned up
     assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
   }
 
@@ -277,43 +282,6 @@ class DecrypterTest {
 
     assertThat(output.getOut(),
         containsString("invalid armor"));
-
-    //Check if the local blob is cleaned up
-    assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
-  }
-
-  @Test
-  void shouldNotDecryptNoLiteralData(CapturedOutput output)
-      throws IOException, PGPException {
-
-    //Mock decrypter behaviour
-    when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
-    doThrow(
-        new PGPException("Encrypted message contains a signed message - not literal data.")).when(
-        mockDecrypterImpl).decryptFile(any(), any(), any());
-
-    mockDecrypterImpl.decrypt(fakeBlob);
-
-    assertThat(output.getOut(),
-        containsString("Encrypted message contains a signed message - not literal data."));
-
-    //Check if the local blob is cleaned up
-    assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
-  }
-
-  @Test
-  void shouldNotDecryptTypeUnknown(CapturedOutput output)
-      throws IOException, PGPException {
-
-    //Mock decrypter behaviour
-    when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
-    doThrow(new PGPException("Message is not a simple encrypted file - type unknown.")).when(
-        mockDecrypterImpl).decryptFile(any(), any(), any());
-
-    mockDecrypterImpl.decrypt(fakeBlob);
-
-    assertThat(output.getOut(),
-        containsString("Message is not a simple encrypted file - type unknown."));
 
     //Check if the local blob is cleaned up
     assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
