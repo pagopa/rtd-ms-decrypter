@@ -1,10 +1,11 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
-import java.io.IOException;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
@@ -154,42 +155,25 @@ public class BlobApplicationAware {
   }
 
   /**
-   * This method deletes the local files left by the blob handling (get, decrypt, put).
+   * This method deletes the local files left by the blob handling (get, decrypt, split, put).
    *
-   * @return false, in order to filter the event in the event handler
+   * @return the blob with its status set to deleted.
    */
   public BlobApplicationAware localCleanup() {
-    //Get the path to both encrypted and decrypted local blob files
-    Path blobEncrypted = Path.of(targetDir, blob);
-    Path blobDecrypted = Path.of(targetDir, blob + ".decrypted");
 
-    boolean encryptedDeleted = false;
-    boolean decryptedDeleted = false;
-
-    //
-    // For both files check whether their deletion has been successful.
-    // In case of failure the process isn't blocked.
-    // Instead, warning are logged.
-    // DELETED status is set only if both files are deleted correctly.
-    //
-
-    try {
-      Files.delete(blobEncrypted);
-      encryptedDeleted = true;
-    } catch (IOException ex) {
-      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobEncrypted + " (" + ex + ")");
+    for (File f : Objects.requireNonNull(Path.of(this.targetDir).toFile().listFiles())) {
+      //Delete every file in the temporary directory that starts with the name of the blob.
+      // This includes the blob itself, its decryption and all the chunks.
+      if (f.getName().startsWith(blob)) {
+        try {
+          Files.delete(f.toPath());
+        } catch (Exception e) {
+          log.warn(FAIL_FILE_DELETE_WARNING_MSG + f.getName() + " (" + e + ")");
+        }
+      }
     }
 
-    try {
-      Files.delete(blobDecrypted);
-      decryptedDeleted = true;
-    } catch (IOException ex) {
-      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobDecrypted + " (" + ex + ")");
-    }
-
-    if (encryptedDeleted && decryptedDeleted) {
-      status = Status.DELETED;
-    }
+    status = Status.DELETED;
     return this;
   }
 }
