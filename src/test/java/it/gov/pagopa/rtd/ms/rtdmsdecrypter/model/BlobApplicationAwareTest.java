@@ -3,12 +3,14 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -45,8 +47,8 @@ class BlobApplicationAwareTest {
     encryptedBlob.createNewFile();
 
     File decryptedBlob = Path.of(tmpDirectory, blobNameRtd + ".decrypted").toFile();
-    encryptedBlob.getParentFile().mkdirs();
-    encryptedBlob.createNewFile();
+    decryptedBlob.getParentFile().mkdirs();
+    decryptedBlob.createNewFile();
 
     FileOutputStream encryptedBlobStream = new FileOutputStream(
         Path.of(tmpDirectory, blobNameRtd).toString());
@@ -93,24 +95,20 @@ class BlobApplicationAwareTest {
   @Test
   void shouldCleanLocalFiles() {
     assertEquals(Status.DELETED, fakeBlob.localCleanup().getStatus());
+    assertFalse(Files.exists(Path.of(tmpDirectory, blobNameRtd)));
+    assertFalse(Files.exists(Path.of(tmpDirectory, blobNameRtd + ".decrypted")));
   }
 
+  //This test simulates the scenario where in the temporary folder with the same name as the blob
+  // to be deleted.
+  //Thi is done in order to trigger the catch clause in the localCleanup method.
   @Test
-  void shouldFailFindingLocalEncryptedFile(CapturedOutput output) {
-    String blobName = "CSTAR.99910.TRNLOG.20220316.164707.001.csv.pgp.missing";
-    fakeBlob.setBlob(blobName);
+  void shouldFailFindingLocalEncryptedFile(CapturedOutput output) throws IOException {
+    File nestedBlob = Path.of(tmpDirectory, blobNameRtd + ".dir", blobNameRtd + ".nested").toFile();
+    nestedBlob.getParentFile().mkdirs();
+    nestedBlob.createNewFile();
 
     fakeBlob.localCleanup();
     assertThat(output.getOut(), containsString("Failed to delete local blob file:"));
   }
-
-  @Test
-  void shouldFailFindingLocalDecryptedFile(CapturedOutput output) {
-    String blobName = "CSTAR.99910.TRNLOG.20220316.164707.001.csv.pgp.missing";
-    fakeBlob.setBlob(blobName);
-
-    fakeBlob.localCleanup();
-    assertThat(output.getOut(), containsString("Failed to delete local blob file:"));
-  }
-
 }
