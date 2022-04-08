@@ -77,7 +77,7 @@ class BlobRestConnectorTest {
   }
 
   @Test
-  void shouldFail(CapturedOutput output) throws IOException {
+  void shouldFailGet(CapturedOutput output) throws IOException {
     doThrow(IOException.class).when(client)
         .execute(any(HttpGet.class), any(BlobRestConnectorImpl.FileDownloadResponseHandler.class));
 
@@ -105,7 +105,7 @@ class BlobRestConnectorTest {
   }
 
   @Test
-  void shouldNotPut(CapturedOutput output) throws IOException {
+  void shouldFailPut(CapturedOutput output) throws IOException {
     StatusLine mockedStatusLine = mock(StatusLine.class);
     doReturn(HttpStatus.SC_INTERNAL_SERVER_ERROR).when(mockedStatusLine).getStatusCode();
     CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
