@@ -48,6 +48,7 @@ public class BlobApplicationAware {
   private Application app;
   private Status status;
   private String targetContainer;
+  private String originalBlobName;
 
   private String targetContainerAde = "ade-transactions-decrypted";
   private String targetContainerRtd = "rtd-transactions-decrypted";
@@ -78,6 +79,7 @@ public class BlobApplicationAware {
 
       container = matcher.group(1);
       blob = matcher.group(3);
+      originalBlobName = blob;
 
       //Tokenized blob name for checking compliance
       String[] blobNameTokenized = blob.split("\\.");
@@ -160,16 +162,6 @@ public class BlobApplicationAware {
    * @return the blob with its status set to deleted.
    */
   public BlobApplicationAware localCleanup() {
-
-    //Obtain the name of the original blob from the chunk's name
-    String[] blobNameTokenized = blob.split("\\.");
-    String originalBlobName = "";
-    for (int i = 0; i < 8; i++) {
-      originalBlobName = originalBlobName.concat(blobNameTokenized[i]);
-      if (i != 7) {
-        originalBlobName = originalBlobName.concat(".");
-      }
-    }
 
     for (File f : Objects.requireNonNull(Path.of(this.targetDir).toFile().listFiles())) {
       //Delete every file in the temporary directory that starts with the name of the original blob.
