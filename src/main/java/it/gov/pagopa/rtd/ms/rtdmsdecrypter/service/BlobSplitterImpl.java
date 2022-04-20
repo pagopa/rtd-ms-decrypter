@@ -55,7 +55,9 @@ public class BlobSplitterImpl implements BlobSplitter {
             Path.of(blobPath).toFile(), "UTF-8")
     ) {
       while (it.hasNext()) {
-        try (Writer writer = Channels.newWriter(new FileOutputStream(blobPath + "." + chunkNum,
+        try (Writer writer = Channels.newWriter(new FileOutputStream(
+                Path.of(blob.getTargetDir(), blob.getBlob()
+                    + "." + chunkNum + ".decrypted").toString(),
                 true).getChannel(),
             StandardCharsets.UTF_8)) {
           i = 0;
@@ -69,7 +71,7 @@ public class BlobSplitterImpl implements BlobSplitter {
             i++;
           }
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
-              blob.getBlobUri() + "." + chunkNum);
+              blob.getBlobUri() + "." + chunkNum + ".decrypted");
           tmpBlob.setStatus(SPLIT);
           blobSplit.add(tmpBlob);
         }
