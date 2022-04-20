@@ -30,6 +30,8 @@ public class BlobSplitterImpl implements BlobSplitter {
   @Value("${decrypt.splitter.threshold}")
   private int lineThreshold;
 
+  private String decryptedSuffix = ".decrypted";
+
   /**
    * Method that split the content of a blob in chunks of n lines.
    *
@@ -37,7 +39,7 @@ public class BlobSplitterImpl implements BlobSplitter {
    * @return a list of blobs that represent the split blob.
    */
   public Stream<BlobApplicationAware> split(BlobApplicationAware blob) {
-    String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toString();
+    String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + decryptedSuffix).toString();
 
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
 
@@ -57,7 +59,7 @@ public class BlobSplitterImpl implements BlobSplitter {
       while (it.hasNext()) {
         try (Writer writer = Channels.newWriter(new FileOutputStream(
                 Path.of(blob.getTargetDir(), blob.getBlob()
-                    + "." + chunkNum + ".decrypted").toString(),
+                    + "." + chunkNum + decryptedSuffix).toString(),
                 true).getChannel(),
             StandardCharsets.UTF_8)) {
           i = 0;
@@ -71,7 +73,7 @@ public class BlobSplitterImpl implements BlobSplitter {
             i++;
           }
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
-              blob.getBlobUri() + "." + chunkNum + ".decrypted");
+              blob.getBlobUri() + "." + chunkNum + decryptedSuffix);
           tmpBlob.setStatus(SPLIT);
           blobSplit.add(tmpBlob);
         }
