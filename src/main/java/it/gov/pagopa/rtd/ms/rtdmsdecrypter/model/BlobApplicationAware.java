@@ -161,10 +161,20 @@ public class BlobApplicationAware {
    */
   public BlobApplicationAware localCleanup() {
 
+    //Obtain the name of the original blob from the chunk's name
+    String[] blobNameTokenized = blob.split("\\.");
+    String originalBlobName = "";
+    for (int i = 0; i < 8; i++) {
+      originalBlobName = originalBlobName.concat(blobNameTokenized[i]);
+      if (i != 7) {
+        originalBlobName = originalBlobName.concat(".");
+      }
+    }
+
     for (File f : Objects.requireNonNull(Path.of(this.targetDir).toFile().listFiles())) {
-      //Delete every file in the temporary directory that starts with the name of the blob.
+      //Delete every file in the temporary directory that starts with the name of the original blob.
       // This includes the blob itself, its decryption and all the chunks.
-      if (f.getName().startsWith(blob)) {
+      if (f.getName().startsWith(originalBlobName)) {
         try {
           Files.delete(f.toPath());
         } catch (Exception e) {
