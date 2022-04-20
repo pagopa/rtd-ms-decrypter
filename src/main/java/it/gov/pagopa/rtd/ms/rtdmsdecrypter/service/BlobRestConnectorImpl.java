@@ -75,11 +75,10 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   public BlobApplicationAware put(BlobApplicationAware blob) {
 
     String uri =
-        baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob.getBlob()
-            + ".decrypted";
+        baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob.getBlob();
 
     FileEntity entity = new FileEntity(
-        Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile(),
+        Path.of(blob.getTargetDir(), blob.getBlob()).toFile(),
         ContentType.create("application/octet-stream"));
 
     final HttpPut putBlob = new HttpPut(uri);
