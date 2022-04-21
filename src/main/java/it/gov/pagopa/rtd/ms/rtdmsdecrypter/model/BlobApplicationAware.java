@@ -177,7 +177,7 @@ public class BlobApplicationAware {
         Files.delete(tmpFile.toPath());
       }
 
-      //Delete the original decrypted file (if present)l
+      //Delete the original decrypted file (if present)
       tmpFile = Path.of(this.targetDir, originalBlobName + ".decrypted").toFile();
       if (tmpFile.exists()) {
         Files.delete(tmpFile.toPath());
