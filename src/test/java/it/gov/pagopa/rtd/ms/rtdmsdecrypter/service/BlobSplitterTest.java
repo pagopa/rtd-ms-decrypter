@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,7 +74,15 @@ class BlobSplitterTest {
 
     blobSplitterImpl.setLineThreshold(1);
 
-    assertEquals(3, blobSplitterImpl.split(fakeBlob).count());
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlob);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.SPLIT, b.getStatus());
+      assertEquals(blobName + "." + i + ".decrypted", b.getBlob());
+      i++;
+    }
+    assertEquals(3, i);
     assertThat(output.getOut(), containsString("Obtained 3 chunk/s from blob:"));
 
   }
@@ -85,13 +94,21 @@ class BlobSplitterTest {
 
     blobSplitterImpl.setLineThreshold(2);
 
-    assertEquals(2, blobSplitterImpl.split(fakeBlob).count());
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlob);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.SPLIT, b.getStatus());
+      assertEquals(blobName + "." + i + ".decrypted", b.getBlob());
+      i++;
+    }
+    assertEquals(2, i);
     assertThat(output.getOut(), containsString("Obtained 2 chunk/s from blob:"));
 
   }
 
   @Test
-  void shouldNotSplitMissingFile(CapturedOutput output) throws IOException {
+  void shouldNotSplitMissingFile(CapturedOutput output) {
 
     //Set the wrong directory for locating the decrypted fake blob
     fakeBlob.setTargetDir(resources);
