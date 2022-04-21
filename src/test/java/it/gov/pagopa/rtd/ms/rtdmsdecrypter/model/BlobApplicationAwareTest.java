@@ -1,10 +1,9 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
 import java.io.File;
@@ -12,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +21,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
 @SpringBootTest
@@ -93,22 +92,43 @@ class BlobApplicationAwareTest {
   }
 
   @Test
-  void shouldCleanLocalFiles() {
+  void shouldCleanLocalFiles() throws IOException {
+
+    //Create fake chunk files
+    ArrayList<File> chunks = new ArrayList<>();
+    chunks.add(Path.of(tmpDirectory, blobNameRtd + ".0.decrypted").toFile());
+    chunks.add(Path.of(tmpDirectory, blobNameRtd + ".1.decrypted").toFile());
+    chunks.add(Path.of(tmpDirectory, blobNameRtd + ".2.decrypted").toFile());
+
+    chunks.stream().map(File::getParentFile).map(File::mkdirs);
+    for (File f : chunks) {
+      f.createNewFile();
+    }
+
+    //Set the name of the fake blob to the first chunk
+    fakeBlob.setBlob(chunks.get(0).getName());
+
     assertEquals(Status.DELETED, fakeBlob.localCleanup().getStatus());
+
+    //Check if the first chunk, the original pgp file and the decrypted file are deleted
+    assertFalse(Files.exists(Path.of(tmpDirectory, fakeBlob.getBlob())));
     assertFalse(Files.exists(Path.of(tmpDirectory, blobNameRtd)));
     assertFalse(Files.exists(Path.of(tmpDirectory, blobNameRtd + ".decrypted")));
+
+    //Check if the other chunks are still present
+    assertTrue(Files.exists(Path.of(tmpDirectory, chunks.get(1).getName())));
+    assertTrue(Files.exists(Path.of(tmpDirectory, chunks.get(2).getName())));
+
+    //Set the name of the fake blob to the second chunk
+    fakeBlob.setBlob(chunks.get(1).getName());
+
+    assertEquals(Status.DELETED, fakeBlob.localCleanup().getStatus());
+
+    //Check if the second chunk is deleted
+    assertFalse(Files.exists(Path.of(tmpDirectory, fakeBlob.getBlob())));
+
+    //Check if the third chunk is still present
+    assertTrue(Files.exists(Path.of(tmpDirectory, chunks.get(2).getName())));
   }
 
-  //This test simulates the scenario where in the temporary folder with the same name as the blob
-  // to be deleted.
-  //Thi is done in order to trigger the catch clause in the localCleanup method.
-  @Test
-  void shouldFailFindingLocalEncryptedFile(CapturedOutput output) throws IOException {
-    File nestedBlob = Path.of(tmpDirectory, blobNameRtd + ".dir", blobNameRtd + ".nested").toFile();
-    nestedBlob.getParentFile().mkdirs();
-    nestedBlob.createNewFile();
-
-    fakeBlob.localCleanup();
-    assertThat(output.getOut(), containsString("Failed to delete local blob file:"));
-  }
 }
