@@ -163,16 +163,28 @@ public class BlobApplicationAware {
    */
   public BlobApplicationAware localCleanup() {
 
-    for (File f : Objects.requireNonNull(Path.of(this.targetDir).toFile().listFiles())) {
-      //Delete every file in the temporary directory that starts with the name of the original blob.
-      // This includes the blob itself, its decryption and all the chunks.
-      if (f.getName().startsWith(originalBlobName)) {
-        try {
-          Files.delete(f.toPath());
-        } catch (Exception e) {
-          log.warn(FAIL_FILE_DELETE_WARNING_MSG + f.getName() + " (" + e + ")");
-        }
+    File tmpFile = Path.of(targetDir, blob).toFile();
+
+    try {
+      //Delete the chunk
+      if (tmpFile.exists()) {
+        Files.delete(tmpFile.toPath());
       }
+
+      //Delete the original encrypted file (if present)
+      tmpFile = Path.of(this.targetDir, originalBlobName).toFile();
+      if (tmpFile.exists()) {
+        Files.delete(tmpFile.toPath());
+      }
+
+      //Delete the original decrypted file (if present)l
+      tmpFile = Path.of(this.targetDir, originalBlobName + ".decrypted").toFile();
+      if (tmpFile.exists()) {
+        Files.delete(tmpFile.toPath());
+      }
+
+    } catch (Exception e) {
+      log.warn(FAIL_FILE_DELETE_WARNING_MSG + tmpFile.getName() + " (" + e + ")");
     }
 
     status = Status.DELETED;
