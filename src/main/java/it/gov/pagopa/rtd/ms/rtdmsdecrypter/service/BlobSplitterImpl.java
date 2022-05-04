@@ -46,6 +46,9 @@ public class BlobSplitterImpl implements BlobSplitter {
     //Flag for fail split
     boolean failSplit = false;
 
+    //Flag for skipping first checksum line
+    boolean checksumSkipped = false;
+
     //Incremental integer for chunk numbering
     int chunkNum = 0;
 
@@ -66,7 +69,13 @@ public class BlobSplitterImpl implements BlobSplitter {
           while (i < lineThreshold) {
             if (it.hasNext()) {
               String line = it.nextLine();
-              writer.append(line).append("\n");
+              //Skip the checksum line (the first one)
+              if (!checksumSkipped) {
+                checksumSkipped = true;
+                i--;
+              } else {
+                writer.append(line).append("\n");
+              }
             } else {
               break;
             }
