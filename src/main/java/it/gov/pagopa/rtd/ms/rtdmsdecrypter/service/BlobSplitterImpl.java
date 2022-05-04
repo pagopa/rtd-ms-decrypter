@@ -71,6 +71,7 @@ public class BlobSplitterImpl implements BlobSplitter {
               String line = it.nextLine();
               //Skip the checksum line (the first one)
               if (!checksumSkipped) {
+                log.info("Checksum: {} {}", blob.getBlob(), line);
                 checksumSkipped = true;
                 i--;
               } else {
