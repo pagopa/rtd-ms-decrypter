@@ -19,7 +19,7 @@ decrypt:
       rtd: rtd-transactions-decrypted
       ade: ade-transactions-decrypted
   splitter:
-    threshold: ${LINE_SPLITTING_THRESHOLD:10000}
+    threshold: ${SPLITTER_LINE_THRESHOLD:10000}
 ---
 spring:
   config:
