@@ -43,8 +43,8 @@ public class EventHandler {
         .filter(b -> BlobApplicationAware.Status.DECRYPTED.equals(b.getStatus()))
         .flatMap(blobSplitterImpl::split)
         .filter(b -> BlobApplicationAware.Status.SPLIT.equals(b.getStatus()))
-        .map(blobRestConnectorImpl::put)
-        .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
+        //.map(blobRestConnectorImpl::put)
+        //.filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
         .map(BlobApplicationAware::localCleanup)
         .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus()))
         .collect(Collectors.toList());
