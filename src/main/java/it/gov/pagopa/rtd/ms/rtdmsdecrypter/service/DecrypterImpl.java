@@ -68,7 +68,6 @@ public class DecrypterImpl implements Decrypter {
   public BlobApplicationAware decrypt(BlobApplicationAware blob) {
 
     boolean decryptFailed = false;
-
     try (
         FileInputStream encrypted = new FileInputStream(
             Path.of(blob.getTargetDir(), blob.getBlob()).toFile());

@@ -11,6 +11,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,6 +28,7 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Iterator;
 import org.apache.commons.io.FileUtils;
+
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -54,6 +56,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
@@ -123,6 +126,7 @@ class DecrypterTest {
     FileUtils.deleteDirectory(Path.of(tmpDirectory).toFile());
   }
 
+
   @Test
   void shouldDecodeBase64File() throws IOException {
     // After construction, Decrypter method readKey is called, so the key is in
@@ -140,6 +144,7 @@ class DecrypterTest {
     FileOutputStream myClearText = new FileOutputStream(tmpDirectory + "/file.pgp.csv.decrypted");
 
     decrypterImpl.decryptFile(myEncrypted, myClearText, "encrypted.pgp");
+
     myClearText.close();
 
     assertTrue(IOUtils.contentEquals(
@@ -210,6 +215,7 @@ class DecrypterTest {
       throws IOException {
 
     // decrypt and compare
+
     decrypterImpl.decrypt(fakeBlob);
 
     assertTrue(IOUtils.contentEquals(
@@ -285,6 +291,7 @@ class DecrypterTest {
 
     //Check if the local blob is cleaned up
     assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
+
   }
 
   // This routine should be factored out in a common module

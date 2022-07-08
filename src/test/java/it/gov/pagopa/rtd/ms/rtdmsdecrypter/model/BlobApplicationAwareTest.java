@@ -15,12 +15,14 @@ import java.util.ArrayList;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
 @SpringBootTest
@@ -69,6 +71,7 @@ class BlobApplicationAwareTest {
   @Test
   void shouldMatchRegexRTD() {
     String blobUri = "/blobServices/default/containers/" + containerRtd + "/blobs/" + blobNameRtd;
+
     BlobApplicationAware myBlob = new BlobApplicationAware(blobUri);
     assertSame(BlobApplicationAware.Application.RTD, myBlob.getApp());
   }
@@ -129,6 +132,7 @@ class BlobApplicationAwareTest {
 
     //Check if the third chunk is still present
     assertTrue(Files.exists(Path.of(tmpDirectory, chunks.get(2).getName())));
+
   }
 
 }
