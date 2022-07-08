@@ -1,7 +1,6 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
 import java.io.File;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
