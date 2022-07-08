@@ -84,6 +84,7 @@ class BlobRestConnectorTest {
   @Test
   void shouldFailGet(CapturedOutput output) throws IOException {
     doThrow(new IOException(EXCEPTION_MESSAGE)).when(client)
+
         .execute(any(HttpGet.class), any(BlobRestConnectorImpl.FileDownloadResponseHandler.class));
 
     BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobIn);
@@ -104,6 +105,7 @@ class BlobRestConnectorTest {
         ArgumentMatchers.<ResponseHandler<OutputStream>>any());
     assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
     assertThat(output.getOut(), containsString("Cannot GET blob"));
+
   }
 
   @Test
@@ -126,6 +128,7 @@ class BlobRestConnectorTest {
     StatusLine mockedStatusLine = mock(StatusLine.class);
     doReturn(HttpStatus.SC_INTERNAL_SERVER_ERROR).when(mockedStatusLine).getStatusCode();
     doReturn("Internal Server Error").when(mockedStatusLine).getReasonPhrase();
+
     CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
     doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
     doReturn(mockedResponse).when(client).execute(any(HttpPut.class));
@@ -147,5 +150,6 @@ class BlobRestConnectorTest {
     verify(client, times(1)).execute(any(HttpPut.class));
     assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
     assertThat(output.getOut(), containsString("Cannot PUT blob "));
+
   }
 }

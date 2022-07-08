@@ -43,7 +43,7 @@ class RtdMsDecrypterApplicationTest {
 
   @Value("${decrypt.resources.base.path}")
   String resources;
-
+  
   @MockBean
   DecrypterImpl decrypterImpl;
 
@@ -151,7 +151,6 @@ class RtdMsDecrypterApplicationTest {
       verify(blobApplicationAware, times(0)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any(), any());
       assertThat(output.getOut(), containsString("Wrong name format:"));
-
     });
   }
 
@@ -180,7 +179,6 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(0)).put(any());
       verify(blobApplicationAware, times(0)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any(), any());
-
     });
   }
 
@@ -286,7 +284,6 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(3)).put(any());
       verify(blobApplicationAware, times(0)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any(), any());
-
     });
   }
 }

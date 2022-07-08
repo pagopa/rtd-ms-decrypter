@@ -1,6 +1,7 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
 import java.io.File;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
@@ -50,6 +51,7 @@ public class BlobApplicationAware {
   private String targetContainer;
   private String originalBlobName;
 
+
   private String targetContainerAde = "ade-transactions-decrypted";
   private String targetContainerRtd = "rtd-transactions-decrypted";
 
@@ -80,6 +82,7 @@ public class BlobApplicationAware {
       container = matcher.group(1);
       blob = matcher.group(3);
       originalBlobName = blob;
+
 
       //Tokenized blob name for checking compliance
       String[] blobNameTokenized = blob.split("\\.");
@@ -189,6 +192,7 @@ public class BlobApplicationAware {
 
     status = Status.DELETED;
     return this;
+
   }
 }
   
