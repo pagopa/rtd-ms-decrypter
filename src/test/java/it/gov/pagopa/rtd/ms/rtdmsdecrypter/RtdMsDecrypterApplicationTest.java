@@ -43,7 +43,7 @@ class RtdMsDecrypterApplicationTest {
 
   @Value("${decrypt.resources.base.path}")
   String resources;
-  
+
   @MockBean
   DecrypterImpl decrypterImpl;
 

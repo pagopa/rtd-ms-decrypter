@@ -102,7 +102,6 @@ public class DecrypterImpl implements Decrypter {
   protected void decryptFile(InputStream input, OutputStream output, String blobName)
       throws IOException, PGPException {
 
-
     InputStream keyInput = IOUtils.toInputStream(this.privateKey, StandardCharsets.UTF_8);
     char[] passwd = this.privateKeyPassword.toCharArray();
 

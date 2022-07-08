@@ -83,7 +83,6 @@ public class BlobApplicationAware {
       blob = matcher.group(3);
       originalBlobName = blob;
 
-
       //Tokenized blob name for checking compliance
       String[] blobNameTokenized = blob.split("\\.");
 

@@ -54,7 +54,7 @@ class EventHandlerTest {
 
   @MockBean
   private BlobSplitterImpl blobSplitter;
-  
+
   private final String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
   private final String myID = "my_id";
   private final String myTopic = "my_topic";
@@ -80,10 +80,9 @@ class EventHandlerTest {
   @ValueSource(strings = {"CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp",
       "CSTAR.a9911.TRNLOG.20220228.203107.001.csv.pgp"})
   void blobUriShouldPassRegex(String blobName, CapturedOutput output) {
-  
+
     String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;
     myEvent.setSubject(blobUri);
-
 
     //This test reaches the end of the handler, so the blob to be mocked in every status
     BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
