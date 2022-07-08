@@ -42,9 +42,9 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   CloseableHttpClient httpClient;
 
   /**
-   * Constructor.
+   * Method that allows the get of the blob from a remote storage.
    *
-   * @param blob a blob that has been received but not downloaded
+   * @param blob a blob that has been received from the event hub but not downloaded.
    * @return a locally available blob
    */
   public BlobApplicationAware get(BlobApplicationAware blob) {
@@ -59,8 +59,10 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
               new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile())));
       result.close();
       blob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+      log.info("Successful GET of blob {} from {}", blob.getBlob(), blob.getContainer());
     } catch (Exception ex) {
-      log.error("GET Blob failed. {}", ex.getMessage());
+      log.error("Cannot GET blob {} from {}: {}", blob.getBlob(), blob.getContainer(),
+          ex.getMessage());
     }
 
     return blob;
@@ -75,11 +77,10 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   public BlobApplicationAware put(BlobApplicationAware blob) {
 
     String uri =
-        baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob.getBlob()
-            + ".decrypted";
+        baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob.getBlob();
 
     FileEntity entity = new FileEntity(
-        Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile(),
+        Path.of(blob.getTargetDir(), blob.getBlob()).toFile(),
         ContentType.create("application/octet-stream"));
 
     final HttpPut putBlob = new HttpPut(uri);
@@ -92,12 +93,14 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
       int status = myResponse.getStatusLine().getStatusCode();
       if (status == HttpStatus.SC_CREATED) {
         blob.setStatus(BlobApplicationAware.Status.UPLOADED);
+        log.info("Successful PUT of blob {} in {}", blob.getBlob(), blob.getTargetContainer());
       } else {
-        log.error("Can't create blob {}. Invalid HTTP response: {}, {}", uri, status,
-            myResponse.getStatusLine().getReasonPhrase());
+        log.error("Cannot PUT blob {} in {}. Invalid HTTP response: {}, {}", blob.getBlob(),
+            blob.getTargetContainer(), status, myResponse.getStatusLine().getReasonPhrase());
       }
     } catch (Exception ex) {
-      log.error("Can't create blob {}. Unexpected error: {}", uri, ex.getMessage());
+      log.error("Cannot PUT blob {} in {}. Unexpected error: {}", blob.getBlob(),
+          blob.getTargetContainer(), ex.getMessage());
     }
     return blob;
   }

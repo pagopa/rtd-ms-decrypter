@@ -1,10 +1,12 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
-import java.io.IOException;
+import java.io.File;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
@@ -36,6 +38,7 @@ public class BlobApplicationAware {
     RECEIVED,
     DOWNLOADED,
     DECRYPTED,
+    SPLIT,
     UPLOADED,
     DELETED
   }
@@ -46,6 +49,8 @@ public class BlobApplicationAware {
   private Application app;
   private Status status;
   private String targetContainer;
+  private String originalBlobName;
+
 
   private String targetContainerAde = "ade-transactions-decrypted";
   private String targetContainerRtd = "rtd-transactions-decrypted";
@@ -76,6 +81,7 @@ public class BlobApplicationAware {
 
       container = matcher.group(1);
       blob = matcher.group(3);
+      originalBlobName = blob;
 
       //Tokenized blob name for checking compliance
       String[] blobNameTokenized = blob.split("\\.");
@@ -153,44 +159,39 @@ public class BlobApplicationAware {
   }
 
   /**
-   * This method deletes the local files left by the blob handling (get, decrypt, put).
+   * This method deletes the local files left by the blob handling (get, decrypt, split, put).
    *
-   * @return false, in order to filter the event in the event handler
+   * @return the blob with its status set to deleted.
    */
-  public boolean localCleanup() {
-    //Get the path to both encrypted and decrypted local blob files
-    Path blobEncrypted = Path.of(targetDir, blob);
-    Path blobDecrypted = Path.of(targetDir, blob + ".decrypted");
+  public BlobApplicationAware localCleanup() {
 
-    boolean encryptedDeleted = false;
-    boolean decryptedDeleted = false;
-
-    //
-    // For both files check whether they are present.
-    // If so, if their deletion has been successful.
-    // In case of failure the process isn't blocked.
-    // Instead, warning are logged.
-    //
+    File tmpFile = Path.of(targetDir, blob).toFile();
 
     try {
-      Files.delete(blobEncrypted);
-      encryptedDeleted = true;
-    } catch (IOException ex) {
-      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobEncrypted + " (" + ex.getMessage() + ")");
+      //Delete the chunk
+      if (tmpFile.exists()) {
+        Files.delete(tmpFile.toPath());
+      }
+
+      //Delete the original encrypted file (if present)
+      tmpFile = Path.of(this.targetDir, originalBlobName).toFile();
+      if (tmpFile.exists()) {
+        Files.delete(tmpFile.toPath());
+      }
+
+      //Delete the original decrypted file (if present)
+      tmpFile = Path.of(this.targetDir, originalBlobName + ".decrypted").toFile();
+      if (tmpFile.exists()) {
+        Files.delete(tmpFile.toPath());
+      }
+
+    } catch (Exception e) {
+      log.warn(FAIL_FILE_DELETE_WARNING_MSG + tmpFile.getName() + " (" + e + ")");
     }
 
-    try {
-      Files.delete(blobDecrypted);
-      decryptedDeleted = true;
-    } catch (IOException ex) {
-      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobDecrypted + " (" + ex.getMessage() + ")");
-    }
+    status = Status.DELETED;
+    return this;
 
-    if (encryptedDeleted && decryptedDeleted) {
-      status = Status.DELETED;
-    }
-    //False is returned to filter and get rid of the event
-    return false;
   }
 }
   

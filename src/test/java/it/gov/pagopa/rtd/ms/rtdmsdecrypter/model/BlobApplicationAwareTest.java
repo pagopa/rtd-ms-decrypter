@@ -1,20 +1,28 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.FileNotFoundException;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.system.CapturedOutput;
+
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
 @SpringBootTest
@@ -24,20 +32,55 @@ class BlobApplicationAwareTest {
   @Value("${decrypt.resources.base.path}")
   String resources;
 
+  @Value("${decrypt.resources.base.path}/tmp")
+  String tmpDirectory;
+
+  String containerRtd = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
+  String blobNameRtd = "CSTAR.99910.TRNLOG.20220316.164707.001.csv.pgp";
+
+  BlobApplicationAware fakeBlob;
+
+  @BeforeEach
+  void setUp() throws IOException {
+    //Create dummy files to be deleted
+    File encryptedBlob = Path.of(tmpDirectory, blobNameRtd).toFile();
+    encryptedBlob.getParentFile().mkdirs();
+    encryptedBlob.createNewFile();
+
+    File decryptedBlob = Path.of(tmpDirectory, blobNameRtd + ".decrypted").toFile();
+    decryptedBlob.getParentFile().mkdirs();
+    decryptedBlob.createNewFile();
+
+    FileOutputStream encryptedBlobStream = new FileOutputStream(
+        Path.of(tmpDirectory, blobNameRtd).toString());
+    FileOutputStream decryptedBlobStream = new FileOutputStream(
+        Path.of(tmpDirectory, blobNameRtd + ".decrypted").toString());
+
+    //Instantiate a fake blob with empty content
+    fakeBlob = new BlobApplicationAware(
+        "/blobServices/default/containers/" + containerRtd + "/blobs/" + blobNameRtd);
+    fakeBlob.setTargetDir(tmpDirectory);
+    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+  }
+
+  @AfterEach
+  void cleanTmpFiles() throws IOException {
+    FileUtils.deleteDirectory(Path.of(tmpDirectory).toFile());
+  }
+
   @Test
   void shouldMatchRegexRTD() {
-    String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
-    String blob = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
-    String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blob;
+    String blobUri = "/blobServices/default/containers/" + containerRtd + "/blobs/" + blobNameRtd;
+
     BlobApplicationAware myBlob = new BlobApplicationAware(blobUri);
     assertSame(BlobApplicationAware.Application.RTD, myBlob.getApp());
   }
 
   @Test
   void shouldMatchRegexADE() {
-    String container = "ade-transactions-xxxxxxxxxx8u74bh781e2db57k098c5ad034341i8u7y";
-    String blob = "ADE.45678.TRNLOG.20220228.103107.001.csv.pgp";
-    String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blob;
+    String containerAdE = "ade-transactions-xxxxxxxxxx8u74bh781e2db57k098c5ad034341i8u7y";
+    String blobAdE = "ADE.45678.TRNLOG.20220228.103107.001.csv.pgp";
+    String blobUri = "/blobServices/default/containers/" + containerAdE + "/blobs/" + blobAdE;
     BlobApplicationAware myBlob = new BlobApplicationAware(blobUri);
     assertSame(BlobApplicationAware.Application.ADE, myBlob.getApp());
   }
@@ -53,55 +96,43 @@ class BlobApplicationAwareTest {
 
   @Test
   void shouldCleanLocalFiles() throws IOException {
-    String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
-    String blobName = "CSTAR.99910.TRNLOG.20220316.164707.001.csv.pgp";
 
-    //Create dummy files to be deleted
-    FileOutputStream encryptedBlob = new FileOutputStream(resources + "/" + blobName);
-    FileOutputStream decryptedBlob = new FileOutputStream(
-        resources + "/" + blobName + ".decrypted");
+    //Create fake chunk files
+    ArrayList<File> chunks = new ArrayList<>();
+    chunks.add(Path.of(tmpDirectory, blobNameRtd + ".0.decrypted").toFile());
+    chunks.add(Path.of(tmpDirectory, blobNameRtd + ".1.decrypted").toFile());
+    chunks.add(Path.of(tmpDirectory, blobNameRtd + ".2.decrypted").toFile());
 
-    BlobApplicationAware fakeBlob = new BlobApplicationAware(
-        "/blobServices/default/containers/" + container + "/blobs/" + blobName);
-    fakeBlob.setTargetDir(resources);
-    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    chunks.stream().map(File::getParentFile).map(File::mkdirs);
+    for (File f : chunks) {
+      f.createNewFile();
+    }
 
-    assertFalse(fakeBlob.localCleanup());
-  }
+    //Set the name of the fake blob to the first chunk
+    fakeBlob.setBlob(chunks.get(0).getName());
 
-  @Test
-  void shouldFailFindingLocalEncryptedFile(CapturedOutput output) throws FileNotFoundException {
-    String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
-    String blobName = "CSTAR.99910.TRNLOG.20220316.164707.001.csv.pgp";
+    assertEquals(Status.DELETED, fakeBlob.localCleanup().getStatus());
 
-    //Create dummy file to be deleted
-    FileOutputStream decryptedBlob = new FileOutputStream(
-        resources + "/" + blobName + ".decrypted");
+    //Check if the first chunk, the original pgp file and the decrypted file are deleted
+    assertFalse(Files.exists(Path.of(tmpDirectory, fakeBlob.getBlob())));
+    assertFalse(Files.exists(Path.of(tmpDirectory, blobNameRtd)));
+    assertFalse(Files.exists(Path.of(tmpDirectory, blobNameRtd + ".decrypted")));
 
-    BlobApplicationAware fakeBlob = new BlobApplicationAware(
-        "/blobServices/default/containers/" + container + "/blobs/" + blobName);
-    fakeBlob.setTargetDir(resources);
-    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    //Check if the other chunks are still present
+    assertTrue(Files.exists(Path.of(tmpDirectory, chunks.get(1).getName())));
+    assertTrue(Files.exists(Path.of(tmpDirectory, chunks.get(2).getName())));
 
-    fakeBlob.localCleanup();
-    assertThat(output.getOut(), containsString("Failed to delete local blob file:"));
-  }
+    //Set the name of the fake blob to the second chunk
+    fakeBlob.setBlob(chunks.get(1).getName());
 
-  @Test
-  void shouldFailFindingLocalDecryptedFile(CapturedOutput output) throws FileNotFoundException {
-    String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
-    String blobName = "CSTAR.99910.TRNLOG.20220316.164707.001.csv.pgp";
+    assertEquals(Status.DELETED, fakeBlob.localCleanup().getStatus());
 
-    //Create dummy file to be deleted
-    FileOutputStream encryptedBlob = new FileOutputStream(resources + "/" + blobName);
+    //Check if the second chunk is deleted
+    assertFalse(Files.exists(Path.of(tmpDirectory, fakeBlob.getBlob())));
 
-    BlobApplicationAware fakeBlob = new BlobApplicationAware(
-        "/blobServices/default/containers/" + container + "/blobs/" + blobName);
-    fakeBlob.setTargetDir(resources);
-    fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    //Check if the third chunk is still present
+    assertTrue(Files.exists(Path.of(tmpDirectory, chunks.get(2).getName())));
 
-    fakeBlob.localCleanup();
-    assertThat(output.getOut(), containsString("Failed to delete local blob file:"));
   }
 
 }
