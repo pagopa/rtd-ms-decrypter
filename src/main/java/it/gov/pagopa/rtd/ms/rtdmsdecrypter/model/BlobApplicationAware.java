@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
@@ -155,7 +154,7 @@ public class BlobApplicationAware {
     }
 
     // Check for progressive value
-    return (uriTokens[5] != null) && uriTokens[5].matches("[0-9]{3}");
+    return (uriTokens[5] != null) && uriTokens[5].matches("\\d{3}");
   }
 
   /**
