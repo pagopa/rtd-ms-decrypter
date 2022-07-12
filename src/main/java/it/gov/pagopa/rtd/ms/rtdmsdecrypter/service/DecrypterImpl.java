@@ -66,6 +66,7 @@ public class DecrypterImpl implements Decrypter {
    * @return an unencrypted blob
    */
   public BlobApplicationAware decrypt(BlobApplicationAware blob) {
+    log.info("Start decrypt blob: {}", blob.getBlob());
 
     boolean decryptFailed = false;
     try (
@@ -82,10 +83,7 @@ public class DecrypterImpl implements Decrypter {
     } catch (IllegalArgumentException e) {
       log.warn("{}: {}", e.getMessage(), blob.getBlob());
       decryptFailed = true;
-    } catch (PGPException e) {
-      log.error("Cannot decrypt {}: {}", blob.getBlob(), e.getMessage());
-      decryptFailed = true;
-    } catch (IOException e) {
+    } catch (PGPException | IOException e) {
       log.error("Cannot decrypt {}: {}", blob.getBlob(), e.getMessage());
       decryptFailed = true;
     }
