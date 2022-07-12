@@ -5,7 +5,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import org.springframework.util.Assert;
 
-final public class LargeFileUtils {
+/**
+ * Utility class to handle large files operations like copy.
+ */
+public final class LargeFileUtils {
 
   /**
    * A copy methods inspired by StreamUtils.copy but for a large files.
@@ -13,7 +16,7 @@ final public class LargeFileUtils {
    * @param in  source stream
    * @param out target stream
    * @return number of bytes copied
-   * @throws IOException
+   * @throws IOException if some IO error happens
    */
   public static long copy(InputStream in, OutputStream out) throws IOException {
     Assert.notNull(in, "No InputStream specified");
