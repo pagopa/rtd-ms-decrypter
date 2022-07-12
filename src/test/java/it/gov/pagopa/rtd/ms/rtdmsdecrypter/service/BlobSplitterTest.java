@@ -111,7 +111,7 @@ class BlobSplitterTest {
   void shouldNotSplitMissingFile(CapturedOutput output) {
 
     //Set the wrong directory for locating the decrypted fake blob
-    fakeBlob.setTargetDir(resources);
+    fakeBlob.setTargetDir("pippo");
     fakeBlob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobSplitterImpl.setLineThreshold(1);
 

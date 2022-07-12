@@ -45,6 +45,7 @@ class EventHandlerTest {
   @Autowired
   Consumer<Message<List<EventGridEvent>>> myConsumer;
 
+
   @MockBean
   private BlobRestConnectorImpl blobRestConnectorImpl;
 
@@ -127,6 +128,7 @@ class EventHandlerTest {
     myEvent.setSubject(blobUri);
 
     myConsumer.accept(msg);
+
     verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), not(containsString("Conflicting service in URI:")));
     assertThat(output.getOut(), containsString("Wrong name format:"));
@@ -144,6 +146,7 @@ class EventHandlerTest {
     myEvent.setSubject(blobUri);
 
     myConsumer.accept(msg);
+
     verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), not(containsString("Wrong name format:")));
     assertThat(output.getOut(), containsString("Conflicting service in URI:"));
@@ -156,6 +159,7 @@ class EventHandlerTest {
     myEvent.setSubject("/blobServices/default/containers/cstar-exports/blobs/hashedPans_1.zip");
 
     myConsumer.accept(msg);
+
     verify(blobRestConnectorImpl, times(0)).get(any());
     assertThat(output.getOut(), containsString("Event not of interest:"));
   }
