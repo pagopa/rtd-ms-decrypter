@@ -1,6 +1,7 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.utils.LargeFileUtils;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -35,7 +36,6 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyDataDecryptorFactory
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 
 /**
  * Class implementing PGP decryption logic.
@@ -158,7 +158,7 @@ public class DecrypterImpl implements Decrypter {
         unencrypted = ld.getInputStream();
 
         log.info("Copying decrypted stream: {}", blobName);
-        if (StreamUtils.copy(unencrypted, output) <= 0) {
+        if (LargeFileUtils.copy(unencrypted, output) <= 0) {
           throw new IllegalArgumentException("Can't extract data from encrypted file");
         }
 
