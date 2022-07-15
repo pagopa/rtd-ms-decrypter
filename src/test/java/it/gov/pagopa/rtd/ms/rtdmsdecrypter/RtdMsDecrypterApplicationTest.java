@@ -33,12 +33,16 @@ import org.springframework.cloud.stream.messaging.DirectWithAttributesChannel;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @EmbeddedKafka(topics = {
     "rtd-platform-events"}, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
 @ExtendWith(OutputCaptureExtension.class)
+@TestPropertySource(properties = {
+    "decrypt.enableChunkUpload=true",
+})
 class RtdMsDecrypterApplicationTest {
 
   @Value("${decrypt.resources.base.path}")

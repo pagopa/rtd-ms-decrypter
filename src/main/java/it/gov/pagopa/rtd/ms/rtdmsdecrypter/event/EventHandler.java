@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -18,7 +20,11 @@ import org.springframework.messaging.Message;
  */
 @Configuration
 @Getter
+@Slf4j
 public class EventHandler {
+
+  @Value("${decrypt.enableChunkUpload}")
+  private boolean isChunkUploadEnabled;
 
   /**
    * Constructor.
@@ -32,6 +38,8 @@ public class EventHandler {
   public Consumer<Message<List<EventGridEvent>>> blobStorageConsumer(DecrypterImpl decrypterImpl,
       BlobRestConnectorImpl blobRestConnectorImpl, BlobSplitterImpl blobSplitterImpl) {
 
+    log.info("Chunks upload enabled: {}", isChunkUploadEnabled);
+
     return message -> message.getPayload().stream()
         .filter(e -> "Microsoft.Storage.BlobCreated".equals(e.getEventType()))
         .map(EventGridEvent::getSubject)
@@ -43,11 +51,10 @@ public class EventHandler {
         .filter(b -> BlobApplicationAware.Status.DECRYPTED.equals(b.getStatus()))
         .flatMap(blobSplitterImpl::split)
         .filter(b -> BlobApplicationAware.Status.SPLIT.equals(b.getStatus()))
-        .map(blobRestConnectorImpl::put)
+        .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
         .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
         .map(BlobApplicationAware::localCleanup)
         .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus()))
         .collect(Collectors.toList());
   }
-
 }

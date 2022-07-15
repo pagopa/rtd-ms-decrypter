@@ -39,6 +39,8 @@ public class BlobSplitterImpl implements BlobSplitter {
    * @return a list of blobs that represent the split blob.
    */
   public Stream<BlobApplicationAware> split(BlobApplicationAware blob) {
+    log.info("Start splitting blob {} from {}", blob.getBlob(), blob.getContainer());
+
     String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + decryptedSuffix).toString();
 
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
@@ -97,7 +99,11 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     if (!failSplit) {
       log.info("Obtained {} chunk/s from blob:{}", chunkNum, blob.getBlob());
+      return blobSplit.stream();
+    } else {
+      // If split fails, return the original blob (without the SPLIT status)
+      log.info("Failed splitting blob:{}", blob.getBlob());
+      return Stream.of(blob);
     }
-    return blobSplit.stream();
   }
 }

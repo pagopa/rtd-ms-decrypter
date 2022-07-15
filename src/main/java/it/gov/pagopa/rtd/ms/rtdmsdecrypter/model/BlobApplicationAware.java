@@ -162,6 +162,7 @@ public class BlobApplicationAware {
    * @return the blob with its status set to deleted.
    */
   public BlobApplicationAware localCleanup() {
+    log.info("Start deleting locally blob {}", blob);
 
     File tmpFile = Path.of(targetDir, blob).toFile();
 
@@ -188,6 +189,8 @@ public class BlobApplicationAware {
     }
 
     status = Status.DELETED;
+
+    log.info("Deleted locally blob {}", blob);
     return this;
 
   }
