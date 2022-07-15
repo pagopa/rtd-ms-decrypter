@@ -60,6 +60,8 @@ spring:
           auto-create-topics: false
           brokers: ${KAFKA_BROKER}
           configuration:
+            max.poll.interval.ms: 300000 # e.g. 5 min
+            max.poll.records: 1
             sasl:
               jaas:
                 config: ${KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS}
