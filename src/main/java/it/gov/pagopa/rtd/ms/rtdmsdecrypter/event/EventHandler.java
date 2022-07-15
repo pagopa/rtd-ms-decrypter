@@ -47,12 +47,6 @@ public class EventHandler {
         .map(BlobApplicationAware::new)
         .filter(b -> !BlobApplicationAware.Application.NOAPP.equals(b.getApp()))
         .map(blobRestConnectorImpl::get)
-        .peek(b -> {
-          if (!isChunkUploadEnabled) {
-            log.info("Doing fake job...");
-            delay(5);
-          }
-        })
         .filter(b -> BlobApplicationAware.Status.DOWNLOADED.equals(b.getStatus()))
         .map(decrypterImpl::decrypt)
         .filter(b -> BlobApplicationAware.Status.DECRYPTED.equals(b.getStatus()))
@@ -63,13 +57,5 @@ public class EventHandler {
         .map(BlobApplicationAware::localCleanup)
         .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus()))
         .collect(Collectors.toList());
-  }
-
-  private void delay(int minutes) {
-    try {
-      Thread.sleep((long) minutes * 60 * 1000);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
   }
 }
