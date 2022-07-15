@@ -45,7 +45,11 @@ public class EventHandler {
         .filter(e -> "Microsoft.Storage.BlobCreated".equals(e.getEventType()))
         .map(EventGridEvent::getSubject)
         .map(BlobApplicationAware::new)
-        .peek(b -> delay(5))
+        .peek(b -> {
+          if (!isChunkUploadEnabled) {
+            delay(5);
+          }
+        })
         .filter(b -> !BlobApplicationAware.Application.NOAPP.equals(b.getApp()))
         .map(blobRestConnectorImpl::get)
         .filter(b -> BlobApplicationAware.Status.DOWNLOADED.equals(b.getStatus()))
