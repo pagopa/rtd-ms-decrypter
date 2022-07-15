@@ -19,7 +19,7 @@ decrypt:
       rtd: rtd-transactions-decrypted
       ade: ade-transactions-decrypted
   splitter:
-    threshold: ${SPLITTER_LINE_THRESHOLD:10000}
+    threshold: ${SPLITTER_LINE_THRESHOLD:250000}
   enableChunkUpload: ${ENABLE_CHUNK_UPLOAD:false}
 ---
 spring:
