@@ -6,6 +6,7 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobSplitterImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -44,6 +45,7 @@ public class EventHandler {
         .filter(e -> "Microsoft.Storage.BlobCreated".equals(e.getEventType()))
         .map(EventGridEvent::getSubject)
         .map(BlobApplicationAware::new)
+        .peek(b -> delay(5))
         .filter(b -> !BlobApplicationAware.Application.NOAPP.equals(b.getApp()))
         .map(blobRestConnectorImpl::get)
         .filter(b -> BlobApplicationAware.Status.DOWNLOADED.equals(b.getStatus()))
@@ -58,4 +60,11 @@ public class EventHandler {
         .collect(Collectors.toList());
   }
 
+  private void delay(int minutes) {
+    try {
+      Thread.sleep((long) minutes * 60 * 1000);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }
