@@ -19,7 +19,8 @@ decrypt:
       rtd: rtd-transactions-decrypted
       ade: ade-transactions-decrypted
   splitter:
-    threshold: ${SPLITTER_LINE_THRESHOLD:10000}
+    threshold: ${SPLITTER_LINE_THRESHOLD:250000}
+  enableChunkUpload: ${ENABLE_CHUNK_UPLOAD:false}
 ---
 spring:
   config:
@@ -33,7 +34,6 @@ spring:
           group: rtd-decrypter-consumer-group
           content-type: application/json
           binder: kafka
-
       kafka:
         binder:
           auto-create-topics: false
@@ -60,6 +60,8 @@ spring:
           auto-create-topics: false
           brokers: ${KAFKA_BROKER}
           configuration:
+            max.poll.interval.ms: 600000 # 10 min
+            max.poll.records: 1
             sasl:
               jaas:
                 config: ${KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS}

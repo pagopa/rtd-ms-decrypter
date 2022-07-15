@@ -48,6 +48,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
    * @return a locally available blob
    */
   public BlobApplicationAware get(BlobApplicationAware blob) {
+    log.info("Start GET blob {} from {}", blob.getBlob(), blob.getContainer());
 
     String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob.getBlob();
     final HttpGet getBlob = new HttpGet(uri);
@@ -75,6 +76,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
    * @return an uploaded blob
    */
   public BlobApplicationAware put(BlobApplicationAware blob) {
+    log.info("Start PUT blob {} to {}", blob.getBlob(), blob.getTargetContainer());
 
     String uri =
         baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob.getBlob();
