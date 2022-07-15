@@ -47,16 +47,16 @@ public class EventHandler {
         .map(BlobApplicationAware::new)
         .filter(b -> !BlobApplicationAware.Application.NOAPP.equals(b.getApp()))
         .map(blobRestConnectorImpl::get)
-        .filter(b -> BlobApplicationAware.Status.DOWNLOADED.equals(b.getStatus()))
-        .map(decrypterImpl::decrypt)
-        .filter(b -> BlobApplicationAware.Status.DECRYPTED.equals(b.getStatus()))
-        .flatMap(blobSplitterImpl::split)
         .peek(b -> {
           if (!isChunkUploadEnabled) {
             log.info("Doing fake job...");
             delay(5);
           }
         })
+        .filter(b -> BlobApplicationAware.Status.DOWNLOADED.equals(b.getStatus()))
+        .map(decrypterImpl::decrypt)
+        .filter(b -> BlobApplicationAware.Status.DECRYPTED.equals(b.getStatus()))
+        .flatMap(blobSplitterImpl::split)
         .filter(b -> BlobApplicationAware.Status.SPLIT.equals(b.getStatus()))
         .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
         .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
