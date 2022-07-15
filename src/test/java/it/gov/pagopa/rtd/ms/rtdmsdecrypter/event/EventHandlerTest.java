@@ -32,6 +32,7 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 
 @SpringBootTest
@@ -39,6 +40,9 @@ import org.springframework.test.context.ActiveProfiles;
     "rtd-platform-events"}, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
 @ActiveProfiles("test")
 @ExtendWith(OutputCaptureExtension.class)
+@TestPropertySource(properties = {
+    "decrypt.enableChunkUpload=true",
+})
 class EventHandlerTest {
 
 
