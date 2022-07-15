@@ -6,7 +6,6 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobSplitterImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 import java.util.List;
-import java.util.Random;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.Getter;
