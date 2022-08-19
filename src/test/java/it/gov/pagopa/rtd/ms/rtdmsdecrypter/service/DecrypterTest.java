@@ -11,7 +11,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import java.io.BufferedReader;
 import java.io.File;
@@ -28,7 +27,6 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Iterator;
 import org.apache.commons.io.FileUtils;
-
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -56,7 +54,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
@@ -88,7 +85,7 @@ class DecrypterTest {
   @BeforeEach
   void setUp() throws IOException, PGPException, NoSuchProviderException {
 
-    String sourceFileName = "cleartext.csv";
+    String sourceFileName = "CSTAR.99999.TRNLOG.20220419.121045.001.csv";
 
     // Read the publicKey for encrypting file
     FileInputStream publicKey = new FileInputStream(resources + "/certs/public.key");
@@ -148,7 +145,8 @@ class DecrypterTest {
     myClearText.close();
 
     assertTrue(IOUtils.contentEquals(
-        new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
+        new BufferedReader(new FileReader(Path.of(resources,
+            "/CSTAR.99999.TRNLOG.20220419.121045.001.csv").toFile())),
         new BufferedReader(
             new FileReader(Path.of(tmpDirectory, "/file.pgp.csv.decrypted").toFile()))));
 
@@ -160,7 +158,7 @@ class DecrypterTest {
   }
 
   @Test
-  void shouldThrowIOExceptionFromDecryptingMalformedPGPFile()
+  void shouldThrowIoExceptionFromDecryptingMalformedPgpFile()
       throws IOException {
 
     // Try to decrypt a malformed encrypted file
@@ -219,7 +217,8 @@ class DecrypterTest {
     decrypterImpl.decrypt(fakeBlob);
 
     assertTrue(IOUtils.contentEquals(
-        new BufferedReader(new FileReader(Path.of(resources, "/cleartext.csv").toFile())),
+        new BufferedReader(new FileReader(Path.of(resources,
+            "/CSTAR.99999.TRNLOG.20220419.121045.001.csv").toFile())),
         new BufferedReader(
             new FileReader(Path.of(tmpDirectory, fakeBlob.getBlob() + ".decrypted").toFile()))
     ));
