@@ -2,8 +2,7 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status.SPLIT;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opencsv.bean.CsvToBeanBuilder;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.AdeTransactionsAggregate;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
@@ -21,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
@@ -31,7 +29,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import com.opencsv.bean.CsvToBeanBuilder;
 
 /**
  * Concrete implementation of a BlobSplitter interface.
@@ -108,6 +105,8 @@ public class BlobSplitterImpl implements BlobSplitter {
               blob.getBlobUri());
           tmpBlob.setOriginalBlobName(blob.getBlob());
           tmpBlob.setStatus(SPLIT);
+          tmpBlob.setApp(blob.getApp());
+          adaptToNamingConvention(tmpBlob, chunkNum);
           blobSplit.add(tmpBlob);
         }
         chunkNum++;
@@ -139,16 +138,15 @@ public class BlobSplitterImpl implements BlobSplitter {
    *
    * @param row to be validated.
    * @param blob that contains the row.
-   * @return a boolean representing the outcome of the validation.
    */
-  public boolean validateRow(String row, BlobApplicationAware blob) {
+  public void validateRow(String row, BlobApplicationAware blob) {
     if (blob.getApp() == Application.ADE) {
       StringReader line = new StringReader(row);
-        AdeTransactionsAggregate t = new CsvToBeanBuilder<AdeTransactionsAggregate>(
-            line).withSeparator(';')
-            .withThrowExceptions(false)
-            .withType(AdeTransactionsAggregate.class)
-            .build().parse().get(0);
+      AdeTransactionsAggregate t = new CsvToBeanBuilder<AdeTransactionsAggregate>(
+          line).withSeparator(';')
+          .withThrowExceptions(false)
+          .withType(AdeTransactionsAggregate.class)
+          .build().parse().get(0);
 
       Set<ConstraintViolation<AdeTransactionsAggregate>> violations = validator.validate(t);
       if (!validateDate(t.getTransmissionDate())) {
@@ -168,10 +166,9 @@ public class BlobSplitterImpl implements BlobSplitter {
         }
         throw new IllegalArgumentException(
             "Malformed fields extracted from " + blob.getBlob() + ": "
-                + malformedFields.toString());
+                + malformedFields);
       }
     }
-    return true;
   }
 
   private boolean validateDate(String date) {
@@ -181,6 +178,22 @@ public class BlobSplitterImpl implements BlobSplitter {
       return true;
     } catch (DateTimeParseException e) {
       return false;
+    }
+  }
+
+  private void adaptToNamingConvention(BlobApplicationAware blob, int numChunk) {
+    if (blob.getApp() == Application.ADE) {
+      blob.setBlob("AGGADE." + blob.getSenderCode() + "." + blob.getFileCreationDate() + "."
+          + blob.getFileCreationTime() + "." + blob.getFlowNumber() + "." + numChunk);
+      blob.setBlobUri(
+          blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + blob.getBlob());
+      log.info("New blob name: {}", blob.getBlob());
+    }
+    if (blob.getApp() == Application.RTD) {
+      blob.setBlob(blob.getBlob() + "." + numChunk + decryptedSuffix);
+      blob.setBlobUri(
+          blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + blob.getBlob());
+      log.info("New blob name: {}", blob.getBlob());
     }
   }
 
