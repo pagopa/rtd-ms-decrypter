@@ -77,9 +77,10 @@ public class BlobSplitterImpl implements BlobSplitter {
         LineIterator it = FileUtils.lineIterator(
             Path.of(blobPath).toFile(), "UTF-8")
     ) {
+      String newNamingNoChunk = adeNamingConvention(blob);
       while (it.hasNext()) {
         try (Writer writer = Channels.newWriter(new FileOutputStream(
-                Path.of(blob.getTargetDir(), blob.getBlob()
+                Path.of(blob.getTargetDir(), newNamingNoChunk
                     + "." + chunkNum).toString(),
                 true).getChannel(),
             StandardCharsets.UTF_8)) {
@@ -136,7 +137,7 @@ public class BlobSplitterImpl implements BlobSplitter {
   /**
    * Method for validating file records.
    *
-   * @param row to be validated.
+   * @param row  to be validated.
    * @param blob that contains the row.
    */
   public void validateRow(String row, BlobApplicationAware blob) {
@@ -183,8 +184,7 @@ public class BlobSplitterImpl implements BlobSplitter {
 
   private void adaptToNamingConvention(BlobApplicationAware blob, int numChunk) {
     if (blob.getApp() == Application.ADE) {
-      blob.setBlob("AGGADE." + blob.getSenderCode() + "." + blob.getFileCreationDate() + "."
-          + blob.getFileCreationTime() + "." + blob.getFlowNumber() + "." + numChunk);
+      blob.setBlob(adeNamingConvention(blob) + "." + numChunk);
       blob.setBlobUri(
           blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + blob.getBlob());
       log.info("New blob name: {}", blob.getBlob());
@@ -197,4 +197,9 @@ public class BlobSplitterImpl implements BlobSplitter {
     }
   }
 
+  private String adeNamingConvention(BlobApplicationAware blob) {
+    // Note that no chunk number is added to the blob name
+    return "AGGADE." + blob.getSenderCode() + "." + blob.getFileCreationDate() + "."
+        + blob.getFileCreationTime() + "." + blob.getFlowNumber();
+  }
 }
