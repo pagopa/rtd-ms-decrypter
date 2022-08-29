@@ -7,7 +7,7 @@ decrypt:
     base:
       path: src/test/resources
   private:
-    key: 
+    key:
       path: ${CSV_TRANSACTION_PRIVATE_KEY_PATH:${decrypt.resources.base.path}/certs/private_base64.key} # just for tests
       password: ${CSV_TRANSACTION_PRIVATE_KEY_PASS:privatekeypass}
   api:
@@ -18,7 +18,9 @@ decrypt:
     targetContainer:
       rtd: rtd-transactions-decrypted
       ade: ade-transactions-decrypted
-  
+  splitter:
+    threshold: ${SPLITTER_LINE_THRESHOLD:250000}
+  enableChunkUpload: ${ENABLE_CHUNK_UPLOAD:false}
 ---
 spring:
   config:
@@ -32,17 +34,16 @@ spring:
           group: rtd-decrypter-consumer-group
           content-type: application/json
           binder: kafka
-
       kafka:
         binder:
           auto-create-topics: false
           consumerProperties:
-            key: 
+            key:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
             value:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
 ---
-spring: 
+spring:
   config:
     activate:
       on-profile: default
@@ -56,9 +57,11 @@ spring:
           binder: kafka
       kafka:
         binder:
-          auto-create-topics: false 
-          brokers: ${KAFKA_BROKER}          
+          auto-create-topics: false
+          brokers: ${KAFKA_BROKER}
           configuration:
+            max.poll.interval.ms: ${CONSUMER_TIMEOUT_MS:600000} # default to 10 min
+            max.poll.records: 1
             sasl:
               jaas:
                 config: ${KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS}
@@ -66,7 +69,7 @@ spring:
             security:
               protocol: SASL_SSL
           consumerProperties:
-            key: 
+            key:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
             value:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer

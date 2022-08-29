@@ -3,6 +3,8 @@ decrypt:
     base:
       path: src/test/resources
   private:
-    key: 
+    key:
       path: ${CSV_TRANSACTION_PRIVATE_KEY_PATH:${decrypt.resources.base.path}/certs/private_base64.key} # just for tests
       password: ${CSV_TRANSACTION_PRIVATE_KEY_PASS:privatekeypass}
+  splitter:
+    threshold: ${LINE_SPLITTING_THRESHOLD:10000}

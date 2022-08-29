@@ -51,7 +51,10 @@ class BlobRestConnectorTest {
   private final static String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
   private final static String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
 
+  private final String EXCEPTION_MESSAGE = "Cannot connect.";
+
   private BlobApplicationAware blobIn;
+
 
   @BeforeEach
   public void setUp() {
@@ -73,12 +76,15 @@ class BlobRestConnectorTest {
     verify(client, times(1)).execute(any(HttpUriRequest.class),
         ArgumentMatchers.<ResponseHandler<OutputStream>>any());
     assertEquals(BlobApplicationAware.Status.DOWNLOADED, blobOut.getStatus());
-    assertThat(output.getOut(), not(containsString("GET Blob failed")));
+    assertThat(output.getOut(), containsString("Successful GET of blob "));
+    assertThat(output.getOut(), not(containsString("Cannot GET blob ")));
+
   }
 
   @Test
-  void shouldFail(CapturedOutput output) throws IOException {
-    doThrow(IOException.class).when(client)
+  void shouldFailGet(CapturedOutput output) throws IOException {
+    doThrow(new IOException(EXCEPTION_MESSAGE)).when(client)
+
         .execute(any(HttpGet.class), any(BlobRestConnectorImpl.FileDownloadResponseHandler.class));
 
     BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobIn);
@@ -86,7 +92,20 @@ class BlobRestConnectorTest {
     verify(client, times(1)).execute(any(HttpUriRequest.class),
         ArgumentMatchers.<ResponseHandler<OutputStream>>any());
     assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
-    assertThat(output.getOut(), containsString("GET Blob failed"));
+    assertThat(output.getOut(), containsString("Cannot GET blob"));
+    assertThat(output.getOut(), containsString("Cannot GET blob"));
+  }
+
+  @Test
+  void shouldFailGetNullResponse(CapturedOutput output) throws IOException {
+
+    BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobIn);
+
+    verify(client, times(1)).execute(any(HttpUriRequest.class),
+        ArgumentMatchers.<ResponseHandler<OutputStream>>any());
+    assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
+    assertThat(output.getOut(), containsString("Cannot GET blob"));
+
   }
 
   @Test
@@ -101,13 +120,15 @@ class BlobRestConnectorTest {
 
     verify(client, times(1)).execute(any(HttpPut.class));
     assertEquals(BlobApplicationAware.Status.UPLOADED, blobOut.getStatus());
-    assertThat(output.getOut(), not(containsString("Can't create blob")));
+    assertThat(output.getOut(), not(containsString("Cannot PUT blob ")));
   }
 
   @Test
-  void shouldNotPut(CapturedOutput output) throws IOException {
+  void shouldFailPutHttpError(CapturedOutput output) throws IOException {
     StatusLine mockedStatusLine = mock(StatusLine.class);
     doReturn(HttpStatus.SC_INTERNAL_SERVER_ERROR).when(mockedStatusLine).getStatusCode();
+    doReturn("Internal Server Error").when(mockedStatusLine).getReasonPhrase();
+
     CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
     doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
     doReturn(mockedResponse).when(client).execute(any(HttpPut.class));
@@ -116,6 +137,19 @@ class BlobRestConnectorTest {
 
     verify(client, times(1)).execute(any(HttpPut.class));
     assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
-    assertThat(output.getOut(), containsString("Invalid HTTP response: 500"));
+    assertThat(output.getOut(), containsString("Cannot PUT blob "));
+  }
+
+  @Test
+  void shouldFailPutUnexpectedError(CapturedOutput output) throws IOException {
+    doThrow(new IOException(EXCEPTION_MESSAGE)).when(client)
+        .execute(any(HttpGet.class), any(BlobRestConnectorImpl.FileDownloadResponseHandler.class));
+
+    BlobApplicationAware blobOut = blobRestConnectorImpl.put(blobIn);
+
+    verify(client, times(1)).execute(any(HttpPut.class));
+    assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
+    assertThat(output.getOut(), containsString("Cannot PUT blob "));
+
   }
 }

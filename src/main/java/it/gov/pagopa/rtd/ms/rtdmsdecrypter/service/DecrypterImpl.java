@@ -1,6 +1,7 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.utils.LargeFileUtils;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -14,7 +15,6 @@ import java.util.Base64;
 import java.util.Iterator;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -36,7 +36,6 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyDataDecryptorFactory
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 
 /**
  * Class implementing PGP decryption logic.
@@ -67,7 +66,9 @@ public class DecrypterImpl implements Decrypter {
    * @return an unencrypted blob
    */
   public BlobApplicationAware decrypt(BlobApplicationAware blob) {
+    log.info("Start decrypt blob: {}", blob.getBlob());
 
+    boolean decryptFailed = false;
     try (
         FileInputStream encrypted = new FileInputStream(
             Path.of(blob.getTargetDir(), blob.getBlob()).toFile());
@@ -75,21 +76,29 @@ public class DecrypterImpl implements Decrypter {
             Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile())
     ) {
 
-      this.decryptFile(encrypted, decrypted);
+      this.decryptFile(encrypted, decrypted, blob.getBlob());
       blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
-      log.info("Blob {} decrypted.", blob.getBlob());
+      log.info("Blob decrypted: {}", blob.getBlob());
 
-    } catch (Exception ex) {
-      // Should throw an IOException just like decryptFile, this creates problems in the event
-      // handler where the method chaining doesn't allow Exception throws
-      log.error("Cannot decrypt {}: {}", blob.getBlob(), ex.getMessage());
+    } catch (IllegalArgumentException e) {
+      log.warn("{}: {}", e.getMessage(), blob.getBlob());
+      decryptFailed = true;
+    } catch (PGPException | IOException e) {
+      log.error("Cannot decrypt {}: {}", blob.getBlob(), e.getMessage());
+      decryptFailed = true;
+    }
+
+    // If the decrypt failed this call to localCleanup ensures that no local files are left
+    // On a non-failing scenario the files are cleaned at the end of the handler
+    if (decryptFailed) {
+      blob.localCleanup();
     }
 
     return blob;
   }
 
-  @SneakyThrows
-  protected void decryptFile(InputStream input, OutputStream output) {
+  protected void decryptFile(InputStream input, OutputStream output, String blobName)
+      throws IOException, PGPException {
 
     InputStream keyInput = IOUtils.toInputStream(this.privateKey, StandardCharsets.UTF_8);
     char[] passwd = this.privateKeyPassword.toCharArray();
@@ -124,7 +133,7 @@ public class DecrypterImpl implements Decrypter {
       }
 
       if (secretKey == null) {
-        throw new IllegalArgumentException("Secret key for message not found.");
+        throw new PGPException("Secret key for message not found.");
       }
 
       clear = pbe.getDataStream(new JcePublicKeyDataDecryptorFactoryBuilder()
@@ -146,9 +155,9 @@ public class DecrypterImpl implements Decrypter {
 
         unencrypted = ld.getInputStream();
 
-        log.info("Copying decrypted stream");
-        if (StreamUtils.copy(unencrypted, output) <= 0) {
-          throw new IOException("Can't extract data from encrypted file");
+        log.info("Copying decrypted stream: {}", blobName);
+        if (LargeFileUtils.copy(unencrypted, output) <= 0) {
+          throw new IllegalArgumentException("Can't extract data from encrypted file");
         }
 
       } else if (message instanceof PGPOnePassSignatureList) {
@@ -157,21 +166,14 @@ public class DecrypterImpl implements Decrypter {
         throw new PGPException("Message is not a simple encrypted file - type unknown.");
       }
 
-      log.info("File Decrypted");
-    } catch (PGPException e) {
-      log.error("PGPException {}", e.getMessage());
-      throw e;
-    } catch (IOException e) {
-      log.error("IOException {}", e.getMessage());
-      throw e;
     } finally {
       keyInput.close();
       if (unencrypted != null) {
-        log.info("Closing unencrypted");
+        log.info("Closing: {}", blobName + ".decrypted");
         unencrypted.close();
       }
       if (clear != null) {
-        log.info("Closing clear");
+        log.info("Closing clear stream: {}", blobName);
         clear.close();
       }
     }

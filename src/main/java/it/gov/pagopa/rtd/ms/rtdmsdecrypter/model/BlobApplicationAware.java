@@ -1,6 +1,6 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
-import java.io.IOException;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
@@ -36,6 +36,7 @@ public class BlobApplicationAware {
     RECEIVED,
     DOWNLOADED,
     DECRYPTED,
+    SPLIT,
     UPLOADED,
     DELETED
   }
@@ -46,6 +47,16 @@ public class BlobApplicationAware {
   private Application app;
   private Status status;
   private String targetContainer;
+  private String originalBlobName;
+
+  private String senderCode;
+
+  private String fileCreationDate;
+
+  private String fileCreationTime;
+
+  private String flowNumber;
+
 
   private String targetContainerAde = "ade-transactions-decrypted";
   private String targetContainerRtd = "rtd-transactions-decrypted";
@@ -76,6 +87,7 @@ public class BlobApplicationAware {
 
       container = matcher.group(1);
       blob = matcher.group(3);
+      originalBlobName = blob;
 
       //Tokenized blob name for checking compliance
       String[] blobNameTokenized = blob.split("\\.");
@@ -112,28 +124,30 @@ public class BlobApplicationAware {
    * This method matches PagoPA file name's standard Specifics can be found at:
    * https://docs.pagopa.it/digital-transaction-register/v/digital-transaction-filter/acquirer-integration-with-pagopa-centrostella/integration/standard-pagopa-file-transactions
    *
-   * @param uriTokens values obtained from the name of the blob (separated by dots)
+   * @param blobNameTokens values obtained from the name of the blob (separated by dots)
    * @return true if the name matches the format, false otherwise
    */
-  private boolean checkNameFormat(String[] uriTokens) {
+  private boolean checkNameFormat(String[] blobNameTokens) {
     // Check for application name (add new services to the regex)
-    if (uriTokens[0] == null || !uriTokens[0].matches("(ADE|CSTAR)")) {
+    if (blobNameTokens[0] == null || !blobNameTokens[0].matches("(ADE|CSTAR)")) {
       return false;
     }
 
     // Check for sender ABI code
-    if (uriTokens[1] == null || !uriTokens[1].matches("[a-zA-Z0-9]{5}")) {
+    if (blobNameTokens[1] == null || !blobNameTokens[1].matches("[a-zA-Z0-9]{5}")) {
       return false;
     }
 
+    senderCode = blobNameTokens[1];
+
     // Check for filetype (fixed "TRNLOG" value)
     // Should ignore case?
-    if (uriTokens[2] == null || !uriTokens[2].equalsIgnoreCase("TRNLOG")) {
+    if (blobNameTokens[2] == null || !blobNameTokens[2].equalsIgnoreCase("TRNLOG")) {
       return false;
     }
 
     // Check for creation timestamp correctness
-    if (uriTokens[3] == null || uriTokens[4] == null) {
+    if (blobNameTokens[3] == null || blobNameTokens[4] == null) {
       return false;
     }
 
@@ -143,54 +157,60 @@ public class BlobApplicationAware {
     daysFormat.setLenient(false);
 
     try {
-      daysFormat.parse(uriTokens[3] + uriTokens[4]);
+      daysFormat.parse(blobNameTokens[3] + blobNameTokens[4]);
     } catch (ParseException e) {
       return false;
     }
 
+    fileCreationDate = blobNameTokens[3];
+    fileCreationTime = blobNameTokens[4];
+
     // Check for progressive value
-    return (uriTokens[5] != null) && uriTokens[5].matches("[0-9]{3}");
+    if ((blobNameTokens[5] != null) && blobNameTokens[5].matches("\\d{3}")) {
+      flowNumber = blobNameTokens[5];
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**
-   * This method deletes the local files left by the blob handling (get, decrypt, put).
+   * This method deletes the local files left by the blob handling (get, decrypt, split, put).
    *
-   * @return false, in order to filter the event in the event handler
+   * @return the blob with its status set to deleted.
    */
-  public boolean localCleanup() {
-    //Get the path to both encrypted and decrypted local blob files
-    Path blobEncrypted = Path.of(targetDir, blob);
-    Path blobDecrypted = Path.of(targetDir, blob + ".decrypted");
+  public BlobApplicationAware localCleanup() {
+    log.info("Start deleting locally blob {}", blob);
 
-    boolean encryptedDeleted = false;
-    boolean decryptedDeleted = false;
-
-    //
-    // For both files check whether they are present.
-    // If so, if their deletion has been successful.
-    // In case of failure the process isn't blocked.
-    // Instead, warning are logged.
-    //
+    File tmpFile = Path.of(targetDir, blob).toFile();
 
     try {
-      Files.delete(blobEncrypted);
-      encryptedDeleted = true;
-    } catch (IOException ex) {
-      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobEncrypted + " (" + ex.getMessage() + ")");
+      //Delete the chunk
+      if (tmpFile.exists()) {
+        Files.delete(tmpFile.toPath());
+      }
+
+      //Delete the original encrypted file (if present)
+      tmpFile = Path.of(this.targetDir, originalBlobName).toFile();
+      if (tmpFile.exists()) {
+        Files.delete(tmpFile.toPath());
+      }
+
+      //Delete the original decrypted file (if present)
+      tmpFile = Path.of(this.targetDir, originalBlobName + ".decrypted").toFile();
+      if (tmpFile.exists()) {
+        Files.delete(tmpFile.toPath());
+      }
+
+    } catch (Exception e) {
+      log.warn(FAIL_FILE_DELETE_WARNING_MSG + tmpFile.getName() + " (" + e + ")");
     }
 
-    try {
-      Files.delete(blobDecrypted);
-      decryptedDeleted = true;
-    } catch (IOException ex) {
-      log.warn(FAIL_FILE_DELETE_WARNING_MSG + blobDecrypted + " (" + ex.getMessage() + ")");
-    }
+    status = Status.DELETED;
 
-    if (encryptedDeleted && decryptedDeleted) {
-      status = Status.DELETED;
-    }
-    //False is returned to filter and get rid of the event
-    return false;
+    log.info("Deleted locally blob {}", blob);
+    return this;
+
   }
 }
   
