@@ -70,7 +70,7 @@ public class BlobSplitterImpl implements BlobSplitter {
     //Incremental integer for chunk numbering
     int chunkNum = 0;
 
-    //Counter for current line number (from 0 to n)
+    // Counter for current line number (from 0 to n)
     int i;
 
     String chunkName;
@@ -186,21 +186,6 @@ public class BlobSplitterImpl implements BlobSplitter {
       return true;
     } catch (DateTimeParseException e) {
       return false;
-    }
-  }
-
-  private void adaptToNamingConvention(BlobApplicationAware blob, int numChunk) {
-    if (blob.getApp() == Application.ADE) {
-      blob.setBlob(adeNamingConvention(blob) + "." + numChunk);
-      blob.setBlobUri(
-          blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + blob.getBlob());
-      log.info("New blob name: {}", blob.getBlob());
-    }
-    if (blob.getApp() == Application.RTD) {
-      blob.setBlob(blob.getBlob() + "." + numChunk + decryptedSuffix);
-      blob.setBlobUri(
-          blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + blob.getBlob());
-      log.info("New blob name: {}", blob.getBlob());
     }
   }
 
