@@ -73,15 +73,20 @@ public class BlobSplitterImpl implements BlobSplitter {
     //Counter for current line number (from 0 to n)
     int i;
 
+    String chunkName;
+
     try (
         LineIterator it = FileUtils.lineIterator(
             Path.of(blobPath).toFile(), "UTF-8")
     ) {
-      String newNamingNoChunk = adeNamingConvention(blob);
       while (it.hasNext()) {
+        if (blob.getApp() == Application.ADE) {
+          chunkName = adeNamingConvention(blob) + "." + chunkNum;
+        } else {
+          chunkName = blob.getBlob() + "." + chunkNum + decryptedSuffix;
+        }
         try (Writer writer = Channels.newWriter(new FileOutputStream(
-                Path.of(blob.getTargetDir(), newNamingNoChunk
-                    + "." + chunkNum).toString(),
+                Path.of(blob.getTargetDir(), chunkName).toString(),
                 true).getChannel(),
             StandardCharsets.UTF_8)) {
           i = 0;
@@ -107,7 +112,9 @@ public class BlobSplitterImpl implements BlobSplitter {
           tmpBlob.setOriginalBlobName(blob.getBlob());
           tmpBlob.setStatus(SPLIT);
           tmpBlob.setApp(blob.getApp());
-          adaptToNamingConvention(tmpBlob, chunkNum);
+          tmpBlob.setBlob(chunkName);
+          tmpBlob.setBlobUri(
+              blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/" + chunkName);
           blobSplit.add(tmpBlob);
         }
         chunkNum++;
