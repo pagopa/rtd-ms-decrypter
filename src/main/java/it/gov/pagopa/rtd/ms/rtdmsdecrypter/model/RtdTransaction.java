@@ -128,6 +128,8 @@ public class RtdTransaction {
   @Pattern(regexp = "[a-zA-Z0-9]{1,5}", message = "MCC length must be 5 alphanumeric char at max")
   String mcc;
 
+  @NotNull
+  @NotBlank
   @CsvBindByPosition(position = 15)
   @Pattern(regexp = "[a-zA-Z0-9]{11}|[a-zA-Z0-9]{16}",
       message = "Fiscal code must be 11 or 16 alphanumeric char")
@@ -145,5 +147,7 @@ public class RtdTransaction {
   String posType;
 
   @CsvBindByPosition(position = 18)
+  @Pattern(regexp = "|[A-Z0-9]{29}",
+      message = "PAR must be 29 uppercase alphanumeric char")
   String par;
 }
