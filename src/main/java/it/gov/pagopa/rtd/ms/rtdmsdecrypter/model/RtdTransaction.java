@@ -32,21 +32,21 @@ public class RtdTransaction {
   @NotNull
   @NotBlank
   @CsvBindByPosition(position = 0)
-  @Pattern(regexp = "[a-zA-Z0-9]{5}", message = "ABI length must be 5 alphanumeric char")
+  @Pattern(regexp = "[a-zA-Z\\d]{5}", message = "ABI length must be 5 alphanumeric char")
   @JsonProperty(value = "acquirerCode", required = true)
   String acquirerCode;
 
   @NotNull
   @NotBlank
   @CsvBindByPosition(position = 1)
-  @Pattern(regexp = "[0-9]{2}", message = "Operation type length must match [0-9]{2}")
+  @Pattern(regexp = "\\d{2}", message = "Operation type length must match [0-9]{2}")
   @JsonProperty(value = "operationType", required = true)
   String operationType;
 
   @NotNull
   @NotBlank
   @CsvBindByPosition(position = 2)
-  @Pattern(regexp = "[0-9]{2}", message = "Circuit type length must match [0-9]{2}")
+  @Pattern(regexp = "\\d{2}", message = "Circuit type length must match [0-9]{2}")
   String circuitType;
 
   @NotNull
@@ -118,7 +118,7 @@ public class RtdTransaction {
   @NotNull
   @NotBlank
   @CsvBindByPosition(position = 13)
-  @Pattern(regexp = "[0-9]{6}|[0-9]{8}",
+  @Pattern(regexp = "\\d{6}|\\d{8}",
       message = "BIN length must match [0-9]{6}|[0-9]{8}")
   String bin;
 
@@ -141,7 +141,7 @@ public class RtdTransaction {
   @NotNull
   @NotBlank
   @CsvBindByPosition(position = 17)
-  @Pattern(regexp = "[0-9]{2}", message = "Pos type must match [0-9]{2}")
+  @Pattern(regexp = "\\d{2}", message = "Pos type must match [0-9]{2}")
   String posType;
 
   @CsvBindByPosition(position = 18)
