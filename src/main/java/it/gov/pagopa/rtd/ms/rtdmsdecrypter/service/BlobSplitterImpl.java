@@ -70,18 +70,23 @@ public class BlobSplitterImpl implements BlobSplitter {
     //Incremental integer for chunk numbering
     int chunkNum = 0;
 
-    //Counter for current line number (from 0 to n)
+    // Counter for current line number (from 0 to n)
     int i;
+
+    String chunkName;
 
     try (
         LineIterator it = FileUtils.lineIterator(
             Path.of(blobPath).toFile(), "UTF-8")
     ) {
-      String newNamingNoChunk = adeNamingConvention(blob);
       while (it.hasNext()) {
+        if (blob.getApp() == Application.ADE) {
+          chunkName = adeNamingConvention(blob) + "." + chunkNum;
+        } else {
+          chunkName = blob.getBlob() + "." + chunkNum + decryptedSuffix;
+        }
         try (Writer writer = Channels.newWriter(new FileOutputStream(
-                Path.of(blob.getTargetDir(), newNamingNoChunk
-                    + "." + chunkNum).toString(),
+                Path.of(blob.getTargetDir(), chunkName).toString(),
                 true).getChannel(),
             StandardCharsets.UTF_8)) {
           i = 0;
@@ -107,7 +112,9 @@ public class BlobSplitterImpl implements BlobSplitter {
           tmpBlob.setOriginalBlobName(blob.getBlob());
           tmpBlob.setStatus(SPLIT);
           tmpBlob.setApp(blob.getApp());
-          adaptToNamingConvention(tmpBlob, chunkNum);
+          tmpBlob.setBlob(chunkName);
+          tmpBlob.setBlobUri(
+              blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/" + chunkName);
           blobSplit.add(tmpBlob);
         }
         chunkNum++;
@@ -179,21 +186,6 @@ public class BlobSplitterImpl implements BlobSplitter {
       return true;
     } catch (DateTimeParseException e) {
       return false;
-    }
-  }
-
-  private void adaptToNamingConvention(BlobApplicationAware blob, int numChunk) {
-    if (blob.getApp() == Application.ADE) {
-      blob.setBlob(adeNamingConvention(blob) + "." + numChunk);
-      blob.setBlobUri(
-          blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + blob.getBlob());
-      log.info("New blob name: {}", blob.getBlob());
-    }
-    if (blob.getApp() == Application.RTD) {
-      blob.setBlob(blob.getBlob() + "." + numChunk + decryptedSuffix);
-      blob.setBlobUri(
-          blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + blob.getBlob());
-      log.info("New blob name: {}", blob.getBlob());
     }
   }
 
