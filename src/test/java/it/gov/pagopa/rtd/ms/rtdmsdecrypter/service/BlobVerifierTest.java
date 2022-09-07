@@ -129,13 +129,13 @@ class BlobVerifierTest {
   }
 
   @Test
-  void shouldSplitRTD() {
+  void shouldVerifyRTD() {
     blobVerifierImpl.verify(fakeBlobRTD);
     assertEquals(Status.VERIFIED, fakeBlobRTD.getStatus());
   }
 
   @Test
-  void shouldSplitTAE() {
+  void shouldVerifyTAE() {
     blobVerifierImpl.verify(fakeBlobTAE);
     assertEquals(Status.VERIFIED, fakeBlobTAE.getStatus());
   }
@@ -170,7 +170,7 @@ class BlobVerifierTest {
       "00000;00;2022-07-21;2022-07-21;77;249135;978;00000;8894738909374375872;4759769053262163701;00000000003;00000000003;\n",
       "00000;00;2022-07-21;2022-07-21;77;249135;978;00000;8894738909374375872;4759769053262163701;00000000003;00000000003;0\n",
       "00000;00;2022-07-21;2022-07-21;77;249135;978;00000;8894738909374375872;4759769053262163701;00000000003;00000000003;000\n"})
-  void shouldFailValidateTAE(String malformedAggregateRecord) throws IOException {
+  void shouldFailVerifyTAE(String malformedAggregateRecord) throws IOException {
     Files.write(Path.of(tmpDirectory, blobNameTAEEmpty + ".decrypted"),
         malformedAggregateRecord.getBytes(), StandardOpenOption.APPEND);
 
@@ -244,7 +244,7 @@ class BlobVerifierTest {
       "00017;00;09;c3141e7c87d0bf7faac1ea3c79b2312279303b87781eedbb47ec8892f63df3e9;2020-08-06T12:19:16.000+01:00;193531782008954810291361325409791762715;324393315321635981285487364925433121593;27571141360967615190853606122155739169;877690;978;09509;400000080205;80205005;40236010;4900;RSSMRA80A01H501U;12345678901;+1;e197169a09GQNYI34PN3QPA1SDM07",
       "00017;00;09;c3141e7c87d0bf7faac1ea3c79b2312279303b87781eedbb47ec8892f63df3e9;2020-08-06T12:19:16.000+01:00;193531782008954810291361325409791762715;324393315321635981285487364925433121593;27571141360967615190853606122155739169;877690;978;09509;400000080205;80205005;40236010;4900;RSSMRA80A01H501U;12345678901;+1;E1971",
       "00017;00;09;c3141e7c87d0bf7faac1ea3c79b2312279303b87781eedbb47ec8892f63df3e9;2020-08-06T12:19:16.000+01:00;193531782008954810291361325409791762715;324393315321635981285487364925433121593;27571141360967615190853606122155739169;877690;978;09509;400000080205;80205005;40236010;4900;RSSMRA80A01H501U;12345678901;+1;E197169A09GQNYI34PN3QPA1SDM07AAA"})
-  void shouldFailValidateRTD(String malformedAggregateRecord) throws IOException {
+  void shouldFailVerifyRTD(String malformedAggregateRecord) throws IOException {
     Files.write(Path.of(tmpDirectory, blobNameRTDEmpty + ".decrypted"),
         malformedAggregateRecord.getBytes(), StandardOpenOption.APPEND);
 
@@ -253,7 +253,7 @@ class BlobVerifierTest {
   }
 
   @Test
-  void shouldNotSplitMissingFile() {
+  void shouldNotVerifyMissingFile() {
 
     //Set the wrong directory for locating the decrypted fake blob
     fakeBlobRTD.setTargetDir("pippo");
