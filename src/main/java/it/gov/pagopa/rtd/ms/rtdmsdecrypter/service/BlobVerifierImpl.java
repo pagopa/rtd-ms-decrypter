@@ -18,11 +18,19 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+/**
+ * Implementation of the {@link BlobVerifier} interface, used to verify the validity of the
+ * {@link BlobApplicationAware} records extracted from the input file.
+ */
 @Service
 @Setter
 @Slf4j
 public class BlobVerifierImpl implements BlobVerifier {
 
+  /**
+   * Verify method, used to verify the validity of the {@link BlobApplicationAware} records
+   * decrypted.
+   */
   public BlobApplicationAware verify(BlobApplicationAware blob) {
     log.info("Start evaluating blob {} from {}", blob.getBlob(), blob.getContainer());
 
