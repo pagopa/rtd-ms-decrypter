@@ -44,7 +44,9 @@ class BlobSplitterTest {
   @Value("${decrypt.resources.base.path}/tmp")
   String tmpDirectory;
 
-  String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
+  String containerRTD = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
+
+  String containerTAE = "ade-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
   String blobNameRTD = "CSTAR.99999.TRNLOG.20220419.121045.001.csv";
 
   String blobNameTAE = "ADE.99999.TRNLOG.20220721.095718.001.csv";
@@ -70,7 +72,7 @@ class BlobSplitterTest {
 
     //Instantiate a fake RTD blob with clear text content
     fakeBlobRTD = new BlobApplicationAware(
-        "/blobServices/default/containers/" + container + "/blobs/" + blobNameRTD);
+        "/blobServices/default/containers/" + containerRTD + "/blobs/" + blobNameRTD);
     fakeBlobRTD.setTargetDir(tmpDirectory);
     fakeBlobRTD.setStatus(Status.DECRYPTED);
     fakeBlobRTD.setApp(Application.RTD);
@@ -85,7 +87,7 @@ class BlobSplitterTest {
 
     //Instantiate a fake TAE blob with clear text content
     fakeBlobTAE = new BlobApplicationAware(
-        "/blobServices/default/containers/" + container + "/blobs/" + blobNameTAE);
+        "/blobServices/default/containers/" + containerTAE + "/blobs/" + blobNameTAE);
     fakeBlobTAE.setTargetDir(tmpDirectory);
     fakeBlobTAE.setStatus(Status.DECRYPTED);
     fakeBlobTAE.setApp(Application.ADE);
@@ -100,7 +102,7 @@ class BlobSplitterTest {
 
     //Instantiate a fake TAE blob with clear text content
     fakeBlobTAEEmpty = new BlobApplicationAware(
-        "/blobServices/default/containers/" + container + "/blobs/" + blobNameTAEEmpty);
+        "/blobServices/default/containers/" + containerTAE + "/blobs/" + blobNameTAEEmpty);
     fakeBlobTAEEmpty.setTargetDir(tmpDirectory);
     fakeBlobTAEEmpty.setStatus(Status.DECRYPTED);
     fakeBlobTAEEmpty.setApp(Application.ADE);
@@ -152,8 +154,8 @@ class BlobSplitterTest {
   @ValueSource(strings = {
       "\n",
       "00000;00;2022-07-21;2022-07-21;77;249135;978;99999;8894738909374375872;4759769053262163701;00000000003;00000000003;00\n"
-      + "\n"
-      + "00000;00;2022-07-21;2022-07-20;17;249135;978;99999;8894738909374375872;4759769053262163701;00000000005;00000000005;00",
+          + "\n"
+          + "00000;00;2022-07-21;2022-07-20;17;249135;978;99999;8894738909374375872;4759769053262163701;00000000005;00000000005;00",
       ";00;2022-07-21;2022-07-21;77;249135;978;99999;8894738909374375872;4759769053262163701;00000000003;00000000003;00\n",
       "00000;;2022-07-21;2022-07-21;77;249135;978;00000;8894738909374375872;4759769053262163701;00000000003;00000000003;00\n",
       "00000;001;2022-07-21;2022-07-21;77;249135;978;00000;8894738909374375872;4759769053262163701;00000000003;00000000003;00\n",
