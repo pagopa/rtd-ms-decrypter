@@ -72,7 +72,7 @@ public class BlobVerifierImpl implements BlobVerifier {
       return blob;
 
     } catch (FileNotFoundException e) {
-      return null;
+      return blob;
     }
   }
 }
