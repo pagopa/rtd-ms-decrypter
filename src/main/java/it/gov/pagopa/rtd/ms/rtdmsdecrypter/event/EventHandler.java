@@ -4,6 +4,7 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobSplitterImpl;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 import java.util.List;
 import java.util.function.Consumer;
@@ -32,11 +33,13 @@ public class EventHandler {
    * @param decrypterImpl         an instance of a Decrypter
    * @param blobRestConnectorImpl an instance of a BlobRestConnector
    * @param blobSplitterImpl      an instance of a BlobSplitter
+   * @param blobVerifierImpl      an instance of a BlobVerifier
    * @return a consumer for Event Grid events
    */
   @Bean
   public Consumer<Message<List<EventGridEvent>>> blobStorageConsumer(DecrypterImpl decrypterImpl,
-      BlobRestConnectorImpl blobRestConnectorImpl, BlobSplitterImpl blobSplitterImpl) {
+      BlobRestConnectorImpl blobRestConnectorImpl, BlobSplitterImpl blobSplitterImpl,
+      BlobVerifierImpl blobVerifierImpl) {
 
     log.info("Chunks upload enabled: {}", isChunkUploadEnabled);
 
@@ -51,6 +54,8 @@ public class EventHandler {
         .filter(b -> BlobApplicationAware.Status.DECRYPTED.equals(b.getStatus()))
         .flatMap(blobSplitterImpl::split)
         .filter(b -> BlobApplicationAware.Status.SPLIT.equals(b.getStatus()))
+        .map(blobVerifierImpl::verify)
+        .filter(b -> BlobApplicationAware.Status.VERIFIED.equals(b.getStatus()))
         .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
         .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
         .map(BlobApplicationAware::localCleanup)
