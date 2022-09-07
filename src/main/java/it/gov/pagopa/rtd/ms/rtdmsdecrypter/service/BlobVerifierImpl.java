@@ -58,23 +58,25 @@ public class BlobVerifierImpl implements BlobVerifier {
       List<DecryptedRecord> deserialized = b.parse();
       List<CsvException> exceptions = b.getCapturedExceptions();
 
-      if (deserialized.isEmpty()) {
-        if (!exceptions.isEmpty()) {
-          for (CsvException e : exceptions) {
-            log.error("Validation error at line " + e.getLineNumber() + " : " + e.getMessage());
-          }
-        } else {
-          log.error("No valid records found in blob {}", blob.getBlob());
-        }
-        return blob;
-      }
-
+    if (deserialized.isEmpty()) {
       if (!exceptions.isEmpty()) {
         for (CsvException e : exceptions) {
           log.error("Validation error at line " + e.getLineNumber() + " : " + e.getMessage());
         }
-        return blob;
+      } else {
+        log.error("No valid records found in blob {}", blob.getBlob());
       }
+      blob.localCleanup();
+      return blob;
+    }
+
+    if (!exceptions.isEmpty()) {
+      for (CsvException e : exceptions) {
+        log.error("Validation error at line " + e.getLineNumber() + " : " + e.getMessage());
+      }
+      blob.localCleanup();
+      return blob;
+    }
 
       log.info("Successful validation of blob:{}", blob.getBlob());
       blob.setStatus(VERIFIED);

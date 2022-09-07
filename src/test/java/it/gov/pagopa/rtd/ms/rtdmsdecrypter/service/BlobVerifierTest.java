@@ -175,7 +175,7 @@ class BlobVerifierTest {
         malformedAggregateRecord.getBytes(), StandardOpenOption.APPEND);
 
     blobVerifierImpl.verify(fakeBlobTAEEmpty);
-    assertEquals(Status.DECRYPTED, fakeBlobTAEEmpty.getStatus());
+    assertEquals(Status.DELETED, fakeBlobTAEEmpty.getStatus());
   }
 
 
@@ -249,7 +249,7 @@ class BlobVerifierTest {
         malformedAggregateRecord.getBytes(), StandardOpenOption.APPEND);
 
     blobVerifierImpl.verify(fakeBlobRTDEmpty);
-    assertEquals(Status.DECRYPTED, fakeBlobRTDEmpty.getStatus());
+    assertEquals(Status.DELETED, fakeBlobRTDEmpty.getStatus());
   }
 
   @Test
