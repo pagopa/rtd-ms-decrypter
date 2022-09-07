@@ -9,6 +9,7 @@ import com.opencsv.exceptions.CsvException;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.AdeTransactionsAggregate;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.DecryptedRecord;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.RtdTransaction;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -34,8 +35,8 @@ public class BlobVerifierImpl implements BlobVerifier {
   public BlobApplicationAware verify(BlobApplicationAware blob) {
     log.info("Start evaluating blob {} from {}", blob.getBlob(), blob.getContainer());
 
-    BeanVerifier verifier = new RtdTransactionsVerifier();
-    Class beanClass = RtdTransaction.class;
+    BeanVerifier<? extends DecryptedRecord> verifier = new RtdTransactionsVerifier();
+    Class<? extends DecryptedRecord> beanClass = RtdTransaction.class;
 
     if (Application.ADE.equals(blob.getApp())) {
       verifier = new AdeAggregatesVerifier();
@@ -43,18 +44,18 @@ public class BlobVerifierImpl implements BlobVerifier {
     }
 
     try {
-      CsvToBean b = new CsvToBeanBuilder(new FileReader(
+      CsvToBean<DecryptedRecord> b = new CsvToBeanBuilder<DecryptedRecord>(new FileReader(
           Path.of(blob.getTargetDir(), blob.getBlob()).toFile()))
           .withType(beanClass)
           .withSeparator(';')
-          .withVerifier(verifier)
+          .withVerifier((BeanVerifier<DecryptedRecord>) verifier)
           // skip the checksum line
           .withSkipLines(1)
           .withThrowExceptions(false)
           .build();
 
       // The parsing is necessary to trigger the verification of the beans
-      List deserialized = b.parse();
+      List<DecryptedRecord> deserialized = b.parse();
       List<CsvException> exceptions = b.getCapturedExceptions();
 
       if (deserialized.isEmpty()) {

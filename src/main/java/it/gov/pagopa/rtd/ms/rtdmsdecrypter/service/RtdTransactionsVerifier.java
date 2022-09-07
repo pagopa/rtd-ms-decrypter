@@ -11,17 +11,16 @@ import javax.validation.ValidatorFactory;
 
 /**
  * Implementation of {@link BeanVerifier}, used to verify the validity of the {@link RtdTransaction}
- * records extracted from the input file.
+ * records extracted from the decrypted file.
  */
-public class RtdTransactionsVerifier implements BeanVerifier {
+public class RtdTransactionsVerifier implements BeanVerifier<RtdTransaction> {
 
   private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
 
   private static final Validator validator = factory.getValidator();
 
   @Override
-  public boolean verifyBean(Object o) throws CsvConstraintViolationException {
-    RtdTransaction rtdTransactions = (RtdTransaction) o;
+  public boolean verifyBean(RtdTransaction rtdTransactions) throws CsvConstraintViolationException {
     Set<ConstraintViolation<RtdTransaction>> violations = validator.validate(
         rtdTransactions);
 

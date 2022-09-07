@@ -12,15 +12,27 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
-public class AdeAggregatesVerifier implements BeanVerifier {
+/**
+ * Implementation of {@link BeanVerifier}, used to verify the validity of the
+ * {@link AdeTransactionsAggregate} records extracted from the decrypted file.
+ */
+public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggregate> {
 
   private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
 
   private static final Validator validator = factory.getValidator();
 
+  /**
+   * Implementation of {@link BeanVerifier#verifyBean(Object)}, used to verify the validity of the
+   * {@link AdeTransactionsAggregate} records extracted from the decrypted file.
+   *
+   * @param adeTransactionsAggregate The {@link AdeTransactionsAggregate} to be verified
+   * @return Boolean representing the validity of the record
+   * @throws CsvConstraintViolationException in case of malformed fields
+   */
   @Override
-  public boolean verifyBean(Object o) throws CsvConstraintViolationException {
-    AdeTransactionsAggregate adeTransactionsAggregate = (AdeTransactionsAggregate) o;
+  public boolean verifyBean(AdeTransactionsAggregate adeTransactionsAggregate)
+      throws CsvConstraintViolationException {
     Set<ConstraintViolation<AdeTransactionsAggregate>> violations = validator.validate(
         adeTransactionsAggregate);
 
