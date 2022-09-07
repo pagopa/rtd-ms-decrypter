@@ -27,7 +27,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"idTrxAcquirer", "acquirerCode", "trxDate"}, callSuper = false)
-public class RtdTransaction {
+public class RtdTransaction implements DecryptedRecord {
 
   @NotNull
   @NotBlank
