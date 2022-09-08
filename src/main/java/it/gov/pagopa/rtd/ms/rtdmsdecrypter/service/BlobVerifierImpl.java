@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -31,6 +32,9 @@ import org.springframework.stereotype.Service;
 @Setter
 @Slf4j
 public class BlobVerifierImpl implements BlobVerifier {
+
+  @Value("${decrypt.skipChecksum}")
+  private boolean skipChecksum;
 
   /**
    * Verify method, used to verify the validity of the {@link BlobApplicationAware} records
@@ -55,17 +59,21 @@ public class BlobVerifierImpl implements BlobVerifier {
       beanClass = AdeTransactionsAggregate.class;
     }
 
-    CsvToBean<DecryptedRecord> b = new CsvToBeanBuilder<DecryptedRecord>(fileReader)
+    CsvToBeanBuilder<DecryptedRecord> builder = new CsvToBeanBuilder<DecryptedRecord>(fileReader)
         .withType(beanClass)
         .withSeparator(';')
         .withVerifier((BeanVerifier<DecryptedRecord>) verifier)
         // skip the checksum line
-        .withSkipLines(1)
-        .withThrowExceptions(false)
-        .build();
+        .withThrowExceptions(false);
 
-    List<DecryptedRecord> deserialized = b.parse();
-    List<CsvException> exceptions = b.getCapturedExceptions();
+    if (skipChecksum) {
+      builder.withSkipLines(1);
+    }
+
+    CsvToBean<DecryptedRecord> csvToBean = builder.build();
+
+    List<DecryptedRecord> deserialized = csvToBean.parse();
+    List<CsvException> exceptions = csvToBean.getCapturedExceptions();
 
     if (deserialized.isEmpty()) {
       if (!exceptions.isEmpty()) {

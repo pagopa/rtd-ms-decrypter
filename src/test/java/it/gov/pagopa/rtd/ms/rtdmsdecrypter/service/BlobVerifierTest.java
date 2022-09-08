@@ -60,6 +60,8 @@ class BlobVerifierTest {
   @BeforeEach
   void setUp() throws IOException {
 
+    blobVerifierImpl.setSkipChecksum(true);
+
     //Create the decrypted file for RTD
     File decryptedFile = Path.of(tmpDirectory, blobNameRTD).toFile();
     decryptedFile.getParentFile().mkdirs();
