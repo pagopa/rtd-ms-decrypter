@@ -63,7 +63,6 @@ public class BlobVerifierImpl implements BlobVerifier {
         .withType(beanClass)
         .withSeparator(';')
         .withVerifier((BeanVerifier<DecryptedRecord>) verifier)
-        // skip the checksum line
         .withThrowExceptions(false);
 
     if (skipChecksum) {
