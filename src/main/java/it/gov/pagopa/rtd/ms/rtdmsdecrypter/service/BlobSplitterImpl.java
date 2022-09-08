@@ -99,8 +99,6 @@ public class BlobSplitterImpl implements BlobSplitter {
                 checksumSkipped = true;
                 i--;
               } else {
-                // TODO remove
-                //validateRow(line, blob);
                 writer.append(line).append("\n");
               }
             } else {
@@ -138,54 +136,6 @@ public class BlobSplitterImpl implements BlobSplitter {
       // If split fails, return the original blob (without the SPLIT status)
       log.info("Failed splitting blob:{}", blob.getBlob());
       return Stream.of(blob);
-    }
-  }
-
-  /**
-   * Method for validating file records.
-   *
-   * @param row  to be validated.
-   * @param blob that contains the row.
-   */
-  public void validateRow(String row, BlobApplicationAware blob) {
-    if (blob.getApp() == Application.ADE) {
-      StringReader line = new StringReader(row);
-      AdeTransactionsAggregate t = new CsvToBeanBuilder<AdeTransactionsAggregate>(
-          line).withSeparator(';')
-          .withThrowExceptions(false)
-          .withType(AdeTransactionsAggregate.class)
-          .build().parse().get(0);
-
-      Set<ConstraintViolation<AdeTransactionsAggregate>> violations = validator.validate(t);
-      if (!validateDate(t.getTransmissionDate())) {
-        log.error("Invalid transmission date: {}", t.getTransmissionDate());
-        throw new IllegalArgumentException("Invalid transmission date: " + t.getTransmissionDate());
-
-      }
-      if (!validateDate(t.getAccountingDate())) {
-        throw new IllegalArgumentException("Invalid accounting date: " + t.getAccountingDate());
-      }
-
-      if (!violations.isEmpty()) {
-        StringBuilder malformedFields = new StringBuilder();
-        for (ConstraintViolation<AdeTransactionsAggregate> violation : violations) {
-          malformedFields.append("(").append(violation.getPropertyPath().toString()).append(": ");
-          malformedFields.append(violation.getMessage()).append(") ");
-        }
-        throw new IllegalArgumentException(
-            "Malformed fields extracted from " + blob.getBlob() + ": "
-                + malformedFields);
-      }
-    }
-  }
-
-  private boolean validateDate(String date) {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    try {
-      LocalDate.parse(date, formatter);
-      return true;
-    } catch (DateTimeParseException e) {
-      return false;
     }
   }
 
