@@ -99,7 +99,9 @@ public class BlobVerifierImpl implements BlobVerifier {
       beanToCsv.write(deserialized);
 
     } catch (Exception e) {
-      log.error("Error writing to file", e);
+      log.error("Error writing to file {}", blob.getBlob());
+      blob.localCleanup();
+      return blob;
     }
 
     log.info("Successful validation of blob:{}", blob.getBlob());
