@@ -51,13 +51,14 @@ spec:
                 secretKeyRef:
                   name: rtddecrypter
                   key: CSV_TRANSACTION_PRIVATE_KEY_PASS
+#                  TODO restore correct values
           resources:
             limits:
-              cpu: 2
-              memory: 8Gi
-            requests:
-              cpu: 1
+              cpu: 500m
               memory: 4Gi
+            requests:
+              cpu: 50m
+              memory: 256Mi
       volumes:
         - name: certs
           secret:

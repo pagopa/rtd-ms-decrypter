@@ -99,7 +99,8 @@ public class BlobSplitterImpl implements BlobSplitter {
                 checksumSkipped = true;
                 i--;
               } else {
-                validateRow(line, blob);
+                // TODO remove
+//                validateRow(line, blob);
                 writer.append(line).append("\n");
               }
             } else {
