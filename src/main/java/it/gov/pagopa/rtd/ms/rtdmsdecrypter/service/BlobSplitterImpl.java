@@ -133,7 +133,6 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     if (!failSplit) {
       log.info("Obtained {} chunk/s from blob:{}", chunkNum, blob.getBlob());
-      log.info(blobSplit.toString());
       return blobSplit.stream();
     } else {
       // If split fails, return the original blob (without the SPLIT status)
