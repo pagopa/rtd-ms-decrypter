@@ -100,7 +100,7 @@ public class BlobSplitterImpl implements BlobSplitter {
                 i--;
               } else {
                 // TODO remove
-//                validateRow(line, blob);
+                //validateRow(line, blob);
                 writer.append(line).append("\n");
               }
             } else {
