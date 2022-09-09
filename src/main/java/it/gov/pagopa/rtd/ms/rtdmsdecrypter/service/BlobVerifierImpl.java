@@ -7,7 +7,9 @@ import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
+import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvException;
+import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.AdeTransactionsAggregate;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
@@ -17,6 +19,7 @@ import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import lombok.Setter;
@@ -41,13 +44,17 @@ public class BlobVerifierImpl implements BlobVerifier {
    * decrypted.
    */
   public BlobApplicationAware verify(BlobApplicationAware blob) {
-    log.info("Start evaluating blob {} from {}", blob.getBlob(), blob.getContainer());
+    log.info("START VERIFYING {}", blob.getBlob());
 
     FileReader fileReader;
+
+    boolean isValid = true;
 
     try {
       fileReader = new FileReader(Path.of(blob.getTargetDir(), blob.getBlob()).toFile());
     } catch (FileNotFoundException e) {
+      log.error("Error reading file {}", blob.getBlob());
+
       return blob;
     }
 
@@ -72,47 +79,55 @@ public class BlobVerifierImpl implements BlobVerifier {
     CsvToBean<DecryptedRecord> csvToBean = builder.build();
 
     List<DecryptedRecord> deserialized = csvToBean.parse();
-    List<CsvException> exceptions = csvToBean.getCapturedExceptions();
+    List<CsvException> violations = csvToBean.getCapturedExceptions();
 
-    if (deserialized.isEmpty()) {
-      if (!exceptions.isEmpty()) {
-        for (CsvException e : exceptions) {
-          log.error("Validation error at line " + e.getLineNumber() + " : " + e.getMessage());
-        }
-      } else {
-        log.error("No valid records found in blob {}", blob.getBlob());
-      }
-      blob.localCleanup();
-      return blob;
-    }
-
-    if (!exceptions.isEmpty()) {
-      for (CsvException e : exceptions) {
+    if (!violations.isEmpty()) {
+      for (CsvException e : violations) {
         log.error("Validation error at line " + e.getLineNumber() + " : " + e.getMessage());
       }
-      blob.localCleanup();
-      return blob;
+      isValid = false;
+    } else if (deserialized.isEmpty()) {
+      log.error("No records found in file {}", blob.getBlob());
+      isValid = false;
     }
 
-    // Serialize the valid records to a new file without the checksum header
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(
-        Path.of(blob.getTargetDir(), blob.getBlob()).toFile()))) {
+    try {
+      serializeValidRecords(deserialized, blob.getTargetDir(), blob.getBlob());
+    } catch (Exception e) {
+      isValid = false;
+    }
 
+
+    if (isValid) {
+      blob.setStatus(VERIFIED);
+    } else {
+      blob.localCleanup();
+    }
+
+    logVerificationInformation(blob.getBlob(), deserialized.size(), violations.size());
+    return blob;
+  }
+
+  private void logVerificationInformation(String blobName, Integer deserializedSize,
+      Integer violations) {
+    log.info("END VERIFYING {} records: {} valid , {} malformed", blobName,
+        deserializedSize, violations);
+  }
+
+  private void serializeValidRecords(List<DecryptedRecord> deserialized, String targetDir,
+      String blobName)
+      throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(
+        Path.of(targetDir, blobName).toFile()))) {
       StatefulBeanToCsv<DecryptedRecord> beanToCsv = new StatefulBeanToCsvBuilder<DecryptedRecord>(
           writer)
           .withSeparator(';')
           .withApplyQuotesToAll(false)
           .build();
       beanToCsv.write(deserialized);
-
     } catch (Exception e) {
-      log.error("Error writing to file {}", blob.getBlob());
-      blob.localCleanup();
-      return blob;
+      log.error("Error writing to file {}", blobName);
+      throw e;
     }
-
-    log.info("Successful validation of blob:{}", blob.getBlob());
-    blob.setStatus(VERIFIED);
-    return blob;
   }
 }
