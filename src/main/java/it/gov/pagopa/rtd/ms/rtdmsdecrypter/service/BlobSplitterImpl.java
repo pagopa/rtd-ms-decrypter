@@ -118,12 +118,6 @@ public class BlobSplitterImpl implements BlobSplitter {
         }
         chunkNum++;
       }
-    } catch (IndexOutOfBoundsException e) {
-      log.error("Failed to obtain a valid record");
-      failSplit = true;
-    } catch (IllegalArgumentException e) {
-      log.error(e.getMessage());
-      failSplit = true;
     } catch (IOException e) {
       log.error("Missing blob file:{}", blobPath);
       failSplit = true;
