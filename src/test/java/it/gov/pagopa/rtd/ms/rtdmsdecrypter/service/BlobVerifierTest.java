@@ -2,6 +2,7 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.config.VerifierFactory;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
@@ -24,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
-@ContextConfiguration(classes = {BlobVerifierImpl.class})
+@ContextConfiguration(classes = {BlobVerifierImpl.class, VerifierFactory.class})
 @TestPropertySource(value = {"classpath:application-nokafka.yml"}, inheritProperties = false)
 class BlobVerifierTest {
 

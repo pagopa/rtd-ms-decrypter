@@ -10,6 +10,7 @@ import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.config.VerifierFactory;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.AdeTransactionsAggregate;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
@@ -24,6 +25,7 @@ import java.nio.file.Path;
 import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +40,9 @@ public class BlobVerifierImpl implements BlobVerifier {
 
   @Value("${decrypt.skipChecksum}")
   private boolean skipChecksum;
+
+  @Autowired
+  private VerifierFactory verifierFactory;
 
   /**
    * Verify method, used to verify the validity of the {@link BlobApplicationAware} records
@@ -58,13 +63,8 @@ public class BlobVerifierImpl implements BlobVerifier {
       return blob;
     }
 
-    BeanVerifier<? extends DecryptedRecord> verifier = new RtdTransactionsVerifier();
-    Class<? extends DecryptedRecord> beanClass = RtdTransaction.class;
-
-    if (Application.ADE.equals(blob.getApp())) {
-      verifier = new AdeAggregatesVerifier();
-      beanClass = AdeTransactionsAggregate.class;
-    }
+    BeanVerifier<? extends DecryptedRecord> verifier = verifierFactory.getVerifier(blob.getApp());
+    Class<? extends DecryptedRecord> beanClass = verifierFactory.getBeanClass(blob.getApp());
 
     CsvToBeanBuilder<DecryptedRecord> builder = new CsvToBeanBuilder<DecryptedRecord>(fileReader)
         .withType(beanClass)
@@ -96,7 +96,6 @@ public class BlobVerifierImpl implements BlobVerifier {
     } catch (Exception e) {
       isValid = false;
     }
-
 
     if (isValid) {
       blob.setStatus(VERIFIED);
