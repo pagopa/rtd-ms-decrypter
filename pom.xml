@@ -80,6 +80,13 @@
       <scope>test</scope>
     </dependency>
     <!--    END TEST-->
+    <!--    VERSION OVERRIDE-->
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-function-context</artifactId>
+      <version>3.2.7</version>
+    </dependency>
+    <!--    END VERSION OVERRIDE-->
   </dependencies>
   <dependencyManagement>
     <dependencies>
