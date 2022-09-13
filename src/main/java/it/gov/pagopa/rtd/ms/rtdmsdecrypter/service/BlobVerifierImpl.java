@@ -49,7 +49,7 @@ public class BlobVerifierImpl implements BlobVerifier {
    * decrypted.
    */
   public BlobApplicationAware verify(BlobApplicationAware blob) {
-    log.info("START VERIFYING {}", blob.getBlob());
+    log.info("START Verifying {}", blob.getBlob());
 
     FileReader fileReader;
 
@@ -109,7 +109,7 @@ public class BlobVerifierImpl implements BlobVerifier {
 
   private void logVerificationInformation(String blobName, Integer deserializedSize,
       Integer violations) {
-    log.info("END VERIFYING {} records: {} valid , {} malformed", blobName,
+    log.info("END Verifying {} records: {} valid , {} malformed", blobName,
         deserializedSize, violations);
   }
 
