@@ -14,6 +14,7 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobSplitterImpl;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -63,6 +64,9 @@ class RtdMsDecrypterApplicationTest {
   @MockBean
   BlobSplitterImpl blobSplitterImpl;
 
+  @MockBean
+  BlobVerifierImpl blobVerifierImpl;
+
   @Autowired
   private DirectWithAttributesChannel channel;
 
@@ -96,6 +100,7 @@ class RtdMsDecrypterApplicationTest {
     BlobApplicationAware blobSplit0 = new BlobApplicationAware(blobUri + ".0");
     BlobApplicationAware blobSplit1 = new BlobApplicationAware(blobUri + ".1");
     BlobApplicationAware blobSplit2 = new BlobApplicationAware(blobUri + ".2");
+    BlobApplicationAware blobVerified = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobUploaded = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobDeleted = new BlobApplicationAware(blobUri);
 
@@ -105,6 +110,7 @@ class RtdMsDecrypterApplicationTest {
     blobSplit0.setStatus(BlobApplicationAware.Status.SPLIT);
     blobSplit1.setStatus(BlobApplicationAware.Status.SPLIT);
     blobSplit2.setStatus(BlobApplicationAware.Status.SPLIT);
+    blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
     blobUploaded.setStatus(BlobApplicationAware.Status.UPLOADED);
     blobDeleted.setStatus(BlobApplicationAware.Status.DELETED);
 
@@ -113,6 +119,7 @@ class RtdMsDecrypterApplicationTest {
     doReturn(blobDecrypted).when(decrypterImpl).decrypt(any(BlobApplicationAware.class));
     doReturn(Stream.of(blobSplit0, blobSplit1, blobSplit2)).when(blobSplitterImpl)
         .split(any(BlobApplicationAware.class));
+    doReturn(blobVerified).when(blobVerifierImpl).verify(any(BlobApplicationAware.class));
     doReturn(blobApplicationAware).when(blobRestConnectorImpl).put(any(BlobApplicationAware.class));
 
     //Mock of the interested blob's methods
@@ -128,9 +135,10 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(1)).decrypt(any());
       verify(blobSplitterImpl, times(1)).split(any());
+      verify(blobVerifierImpl, times(3)).verify(any());
       verify(blobRestConnectorImpl, times(3)).put(any());
       verify(blobApplicationAware, times(3)).localCleanup();
-      verify(handler, times(1)).blobStorageConsumer(any(), any(), any());
+      verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
 
     });
   }
@@ -151,9 +159,10 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(0)).get(any());
       verify(decrypterImpl, times(0)).decrypt(any());
       verify(blobSplitterImpl, times(0)).split(any());
+      verify(blobVerifierImpl, times(0)).verify(any());
       verify(blobRestConnectorImpl, times(0)).put(any());
       verify(blobApplicationAware, times(0)).localCleanup();
-      verify(handler, times(1)).blobStorageConsumer(any(), any(), any());
+      verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
       assertThat(output.getOut(), containsString("Wrong name format:"));
     });
   }
@@ -180,9 +189,10 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(0)).decrypt(any());
       verify(blobSplitterImpl, times(0)).split(any());
+      verify(blobVerifierImpl, times(0)).verify(any());
       verify(blobRestConnectorImpl, times(0)).put(any());
       verify(blobApplicationAware, times(0)).localCleanup();
-      verify(handler, times(1)).blobStorageConsumer(any(), any(), any());
+      verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
     });
   }
 
@@ -211,9 +221,10 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(1)).decrypt(any());
       verify(blobSplitterImpl, times(0)).split(any());
+      verify(blobVerifierImpl, times(0)).verify(any());
       verify(blobRestConnectorImpl, times(0)).put(any());
       verify(blobApplicationAware, times(0)).localCleanup();
-      verify(handler, times(1)).blobStorageConsumer(any(), any(), any());
+      verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
 
     });
   }
@@ -244,9 +255,11 @@ class RtdMsDecrypterApplicationTest {
       //Verify if every handling step is called the desired number of time
       verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(1)).decrypt(any());
+      verify(blobSplitterImpl, times(1)).split(any());
+      verify(blobVerifierImpl, times(0)).verify(any());
       verify(blobRestConnectorImpl, times(0)).put(any());
       verify(blobApplicationAware, times(0)).localCleanup();
-      verify(handler, times(1)).blobStorageConsumer(any(), any(), any());
+      verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
     });
   }
 
@@ -259,6 +272,7 @@ class RtdMsDecrypterApplicationTest {
     BlobApplicationAware blobSplit0 = new BlobApplicationAware(blobUri + ".0");
     BlobApplicationAware blobSplit1 = new BlobApplicationAware(blobUri + ".1");
     BlobApplicationAware blobSplit2 = new BlobApplicationAware(blobUri + ".2");
+    BlobApplicationAware blobVerified = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobUploaded = new BlobApplicationAware(blobUri);
 
     //Mock every step of the blob handling
@@ -267,6 +281,7 @@ class RtdMsDecrypterApplicationTest {
     blobSplit0.setStatus(BlobApplicationAware.Status.SPLIT);
     blobSplit1.setStatus(BlobApplicationAware.Status.SPLIT);
     blobSplit2.setStatus(BlobApplicationAware.Status.SPLIT);
+    blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
     //Keep the SPLIT status, this will trigger the filter
     blobUploaded.setStatus(BlobApplicationAware.Status.SPLIT);
 
@@ -275,6 +290,7 @@ class RtdMsDecrypterApplicationTest {
     doReturn(blobDecrypted).when(decrypterImpl).decrypt(any(BlobApplicationAware.class));
     doReturn(Stream.of(blobSplit0, blobSplit1, blobSplit2)).when(blobSplitterImpl)
         .split(any(BlobApplicationAware.class));
+    doReturn(blobVerified).when(blobVerifierImpl).verify(any(BlobApplicationAware.class));
     doReturn(blobUploaded).when(blobRestConnectorImpl).put(any(BlobApplicationAware.class));
 
     await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
@@ -285,9 +301,11 @@ class RtdMsDecrypterApplicationTest {
       //Verify if every handling step is called the desired number of time
       verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(1)).decrypt(any());
+      verify(blobSplitterImpl, times(1)).split(any());
+      verify(blobVerifierImpl, times(3)).verify(any());
       verify(blobRestConnectorImpl, times(3)).put(any());
       verify(blobApplicationAware, times(0)).localCleanup();
-      verify(handler, times(1)).blobStorageConsumer(any(), any(), any());
+      verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
     });
   }
 }

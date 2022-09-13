@@ -9,9 +9,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobSplitterImpl;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +61,9 @@ class EventHandlerTest {
   @MockBean
   private BlobSplitterImpl blobSplitter;
 
+  @MockBean
+  private BlobVerifierImpl blobVerifierImpl;
+
   private final String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
   private final String myID = "my_id";
   private final String myTopic = "my_topic";
@@ -92,9 +97,11 @@ class EventHandlerTest {
     BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobDecrypted = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobSplit = new BlobApplicationAware(blobUri);
+    BlobApplicationAware blobVerified = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobUploaded = new BlobApplicationAware(blobUri);
     blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobDecrypted.setStatus(BlobApplicationAware.Status.DECRYPTED);
+    blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
     blobSplit.setStatus(BlobApplicationAware.Status.SPLIT);
     blobUploaded.setStatus(BlobApplicationAware.Status.UPLOADED);
     doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
@@ -102,12 +109,14 @@ class EventHandlerTest {
     //Mock this method call by returning a stream of 3 copies of the same mocked blob
     doReturn(Stream.of(blobSplit, blobSplit, blobSplit)).when(blobSplitter)
         .split(any(BlobApplicationAware.class));
+    doReturn(blobVerified).when(blobVerifierImpl).verify(any(BlobApplicationAware.class));
     doReturn(blobUploaded).when(blobRestConnectorImpl).put(any(BlobApplicationAware.class));
 
     myConsumer.accept(msg);
     verify(blobRestConnectorImpl, times(1)).get(any());
     verify(decrypterImpl, times(1)).decrypt(any());
     verify(blobSplitter, times(1)).split(any());
+    verify(blobVerifierImpl, times(3)).verify(any());
     verify(blobRestConnectorImpl, times(3)).put(any());
     assertThat(output.getOut(), not(containsString("Wrong name format:")));
     assertThat(output.getOut(), not(containsString("Conflicting service in URI:")));
