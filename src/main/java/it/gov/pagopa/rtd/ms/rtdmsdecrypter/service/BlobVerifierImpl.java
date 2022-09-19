@@ -23,6 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,11 @@ public class BlobVerifierImpl implements BlobVerifier {
 
     CsvToBean<DecryptedRecord> csvToBean = builder.build();
 
-    List<DecryptedRecord> deserialized = csvToBean.parse();
+//    List<DecryptedRecord> deserialized = csvToBean.parse();
+    Stream<DecryptedRecord> deserialized = csvToBean.stream();
+
+//    long numberOfDeserializeRecords = deserialized.size();
+    long numberOfDeserializeRecords = deserialized.count();
     List<CsvException> violations = csvToBean.getCapturedExceptions();
 
     if (!violations.isEmpty()) {
@@ -86,14 +91,8 @@ public class BlobVerifierImpl implements BlobVerifier {
         log.error("Validation error at line " + e.getLineNumber() + " : " + e.getMessage());
       }
       isValid = false;
-    } else if (deserialized.isEmpty()) {
+    } else if (numberOfDeserializeRecords == 0) {
       log.error("No records found in file {}", blob.getBlob());
-      isValid = false;
-    }
-
-    try {
-      serializeValidRecords(deserialized, blob.getTargetDir(), blob.getBlob());
-    } catch (Exception e) {
       isValid = false;
     }
 
@@ -103,11 +102,11 @@ public class BlobVerifierImpl implements BlobVerifier {
       blob.localCleanup();
     }
 
-    logVerificationInformation(blob.getBlob(), deserialized.size(), violations.size());
+    logVerificationInformation(blob.getOriginalBlobName(), numberOfDeserializeRecords, violations.size());
     return blob;
   }
 
-  private void logVerificationInformation(String blobName, Integer deserializedSize,
+  private void logVerificationInformation(String blobName, Long deserializedSize,
       Integer violations) {
     log.info("END Verifying {} records: {} valid , {} malformed", blobName,
         deserializedSize, violations);
