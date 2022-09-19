@@ -79,10 +79,10 @@ public class BlobVerifierImpl implements BlobVerifier {
 
     CsvToBean<DecryptedRecord> csvToBean = builder.build();
 
-//    List<DecryptedRecord> deserialized = csvToBean.parse();
+    // List<DecryptedRecord> deserialized = csvToBean.parse();
     Stream<DecryptedRecord> deserialized = csvToBean.stream();
 
-//    long numberOfDeserializeRecords = deserialized.size();
+    // long numberOfDeserializeRecords = deserialized.size();
     long numberOfDeserializeRecords = deserialized.count();
     List<CsvException> violations = csvToBean.getCapturedExceptions();
 
@@ -102,7 +102,8 @@ public class BlobVerifierImpl implements BlobVerifier {
       blob.localCleanup();
     }
 
-    logVerificationInformation(blob.getOriginalBlobName(), numberOfDeserializeRecords, violations.size());
+    logVerificationInformation(blob.getOriginalBlobName(), numberOfDeserializeRecords,
+        violations.size());
     return blob;
   }
 
