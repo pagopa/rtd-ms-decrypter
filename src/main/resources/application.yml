@@ -94,7 +94,7 @@ spring:
                   bytes: 10485760
             session:
               timeout:
-                ms: 10000
+                ms: 30000
             metadata:
               max:
                 age:
