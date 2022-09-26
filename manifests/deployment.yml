@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: rtdmsdecrypter
 spec:
-  replicas: 2
+  replicas: 4
   selector:
     matchLabels:
       app: rtdmsdecrypter
@@ -56,8 +56,8 @@ spec:
               cpu: 2
               memory: 8Gi
             requests:
-              cpu: 2
-              memory: 8Gi
+              cpu: 1
+              memory: 4Gi
       volumes:
         - name: certs
           secret:
