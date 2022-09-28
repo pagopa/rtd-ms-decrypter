@@ -9,7 +9,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
-import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobSplitterImpl;
@@ -102,6 +101,7 @@ class EventHandlerTest {
     blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobDecrypted.setStatus(BlobApplicationAware.Status.DECRYPTED);
     blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
+    blobVerified.setOrigianalFileChunksNumber(3);
     blobSplit.setStatus(BlobApplicationAware.Status.SPLIT);
     blobUploaded.setStatus(BlobApplicationAware.Status.UPLOADED);
     doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
