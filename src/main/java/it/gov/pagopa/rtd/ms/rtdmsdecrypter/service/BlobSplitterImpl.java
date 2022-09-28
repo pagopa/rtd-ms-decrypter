@@ -2,24 +2,16 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status.SPLIT;
 
-import com.opencsv.bean.CsvToBeanBuilder;
-import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.AdeTransactionsAggregate;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.Writer;
 import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.stream.Stream;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
@@ -125,6 +117,9 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     if (!failSplit) {
       log.info("Obtained {} chunk/s from blob:{}", chunkNum, blob.getBlob());
+      for (BlobApplicationAware b : blobSplit) {
+        b.setOrigianalFileChunksNumber(chunkNum);
+      }
       return blobSplit.stream();
     } else {
       // If split fails, return the original blob (without the SPLIT status)
