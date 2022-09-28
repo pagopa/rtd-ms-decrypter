@@ -58,6 +58,7 @@ public class BlobApplicationAware {
 
   private String flowNumber;
 
+  private Integer origianalFileChunksNumber;
 
   private String targetContainerAde = "ade-transactions-decrypted";
   private String targetContainerRtd = "rtd-transactions-decrypted";
@@ -212,6 +213,10 @@ public class BlobApplicationAware {
     log.info("Deleted locally blob {}", blob);
     return this;
 
+  }
+
+  public boolean chunkNumberCheck(Integer chunkNumber) {
+    return (chunkNumber.equals(origianalFileChunksNumber));
   }
 }
   
