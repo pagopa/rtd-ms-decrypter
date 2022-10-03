@@ -62,25 +62,23 @@ public class EventHandler {
           .filter(b -> BlobApplicationAware.Status.VERIFIED.equals(b.getStatus()))
           .collect(Collectors.toList());
 
-      int verifiedChunksNum = chunks.size();
-
-      List<BlobApplicationAware> uploadedChunks = verifiedChunks.stream()
-          .filter(b -> b.chunkNumberCheck(verifiedChunksNum))
-          .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
-          .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
-          .collect(Collectors.toList());
-
-      if (uploadedChunks.size() != verifiedChunksNum) {
+      if (verifiedChunks.size() == chunks.size()) {
+        List<BlobApplicationAware> uploadedChunks = verifiedChunks.stream()
+            .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
+            .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
+            .collect(Collectors.toList());
+        log.info("Uploaded chunks: {}", uploadedChunks.size());
+      } else {
         log.error("Not all chunks are verified, no chunks will be uploaded");
       }
 
-      List<BlobApplicationAware> handledChunks = chunks.stream()
-          .map(BlobApplicationAware::localCleanup)
-          .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus()))
-          .collect(Collectors.toList());
+      if (!chunks.isEmpty()) {
+        List<BlobApplicationAware> deletedChunks = chunks.stream()
+            .map(BlobApplicationAware::localCleanup)
+            .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus()))
+            .collect(Collectors.toList());
 
-      if (!handledChunks.isEmpty() && handledChunks.size() == verifiedChunksNum) {
-        log.info("Correctly handled blob: {}", handledChunks.get(0).getOriginalBlobName());
+        log.info("Handled blob: {}", deletedChunks.get(0).getOriginalBlobName());
       }
     };
   }
