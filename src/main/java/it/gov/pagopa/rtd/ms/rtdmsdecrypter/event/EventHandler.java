@@ -44,7 +44,7 @@ public class EventHandler {
     log.info("Chunks upload enabled: {}", isChunkUploadEnabled);
 
     return message -> {
-      List<BlobApplicationAware> test = message.getPayload().stream()
+      List<BlobApplicationAware> verifiedChunks = message.getPayload().stream()
           .filter(e -> "Microsoft.Storage.BlobCreated".equals(e.getEventType()))
           .map(EventGridEvent::getSubject)
           .map(BlobApplicationAware::new)
@@ -59,15 +59,19 @@ public class EventHandler {
           .filter(b -> BlobApplicationAware.Status.VERIFIED.equals(b.getStatus()))
           .collect(Collectors.toList());
 
-      int verifiedChunks = test.size();
+      int numberOfVerifiedChunks = verifiedChunks.size();
 
-      test.stream()
-          .filter(b -> b.chunkNumberCheck(verifiedChunks))
+      List<BlobApplicationAware> handledChunks = verifiedChunks.stream()
+          .filter(b -> b.chunkNumberCheck(numberOfVerifiedChunks))
           .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
           .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
           .map(BlobApplicationAware::localCleanup)
           .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus()))
           .collect(Collectors.toList());
+
+      if (!handledChunks.isEmpty() && handledChunks.size() == numberOfVerifiedChunks) {
+        log.info("Correctly handled blob: {}", handledChunks.get(0).getOriginalBlobName());
+      }
     };
   }
 }
