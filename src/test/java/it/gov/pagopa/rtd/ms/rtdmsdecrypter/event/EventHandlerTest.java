@@ -27,8 +27,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -40,7 +38,6 @@ import org.springframework.test.context.TestPropertySource;
 @EmbeddedKafka(topics = {
     "rtd-platform-events"}, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
 @ActiveProfiles("test")
-@ExtendWith(OutputCaptureExtension.class)
 @TestPropertySource(properties = {
     "decrypt.enableChunkUpload=true",
 })
@@ -87,7 +84,7 @@ class EventHandlerTest {
   @ParameterizedTest
   @ValueSource(strings = {"CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp",
       "CSTAR.a9911.TRNLOG.20220228.203107.001.csv.pgp"})
-  void blobUriShouldPassRegex(String blobName, CapturedOutput output) {
+  void blobUriShouldPassRegex(String blobName) {
 
     String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;
     myEvent.setSubject(blobUri);
@@ -118,8 +115,6 @@ class EventHandlerTest {
     verify(blobSplitter, times(1)).split(any());
     verify(blobVerifierImpl, times(3)).verify(any());
     verify(blobRestConnectorImpl, times(3)).put(any());
-    assertThat(output.getOut(), not(containsString("Wrong name format:")));
-    assertThat(output.getOut(), not(containsString("Conflicting service in URI:")));
   }
 
   //The test parameters reproduce the following scenarios: blobUriShouldFailWrongService, blobUriShouldFailNoService,
@@ -135,7 +130,7 @@ class EventHandlerTest {
       "CSTAR.99910.TRNLOG..103107.001.csv.pgp", "CSTAR.99910.TRNLOG.20220228.243107.001.csv.pgp",
       "CSTAR.99910.TRNLOG.20220228..001.csv.pgp", "CSTAR.99910.TRNLOG.20220228.103107.1.csv.pgp",
       "CSTAR.99910.TRNLOG.20220228.103107..csv.pgp"})
-  void blobUriShouldFailRegex(String blobName, CapturedOutput output) {
+  void blobUriShouldFailRegex(String blobName) {
 
     String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;
     myEvent.setSubject(blobUri);
@@ -143,8 +138,10 @@ class EventHandlerTest {
     myConsumer.accept(msg);
 
     verify(blobRestConnectorImpl, times(0)).get(any());
-    assertThat(output.getOut(), not(containsString("Conflicting service in URI:")));
-    assertThat(output.getOut(), containsString("Wrong name format:"));
+    verify(decrypterImpl, times(0)).decrypt(any());
+    verify(blobSplitter, times(0)).split(any());
+    verify(blobVerifierImpl, times(0)).verify(any());
+    verify(blobRestConnectorImpl, times(0)).put(any());
   }
 
 
@@ -152,8 +149,7 @@ class EventHandlerTest {
   @CsvSource({
       "ade-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, CSTAR.99910.TRNLOG.20220228.203107.001.csv.pgp",
       "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, ADE.99910.TRNLOG.20220228.203107.001.csv.pgp"})
-  void blobUriShouldFailConflictingService(String container, String blobName,
-      CapturedOutput output) {
+  void blobUriShouldFailConflictingService(String container, String blobName) {
 
     String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;
     myEvent.setSubject(blobUri);
@@ -161,20 +157,25 @@ class EventHandlerTest {
     myConsumer.accept(msg);
 
     verify(blobRestConnectorImpl, times(0)).get(any());
-    assertThat(output.getOut(), not(containsString("Wrong name format:")));
-    assertThat(output.getOut(), containsString("Conflicting service in URI:"));
+    verify(decrypterImpl, times(0)).decrypt(any());
+    verify(blobSplitter, times(0)).split(any());
+    verify(blobVerifierImpl, times(0)).verify(any());
+    verify(blobRestConnectorImpl, times(0)).put(any());
   }
 
 
   @Test
-  void blobUriShouldIgnoreBecauseNotInteresting(CapturedOutput output) {
+  void blobUriShouldIgnoreBecauseNotInteresting() {
 
     myEvent.setSubject("/blobServices/default/containers/cstar-exports/blobs/hashedPans_1.zip");
 
     myConsumer.accept(msg);
 
     verify(blobRestConnectorImpl, times(0)).get(any());
-    assertThat(output.getOut(), containsString("Event not of interest:"));
+    verify(decrypterImpl, times(0)).decrypt(any());
+    verify(blobSplitter, times(0)).split(any());
+    verify(blobVerifierImpl, times(0)).verify(any());
+    verify(blobRestConnectorImpl, times(0)).put(any());
   }
 
 }

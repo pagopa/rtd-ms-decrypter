@@ -12,27 +12,22 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @ContextConfiguration(classes = {BlobSplitterImpl.class})
 @TestPropertySource(value = {"classpath:application-nokafka.yml"}, inheritProperties = false)
-@ExtendWith(OutputCaptureExtension.class)
 class BlobSplitterTest {
 
   @Autowired
@@ -114,7 +109,7 @@ class BlobSplitterTest {
   }
 
   @Test
-  void shouldSplitRTD(CapturedOutput output) {
+  void shouldSplitRTD() {
 
     blobSplitterImpl.setLineThreshold(1);
 
@@ -127,8 +122,6 @@ class BlobSplitterTest {
       i++;
     }
     assertEquals(3, i);
-    assertThat(output.getOut(), containsString("Obtained 3 chunk/s from blob:"));
-
   }
 
   @Test
@@ -153,7 +146,7 @@ class BlobSplitterTest {
   //This test, contrary to the previous one, tests the scenario where the file run out of lines
   // before reaching the threshold.
   @Test
-  void shouldSplitReminder(CapturedOutput output) {
+  void shouldSplitReminder() {
 
     blobSplitterImpl.setLineThreshold(2);
 
@@ -166,21 +159,21 @@ class BlobSplitterTest {
       i++;
     }
     assertEquals(2, i);
-    assertThat(output.getOut(), containsString("Obtained 2 chunk/s from blob:"));
-
   }
 
   @Test
-  void shouldNotSplitMissingFile(CapturedOutput output) {
+  void shouldNotSplitMissingFile() {
 
     //Set the wrong directory for locating the decrypted fake blob
     fakeBlobRTD.setTargetDir("pippo");
     fakeBlobRTD.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobSplitterImpl.setLineThreshold(1);
 
-    blobSplitterImpl.split(fakeBlobRTD);
-    assertThat(output.getOut(), containsString("Missing blob file:"));
-
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTD);
+    ArrayList<BlobApplicationAware> originalMissingBlob = (ArrayList<BlobApplicationAware>) chunks.collect(
+        Collectors.toList());
+    assertEquals(1, originalMissingBlob.size());
+    assertEquals(Status.DOWNLOADED, originalMissingBlob.get(0).getStatus());
   }
 
 }

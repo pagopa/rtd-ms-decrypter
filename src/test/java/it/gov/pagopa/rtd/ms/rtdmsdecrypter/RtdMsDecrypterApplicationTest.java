@@ -28,8 +28,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.stream.messaging.DirectWithAttributesChannel;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.support.MessageBuilder;
@@ -40,7 +38,6 @@ import org.springframework.test.context.TestPropertySource;
 @ActiveProfiles("test")
 @EmbeddedKafka(topics = {
     "rtd-platform-events"}, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
-@ExtendWith(OutputCaptureExtension.class)
 @TestPropertySource(properties = {
     "decrypt.enableChunkUpload=true",
 })
@@ -145,7 +142,7 @@ class RtdMsDecrypterApplicationTest {
   }
 
   @Test
-  void shouldFilterMessageForWrongService(CapturedOutput output) {
+  void shouldFilterMessageForWrongService() {
 
     //Set wrong blob name
     myEvent.setSubject("/blobServices/default/containers/" + container
@@ -164,7 +161,6 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(0)).put(any());
       verify(blobApplicationAware, times(0)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
-      assertThat(output.getOut(), containsString("Wrong name format:"));
     });
   }
 
