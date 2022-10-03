@@ -173,7 +173,7 @@ class BlobSplitterTest {
     ArrayList<BlobApplicationAware> originalMissingBlob = (ArrayList<BlobApplicationAware>) chunks.collect(
         Collectors.toList());
     assertEquals(1, originalMissingBlob.size());
-    assertEquals(Status.DOWNLOADED, originalMissingBlob.get(0).getStatus());
+    assertEquals(Status.DELETED, originalMissingBlob.get(0).getStatus());
   }
 
 }

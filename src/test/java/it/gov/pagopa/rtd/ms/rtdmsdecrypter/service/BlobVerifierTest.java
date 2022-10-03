@@ -76,7 +76,7 @@ class BlobVerifierTest {
         "/blobServices/default/containers/" + containerRTD + "/blobs/" + blobNameRTD
             + ".decrypted");
     fakeBlobRTD.setTargetDir(tmpDirectory);
-    fakeBlobRTD.setStatus(Status.DECRYPTED);
+    fakeBlobRTD.setStatus(Status.SPLIT);
     fakeBlobRTD.setApp(Application.RTD);
 
     //Create the decrypted file for TAE
@@ -92,7 +92,7 @@ class BlobVerifierTest {
         "/blobServices/default/containers/" + containerTAE + "/blobs/" + blobNameTAE
             + ".decrypted");
     fakeBlobTAE.setTargetDir(tmpDirectory);
-    fakeBlobTAE.setStatus(Status.DECRYPTED);
+    fakeBlobTAE.setStatus(Status.SPLIT);
     fakeBlobTAE.setApp(Application.ADE);
 
     //Create the decrypted empty file for TAE
@@ -108,7 +108,7 @@ class BlobVerifierTest {
         "/blobServices/default/containers/" + containerTAE + "/blobs/" + blobNameTAEEmpty
             + ".decrypted");
     fakeBlobTAEEmpty.setTargetDir(tmpDirectory);
-    fakeBlobTAEEmpty.setStatus(Status.DECRYPTED);
+    fakeBlobTAEEmpty.setStatus(Status.SPLIT);
     fakeBlobTAEEmpty.setApp(Application.ADE);
 
     //Create the decrypted empty file for RTD
@@ -124,7 +124,7 @@ class BlobVerifierTest {
         "/blobServices/default/containers/" + containerRTD + "/blobs/" + blobNameRTDEmpty
             + ".decrypted");
     fakeBlobRTDEmpty.setTargetDir(tmpDirectory);
-    fakeBlobRTDEmpty.setStatus(Status.DECRYPTED);
+    fakeBlobRTDEmpty.setStatus(Status.SPLIT);
     fakeBlobRTDEmpty.setApp(Application.RTD);
   }
 
@@ -180,7 +180,7 @@ class BlobVerifierTest {
         malformedAggregateRecord.getBytes(), StandardOpenOption.APPEND);
 
     blobVerifierImpl.verify(fakeBlobTAEEmpty);
-    assertEquals(Status.DELETED, fakeBlobTAEEmpty.getStatus());
+    assertEquals(Status.SPLIT, fakeBlobTAEEmpty.getStatus());
   }
 
 
@@ -254,7 +254,7 @@ class BlobVerifierTest {
         malformedAggregateRecord.getBytes(), StandardOpenOption.APPEND);
 
     blobVerifierImpl.verify(fakeBlobRTDEmpty);
-    assertEquals(Status.DELETED, fakeBlobRTDEmpty.getStatus());
+    assertEquals(Status.SPLIT, fakeBlobRTDEmpty.getStatus());
   }
 
   @ParameterizedTest
@@ -267,7 +267,7 @@ class BlobVerifierTest {
     blobVerifierImpl.setSkipChecksum(false);
 
     blobVerifierImpl.verify(fakeBlobRTDEmpty);
-    assertEquals(Status.DELETED, fakeBlobRTDEmpty.getStatus());
+    assertEquals(Status.SPLIT, fakeBlobRTDEmpty.getStatus());
   }
 
   @Test
