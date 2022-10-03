@@ -86,8 +86,6 @@ public class BlobVerifierImpl implements BlobVerifier {
 
     if (isValid) {
       blob.setStatus(VERIFIED);
-    } else {
-      blob.localCleanup();
     }
 
     logVerificationInformation(blob.getBlob(), numberOfDeserializeRecords,
