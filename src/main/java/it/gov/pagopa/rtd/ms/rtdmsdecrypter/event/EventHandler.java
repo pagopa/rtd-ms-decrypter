@@ -44,7 +44,7 @@ public class EventHandler {
     log.info("Chunks upload enabled: {}", isChunkUploadEnabled);
 
     return message -> {
-      List<BlobApplicationAware> verifiedChunks = message.getPayload().stream()
+      List<BlobApplicationAware> chunks = message.getPayload().stream()
           .filter(e -> "Microsoft.Storage.BlobCreated".equals(e.getEventType()))
           .map(EventGridEvent::getSubject)
           .map(BlobApplicationAware::new)
@@ -55,28 +55,31 @@ public class EventHandler {
           .filter(b -> BlobApplicationAware.Status.DECRYPTED.equals(b.getStatus()))
           .flatMap(blobSplitterImpl::split)
           .filter(b -> BlobApplicationAware.Status.SPLIT.equals(b.getStatus()))
+          .collect(Collectors.toList());
+
+      List<BlobApplicationAware> verifiedChunks = chunks.stream()
           .map(blobVerifierImpl::verify)
           .filter(b -> BlobApplicationAware.Status.VERIFIED.equals(b.getStatus()))
           .collect(Collectors.toList());
 
-      int numberOfVerifiedChunks = verifiedChunks.size();
+      int verifiedChunksNum = chunks.size();
 
       List<BlobApplicationAware> uploadedChunks = verifiedChunks.stream()
-          .filter(b -> b.chunkNumberCheck(numberOfVerifiedChunks))
+          .filter(b -> b.chunkNumberCheck(verifiedChunksNum))
           .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
           .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
-          .map(BlobApplicationAware::localCleanup)
           .collect(Collectors.toList());
 
-      if (uploadedChunks.size() != numberOfVerifiedChunks) {
+      if (uploadedChunks.size() != verifiedChunksNum) {
         log.error("Not all chunks are verified, no chunks will be uploaded");
       }
 
-      List<BlobApplicationAware> handledChunks = verifiedChunks.stream()
+      List<BlobApplicationAware> handledChunks = chunks.stream()
+          .map(BlobApplicationAware::localCleanup)
           .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus()))
           .collect(Collectors.toList());
 
-      if (!handledChunks.isEmpty() && handledChunks.size() == numberOfVerifiedChunks) {
+      if (!handledChunks.isEmpty() && handledChunks.size() == verifiedChunksNum) {
         log.info("Correctly handled blob: {}", handledChunks.get(0).getOriginalBlobName());
       }
     };
