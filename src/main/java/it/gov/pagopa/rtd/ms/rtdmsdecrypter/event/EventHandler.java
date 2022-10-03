@@ -61,11 +61,18 @@ public class EventHandler {
 
       int numberOfVerifiedChunks = verifiedChunks.size();
 
-      List<BlobApplicationAware> handledChunks = verifiedChunks.stream()
+      List<BlobApplicationAware> uploadedChunks = verifiedChunks.stream()
           .filter(b -> b.chunkNumberCheck(numberOfVerifiedChunks))
           .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
           .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
           .map(BlobApplicationAware::localCleanup)
+          .collect(Collectors.toList());
+
+      if (uploadedChunks.size() != numberOfVerifiedChunks) {
+        log.error("Not all chunks are verified, no chunks will be uploaded");
+      }
+
+      List<BlobApplicationAware> handledChunks = verifiedChunks.stream()
           .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus()))
           .collect(Collectors.toList());
 
