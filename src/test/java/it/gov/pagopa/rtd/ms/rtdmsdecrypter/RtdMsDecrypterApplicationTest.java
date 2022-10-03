@@ -135,7 +135,6 @@ class RtdMsDecrypterApplicationTest {
       verify(blobSplitterImpl, times(1)).split(any());
       verify(blobVerifierImpl, times(3)).verify(any());
       verify(blobRestConnectorImpl, times(3)).put(any());
-      verify(blobApplicationAware, times(3)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
 
     });
