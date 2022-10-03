@@ -90,7 +90,7 @@ public class BlobVerifierImpl implements BlobVerifier {
       blob.localCleanup();
     }
 
-    logVerificationInformation(blob.getOriginalBlobName(), numberOfDeserializeRecords,
+    logVerificationInformation(blob.getBlob(), numberOfDeserializeRecords,
         violations.size());
     return blob;
   }
