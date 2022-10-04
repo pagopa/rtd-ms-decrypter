@@ -2,27 +2,16 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status.SPLIT;
 
-import com.opencsv.bean.CsvToBeanBuilder;
-import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.AdeTransactionsAggregate;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.Writer;
 import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.stream.Stream;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -44,9 +33,7 @@ public class BlobSplitterImpl implements BlobSplitter {
 
   private String decryptedSuffix = ".decrypted";
 
-  private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-
-  private static final Validator validator = factory.getValidator();
+  private boolean checksumSkipped;
 
   /**
    * Method that split the content of a blob in chunks of n lines.
@@ -65,13 +52,10 @@ public class BlobSplitterImpl implements BlobSplitter {
     boolean failSplit = false;
 
     //Flag for skipping first checksum line
-    boolean checksumSkipped = false;
+    checksumSkipped = false;
 
     //Incremental integer for chunk numbering
     int chunkNum = 0;
-
-    // Counter for current line number (from 0 to n)
-    int i;
 
     String chunkName;
 
@@ -89,23 +73,7 @@ public class BlobSplitterImpl implements BlobSplitter {
                 Path.of(blob.getTargetDir(), chunkName).toString(),
                 true).getChannel(),
             StandardCharsets.UTF_8)) {
-          i = 0;
-          while (i < lineThreshold) {
-            if (it.hasNext()) {
-              String line = it.nextLine();
-              //Skip the checksum line (the first one)
-              if (!checksumSkipped) {
-                log.info("Checksum: {} {}", blob.getBlob(), line);
-                checksumSkipped = true;
-                i--;
-              } else {
-                writer.append(line).append("\n");
-              }
-            } else {
-              break;
-            }
-            i++;
-          }
+          writeChunks(it, writer, blob);
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
               blob.getBlobUri());
           tmpBlob.setOriginalBlobName(blob.getBlob());
@@ -123,19 +91,52 @@ public class BlobSplitterImpl implements BlobSplitter {
       failSplit = true;
     }
 
-    if (!failSplit) {
-      log.info("Obtained {} chunk/s from blob:{}", chunkNum, blob.getBlob());
-      return blobSplit.stream();
-    } else {
-      // If split fails, return the original blob (without the SPLIT status)
-      log.info("Failed splitting blob:{}", blob.getBlob());
-      return Stream.of(blob);
-    }
+    return finalizeSplit(blob, failSplit, chunkNum, blobSplit);
   }
 
   private String adeNamingConvention(BlobApplicationAware blob) {
     // Note that no chunk number is added to the blob name
     return "AGGADE." + blob.getSenderCode() + "." + blob.getFileCreationDate() + "."
         + blob.getFileCreationTime() + "." + blob.getFlowNumber();
+  }
+
+  private void writeChunks(LineIterator it, Writer writer,
+      BlobApplicationAware blob)
+      throws IOException {
+    // Counter for current line number (from 0 to lineThreshold)
+    int i = 0;
+    while (i < lineThreshold) {
+      if (it.hasNext()) {
+        String line = it.nextLine();
+        //Skip the checksum line (the first one)
+        if (!checksumSkipped) {
+          log.info("Checksum: {} {}", blob.getBlob(), line);
+          checksumSkipped = true;
+          i--;
+        } else {
+          writer.append(line).append("\n");
+        }
+      } else {
+        break;
+      }
+      i++;
+    }
+  }
+
+  private Stream<BlobApplicationAware> finalizeSplit(BlobApplicationAware blob, boolean failSplit,
+      int chunkNum, ArrayList<BlobApplicationAware> blobSplit) {
+
+    if (!failSplit) {
+      log.info("Obtained {} chunk/s from blob:{}", chunkNum, blob.getBlob());
+      for (BlobApplicationAware b : blobSplit) {
+        b.setOrigianalFileChunksNumber(chunkNum);
+      }
+      return blobSplit.stream();
+    } else {
+      // If split fails, return the original blob (without the SPLIT status)
+      log.info("Failed splitting blob:{}", blob.getBlob());
+      blob.localCleanup();
+      return Stream.of(blob);
+    }
   }
 }

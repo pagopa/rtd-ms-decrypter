@@ -86,6 +86,11 @@
       <artifactId>spring-cloud-function-context</artifactId>
       <version>3.2.7</version>
     </dependency>
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <version>1.32</version>
+    </dependency>
     <!--    END VERSION OVERRIDE-->
   </dependencies>
   <dependencyManagement>

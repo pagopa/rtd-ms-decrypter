@@ -58,6 +58,7 @@ public class BlobApplicationAware {
 
   private String flowNumber;
 
+  private Integer origianalFileChunksNumber;
 
   private String targetContainerAde = "ade-transactions-decrypted";
   private String targetContainerRtd = "rtd-transactions-decrypted";
@@ -213,6 +214,7 @@ public class BlobApplicationAware {
     return this;
 
   }
+
 }
   
 

@@ -28,8 +28,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.stream.messaging.DirectWithAttributesChannel;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.support.MessageBuilder;
@@ -40,7 +38,6 @@ import org.springframework.test.context.TestPropertySource;
 @ActiveProfiles("test")
 @EmbeddedKafka(topics = {
     "rtd-platform-events"}, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
-@ExtendWith(OutputCaptureExtension.class)
 @TestPropertySource(properties = {
     "decrypt.enableChunkUpload=true",
 })
@@ -111,6 +108,7 @@ class RtdMsDecrypterApplicationTest {
     blobSplit1.setStatus(BlobApplicationAware.Status.SPLIT);
     blobSplit2.setStatus(BlobApplicationAware.Status.SPLIT);
     blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
+    blobVerified.setOrigianalFileChunksNumber(3);
     blobUploaded.setStatus(BlobApplicationAware.Status.UPLOADED);
     blobDeleted.setStatus(BlobApplicationAware.Status.DELETED);
 
@@ -137,14 +135,13 @@ class RtdMsDecrypterApplicationTest {
       verify(blobSplitterImpl, times(1)).split(any());
       verify(blobVerifierImpl, times(3)).verify(any());
       verify(blobRestConnectorImpl, times(3)).put(any());
-      verify(blobApplicationAware, times(3)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
 
     });
   }
 
   @Test
-  void shouldFilterMessageForWrongService(CapturedOutput output) {
+  void shouldFilterMessageForWrongService() {
 
     //Set wrong blob name
     myEvent.setSubject("/blobServices/default/containers/" + container
@@ -163,7 +160,6 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(0)).put(any());
       verify(blobApplicationAware, times(0)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
-      assertThat(output.getOut(), containsString("Wrong name format:"));
     });
   }
 
@@ -264,6 +260,52 @@ class RtdMsDecrypterApplicationTest {
   }
 
   @Test
+  void shouldFilterMessageForFailedVerify() {
+
+    //Prepare fake blobs
+    BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
+    BlobApplicationAware blobDecrypted = new BlobApplicationAware(blobUri);
+    BlobApplicationAware blobSplit0 = new BlobApplicationAware(blobUri + ".0");
+    BlobApplicationAware blobSplit1 = new BlobApplicationAware(blobUri + ".1");
+    BlobApplicationAware blobSplit2 = new BlobApplicationAware(blobUri + ".2");
+    BlobApplicationAware blobVerified = new BlobApplicationAware(blobUri);
+
+    //Mock every step of the blob handling
+    blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    blobDecrypted.setStatus(BlobApplicationAware.Status.DECRYPTED);
+    blobSplit0.setStatus(BlobApplicationAware.Status.SPLIT);
+    blobSplit1.setStatus(BlobApplicationAware.Status.SPLIT);
+    blobSplit2.setStatus(BlobApplicationAware.Status.SPLIT);
+    blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
+    blobVerified.setOrigianalFileChunksNumber(3);
+
+    //Mock the behaviour of the beans
+    doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
+    doReturn(blobDecrypted).when(decrypterImpl).decrypt(any(BlobApplicationAware.class));
+    doReturn(Stream.of(blobSplit0, blobSplit1, blobSplit2)).when(blobSplitterImpl)
+        .split(any(BlobApplicationAware.class));
+    doReturn(blobVerified).when(blobVerifierImpl).verify(blobSplit0);
+    doReturn(blobVerified).when(blobVerifierImpl).verify(blobSplit2);
+    //Fail verify second blob
+    doReturn(blobSplit1).when(blobVerifierImpl).verify(any(BlobApplicationAware.class));
+
+    await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
+
+      //Send the message to the event grid
+      channel.send(MessageBuilder.withPayload(myList).build());
+
+      //Verify if every handling step is called the desired number of time
+      verify(blobRestConnectorImpl, times(1)).get(any());
+      verify(decrypterImpl, times(1)).decrypt(any());
+      verify(blobSplitterImpl, times(1)).split(any());
+      verify(blobVerifierImpl, times(3)).verify(any());
+      verify(blobRestConnectorImpl, times(0)).put(any());
+      verify(blobApplicationAware, times(0)).localCleanup();
+      verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
+    });
+  }
+
+  @Test
   void shouldFilterMessageForFailedPut() {
 
     //Prepare fake blobs
@@ -282,6 +324,7 @@ class RtdMsDecrypterApplicationTest {
     blobSplit1.setStatus(BlobApplicationAware.Status.SPLIT);
     blobSplit2.setStatus(BlobApplicationAware.Status.SPLIT);
     blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
+    blobVerified.setOrigianalFileChunksNumber(3);
     //Keep the SPLIT status, this will trigger the filter
     blobUploaded.setStatus(BlobApplicationAware.Status.SPLIT);
 

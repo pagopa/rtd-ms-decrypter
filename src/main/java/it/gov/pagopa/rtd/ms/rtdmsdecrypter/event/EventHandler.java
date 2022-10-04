@@ -43,23 +43,50 @@ public class EventHandler {
 
     log.info("Chunks upload enabled: {}", isChunkUploadEnabled);
 
-    return message -> message.getPayload().stream()
-        .filter(e -> "Microsoft.Storage.BlobCreated".equals(e.getEventType()))
-        .map(EventGridEvent::getSubject)
-        .map(BlobApplicationAware::new)
-        .filter(b -> !BlobApplicationAware.Application.NOAPP.equals(b.getApp()))
-        .map(blobRestConnectorImpl::get)
-        .filter(b -> BlobApplicationAware.Status.DOWNLOADED.equals(b.getStatus()))
-        .map(decrypterImpl::decrypt)
-        .filter(b -> BlobApplicationAware.Status.DECRYPTED.equals(b.getStatus()))
-        .flatMap(blobSplitterImpl::split)
-        .filter(b -> BlobApplicationAware.Status.SPLIT.equals(b.getStatus()))
-        .map(blobVerifierImpl::verify)
-        .filter(b -> BlobApplicationAware.Status.VERIFIED.equals(b.getStatus()))
-        .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
-        .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
-        .map(BlobApplicationAware::localCleanup)
-        .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus()))
-        .collect(Collectors.toList());
+    return message -> {
+      List<BlobApplicationAware> chunks = message.getPayload().stream()
+          .filter(e -> "Microsoft.Storage.BlobCreated".equals(e.getEventType()))
+          .map(EventGridEvent::getSubject)
+          .map(BlobApplicationAware::new)
+          .filter(b -> !BlobApplicationAware.Application.NOAPP.equals(b.getApp()))
+          .map(blobRestConnectorImpl::get)
+          .filter(b -> BlobApplicationAware.Status.DOWNLOADED.equals(b.getStatus()))
+          .map(decrypterImpl::decrypt)
+          .filter(b -> BlobApplicationAware.Status.DECRYPTED.equals(b.getStatus()))
+          .flatMap(blobSplitterImpl::split)
+          .filter(b -> BlobApplicationAware.Status.SPLIT.equals(b.getStatus()))
+          .collect(Collectors.toList());
+
+      List<BlobApplicationAware> verifiedChunks = chunks.stream()
+          .map(blobVerifierImpl::verify)
+          .filter(b -> BlobApplicationAware.Status.VERIFIED.equals(b.getStatus()))
+          .collect(Collectors.toList());
+
+      if (!chunks.isEmpty()) {
+
+        String originalBlobName = chunks.stream().findFirst()
+            .map(BlobApplicationAware::getOriginalBlobName).orElse("ERROR_NO_ORIGINAL_BLOB_NAME");
+
+        if (verifiedChunks.size() == chunks.size()) {
+          long uploadedChunks = verifiedChunks.stream()
+              .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
+              .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
+              .count();
+          log.info("Uploaded chunks: {}", uploadedChunks);
+        } else {
+          log.error("Not all chunks are verified, no chunks will be uploaded");
+        }
+
+        long deletedChunks = chunks.stream()
+            .map(BlobApplicationAware::localCleanup)
+            .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus())).count();
+
+        log.info("Deleted {}/{} chunks of blob: {}", deletedChunks, chunks.size(),
+            originalBlobName);
+
+        log.info("Handled blob: {}", originalBlobName);
+      }
+
+    };
   }
 }
