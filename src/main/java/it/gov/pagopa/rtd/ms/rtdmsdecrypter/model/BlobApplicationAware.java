@@ -215,9 +215,6 @@ public class BlobApplicationAware {
 
   }
 
-  public boolean chunkNumberCheck(Integer chunkNumber) {
-    return (chunkNumber.equals(origianalFileChunksNumber));
-  }
 }
   
 
