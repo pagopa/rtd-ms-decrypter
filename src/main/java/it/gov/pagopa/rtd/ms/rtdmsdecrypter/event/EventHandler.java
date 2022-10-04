@@ -64,22 +64,27 @@ public class EventHandler {
 
       if (!chunks.isEmpty()) {
 
+        String originalBlobName = chunks.stream().findFirst()
+            .map(BlobApplicationAware::getOriginalBlobName).orElse("ERROR_NO_ORIGINAL_BLOB_NAME");
+
         if (verifiedChunks.size() == chunks.size()) {
-          List<BlobApplicationAware> uploadedChunks = verifiedChunks.stream()
+          long uploadedChunks = verifiedChunks.stream()
               .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
               .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
-              .collect(Collectors.toList());
-          log.info("Uploaded chunks: {}", uploadedChunks.size());
+              .count();
+          log.info("Uploaded chunks: {}", uploadedChunks);
         } else {
           log.error("Not all chunks are verified, no chunks will be uploaded");
         }
 
-        List<BlobApplicationAware> deletedChunks = chunks.stream()
+        long deletedChunks = chunks.stream()
             .map(BlobApplicationAware::localCleanup)
-            .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus()))
-            .collect(Collectors.toList());
+            .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus())).count();
 
-        log.info("Handled blob: {}", deletedChunks.get(0).getOriginalBlobName());
+        log.info("Deleted {}/{} chunks of blob: {}", deletedChunks, chunks.size(),
+            originalBlobName);
+
+        log.info("Handled blob: {}", originalBlobName);
       }
 
     };
