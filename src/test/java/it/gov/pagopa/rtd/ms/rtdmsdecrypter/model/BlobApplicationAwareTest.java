@@ -78,7 +78,7 @@ class BlobApplicationAwareTest {
 
   @Test
   void shouldMatchRegexADE() {
-    String containerAdE = "ade-transactions-xxxxxxxxxx8u74bh781e2db57k098c5ad034341i8u7y";
+    String containerAdE = "ade-transactions-55555c507a68f3093e885765257ed3f176c757aaf62b";
     String blobAdE = "ADE.45678.TRNLOG.20220228.103107.001.csv.pgp";
     String blobUri = "/blobServices/default/containers/" + containerAdE + "/blobs/" + blobAdE;
     BlobApplicationAware myBlob = new BlobApplicationAware(blobUri);

@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AdeTransactionsAggregate {
+public class AdeTransactionsAggregate implements DecryptedRecord {
 
   @NotNull
   @NotBlank

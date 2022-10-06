@@ -12,6 +12,7 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobSplitterImpl;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +27,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -39,7 +38,6 @@ import org.springframework.test.context.TestPropertySource;
 @EmbeddedKafka(topics = {
     "rtd-platform-events"}, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
 @ActiveProfiles("test")
-@ExtendWith(OutputCaptureExtension.class)
 @TestPropertySource(properties = {
     "decrypt.enableChunkUpload=true",
 })
@@ -58,6 +56,9 @@ class EventHandlerTest {
 
   @MockBean
   private BlobSplitterImpl blobSplitter;
+
+  @MockBean
+  private BlobVerifierImpl blobVerifierImpl;
 
   private final String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
   private final String myID = "my_id";
@@ -83,7 +84,7 @@ class EventHandlerTest {
   @ParameterizedTest
   @ValueSource(strings = {"CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp",
       "CSTAR.a9911.TRNLOG.20220228.203107.001.csv.pgp"})
-  void blobUriShouldPassRegex(String blobName, CapturedOutput output) {
+  void blobUriShouldPassRegex(String blobName) {
 
     String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;
     myEvent.setSubject(blobUri);
@@ -92,9 +93,12 @@ class EventHandlerTest {
     BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobDecrypted = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobSplit = new BlobApplicationAware(blobUri);
+    BlobApplicationAware blobVerified = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobUploaded = new BlobApplicationAware(blobUri);
     blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobDecrypted.setStatus(BlobApplicationAware.Status.DECRYPTED);
+    blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
+    blobVerified.setOrigianalFileChunksNumber(3);
     blobSplit.setStatus(BlobApplicationAware.Status.SPLIT);
     blobUploaded.setStatus(BlobApplicationAware.Status.UPLOADED);
     doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
@@ -102,15 +106,15 @@ class EventHandlerTest {
     //Mock this method call by returning a stream of 3 copies of the same mocked blob
     doReturn(Stream.of(blobSplit, blobSplit, blobSplit)).when(blobSplitter)
         .split(any(BlobApplicationAware.class));
+    doReturn(blobVerified).when(blobVerifierImpl).verify(any(BlobApplicationAware.class));
     doReturn(blobUploaded).when(blobRestConnectorImpl).put(any(BlobApplicationAware.class));
 
     myConsumer.accept(msg);
     verify(blobRestConnectorImpl, times(1)).get(any());
     verify(decrypterImpl, times(1)).decrypt(any());
     verify(blobSplitter, times(1)).split(any());
+    verify(blobVerifierImpl, times(3)).verify(any());
     verify(blobRestConnectorImpl, times(3)).put(any());
-    assertThat(output.getOut(), not(containsString("Wrong name format:")));
-    assertThat(output.getOut(), not(containsString("Conflicting service in URI:")));
   }
 
   //The test parameters reproduce the following scenarios: blobUriShouldFailWrongService, blobUriShouldFailNoService,
@@ -126,7 +130,7 @@ class EventHandlerTest {
       "CSTAR.99910.TRNLOG..103107.001.csv.pgp", "CSTAR.99910.TRNLOG.20220228.243107.001.csv.pgp",
       "CSTAR.99910.TRNLOG.20220228..001.csv.pgp", "CSTAR.99910.TRNLOG.20220228.103107.1.csv.pgp",
       "CSTAR.99910.TRNLOG.20220228.103107..csv.pgp"})
-  void blobUriShouldFailRegex(String blobName, CapturedOutput output) {
+  void blobUriShouldFailRegex(String blobName) {
 
     String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;
     myEvent.setSubject(blobUri);
@@ -134,8 +138,10 @@ class EventHandlerTest {
     myConsumer.accept(msg);
 
     verify(blobRestConnectorImpl, times(0)).get(any());
-    assertThat(output.getOut(), not(containsString("Conflicting service in URI:")));
-    assertThat(output.getOut(), containsString("Wrong name format:"));
+    verify(decrypterImpl, times(0)).decrypt(any());
+    verify(blobSplitter, times(0)).split(any());
+    verify(blobVerifierImpl, times(0)).verify(any());
+    verify(blobRestConnectorImpl, times(0)).put(any());
   }
 
 
@@ -143,8 +149,7 @@ class EventHandlerTest {
   @CsvSource({
       "ade-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, CSTAR.99910.TRNLOG.20220228.203107.001.csv.pgp",
       "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, ADE.99910.TRNLOG.20220228.203107.001.csv.pgp"})
-  void blobUriShouldFailConflictingService(String container, String blobName,
-      CapturedOutput output) {
+  void blobUriShouldFailConflictingService(String container, String blobName) {
 
     String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;
     myEvent.setSubject(blobUri);
@@ -152,20 +157,25 @@ class EventHandlerTest {
     myConsumer.accept(msg);
 
     verify(blobRestConnectorImpl, times(0)).get(any());
-    assertThat(output.getOut(), not(containsString("Wrong name format:")));
-    assertThat(output.getOut(), containsString("Conflicting service in URI:"));
+    verify(decrypterImpl, times(0)).decrypt(any());
+    verify(blobSplitter, times(0)).split(any());
+    verify(blobVerifierImpl, times(0)).verify(any());
+    verify(blobRestConnectorImpl, times(0)).put(any());
   }
 
 
   @Test
-  void blobUriShouldIgnoreBecauseNotInteresting(CapturedOutput output) {
+  void blobUriShouldIgnoreBecauseNotInteresting() {
 
     myEvent.setSubject("/blobServices/default/containers/cstar-exports/blobs/hashedPans_1.zip");
 
     myConsumer.accept(msg);
 
     verify(blobRestConnectorImpl, times(0)).get(any());
-    assertThat(output.getOut(), containsString("Event not of interest:"));
+    verify(decrypterImpl, times(0)).decrypt(any());
+    verify(blobSplitter, times(0)).split(any());
+    verify(blobVerifierImpl, times(0)).verify(any());
+    verify(blobRestConnectorImpl, times(0)).put(any());
   }
 
 }
