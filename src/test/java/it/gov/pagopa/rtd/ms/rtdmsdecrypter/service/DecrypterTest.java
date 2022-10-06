@@ -76,7 +76,7 @@ class DecrypterTest {
   String privateKeyPassword;
 
   String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
-  String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
+  String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.01.csv.pgp";
   BlobApplicationAware fakeBlob;
 
   //Partially mocked decrypter
@@ -85,7 +85,7 @@ class DecrypterTest {
   @BeforeEach
   void setUp() throws IOException, PGPException, NoSuchProviderException {
 
-    String sourceFileName = "CSTAR.99999.TRNLOG.20220419.121045.001.csv";
+    String sourceFileName = "CSTAR.99999.TRNLOG.20220419.121045.001.01.csv";
 
     // Read the publicKey for encrypting file
     FileInputStream publicKey = new FileInputStream(resources + "/certs/public.key");
@@ -146,7 +146,7 @@ class DecrypterTest {
 
     assertTrue(IOUtils.contentEquals(
         new BufferedReader(new FileReader(Path.of(resources,
-            "/CSTAR.99999.TRNLOG.20220419.121045.001.csv").toFile())),
+            "/CSTAR.99999.TRNLOG.20220419.121045.001.01.csv").toFile())),
         new BufferedReader(
             new FileReader(Path.of(tmpDirectory, "/file.pgp.csv.decrypted").toFile()))));
 
@@ -218,7 +218,7 @@ class DecrypterTest {
 
     assertTrue(IOUtils.contentEquals(
         new BufferedReader(new FileReader(Path.of(resources,
-            "/CSTAR.99999.TRNLOG.20220419.121045.001.csv").toFile())),
+            "/CSTAR.99999.TRNLOG.20220419.121045.001.01.csv").toFile())),
         new BufferedReader(
             new FileReader(Path.of(tmpDirectory, fakeBlob.getBlob() + ".decrypted").toFile()))
     ));

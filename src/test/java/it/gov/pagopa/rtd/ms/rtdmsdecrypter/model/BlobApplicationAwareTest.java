@@ -36,7 +36,7 @@ class BlobApplicationAwareTest {
   String tmpDirectory;
 
   String containerRtd = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
-  String blobNameRtd = "CSTAR.99910.TRNLOG.20220316.164707.001.csv.pgp";
+  String blobNameRtd = "CSTAR.99910.TRNLOG.20220316.164707.001.01.csv.pgp";
 
   BlobApplicationAware fakeBlob;
 

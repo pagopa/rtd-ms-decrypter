@@ -42,13 +42,13 @@ class BlobVerifierTest {
 
   String containerTAE = "ade-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
 
-  String blobNameRTD = "CSTAR.99999.TRNLOG.20220419.121045.001.csv";
+  String blobNameRTD = "CSTAR.99999.TRNLOG.20220419.121045.001.01.csv";
 
-  String blobNameTAE = "ADE.99999.TRNLOG.20220721.095718.001.csv";
+  String blobNameTAE = "ADE.99999.TRNLOG.20220721.095718.001.01.csv";
 
-  String blobNameTAEEmpty = "ADE.00000.TRNLOG.20220721.095718.001.csv";
+  String blobNameTAEEmpty = "ADE.00000.TRNLOG.20220721.095718.001.01.csv";
 
-  String blobNameRTDEmpty = "CSTAR.00000.TRNLOG.20220419.121045.001.csv";
+  String blobNameRTDEmpty = "CSTAR.00000.TRNLOG.20220419.121045.001.01.csv";
 
   BlobApplicationAware fakeBlobRTD;
 
