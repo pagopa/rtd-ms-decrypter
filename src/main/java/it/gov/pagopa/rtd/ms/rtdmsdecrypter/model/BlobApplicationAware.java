@@ -133,13 +133,17 @@ public class BlobApplicationAware {
    * @return true if the name matches the format, false otherwise
    */
   private boolean checkNameFormat(String[] blobNameTokens) {
+    if (blobNameTokens.length < 8) {
+      return false;
+    }
+
     // Check for application name (add new services to the regex)
-    if (blobNameTokens[0] == null || !blobNameTokens[0].matches("(ADE|CSTAR)")) {
+    if (!blobNameTokens[0].matches("(ADE|CSTAR)")) {
       return false;
     }
 
     // Check for sender ABI code
-    if (blobNameTokens[1] == null || !blobNameTokens[1].matches("[a-zA-Z0-9]{5}")) {
+    if (!blobNameTokens[1].matches("[a-zA-Z0-9]{5}")) {
       return false;
     }
 
@@ -147,12 +151,7 @@ public class BlobApplicationAware {
 
     // Check for filetype (fixed "TRNLOG" value)
     // Should ignore case?
-    if (blobNameTokens[2] == null || !blobNameTokens[2].equalsIgnoreCase("TRNLOG")) {
-      return false;
-    }
-
-    // Check for creation timestamp correctness
-    if (blobNameTokens[3] == null || blobNameTokens[4] == null) {
+    if (!blobNameTokens[2].equalsIgnoreCase("TRNLOG")) {
       return false;
     }
 
@@ -170,13 +169,10 @@ public class BlobApplicationAware {
     fileCreationDate = blobNameTokens[3];
     fileCreationTime = blobNameTokens[4];
 
-    // Check for creation timestamp correctness
-    if (!checkBatchServiceChunkNumber(blobNameTokens[6])) {
-      return false;
-    }
+    extractBatchServiceChunkNumber(blobNameTokens[6]);
 
     // Check for progressive value
-    if ((blobNameTokens[5] != null) && blobNameTokens[5].matches("\\d{3}")) {
+    if (blobNameTokens[5].matches("\\d{3}")) {
       flowNumber = blobNameTokens[5];
       return true;
     } else {
@@ -223,16 +219,11 @@ public class BlobApplicationAware {
 
   }
 
-  boolean checkBatchServiceChunkNumber(String token) {
-    if (!Objects.isNull(token)) {
-      if (token.matches("(\\d{2})")) {
-        batchServiceChunkNumber = token;
-      } else {
-        batchServiceChunkNumber = "";
-      }
-      return true;
+  void extractBatchServiceChunkNumber(String token) {
+    if (token.matches("(\\d{2})")) {
+      batchServiceChunkNumber = token;
     } else {
-      return false;
+      batchServiceChunkNumber = "";
     }
   }
 }
