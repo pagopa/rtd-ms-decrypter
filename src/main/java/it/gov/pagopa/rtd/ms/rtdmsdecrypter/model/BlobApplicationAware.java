@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
@@ -57,6 +58,8 @@ public class BlobApplicationAware {
   private String fileCreationTime;
 
   private String flowNumber;
+
+  private String batchServiceChunkNumber;
 
   private Integer origianalFileChunksNumber;
 
@@ -167,6 +170,11 @@ public class BlobApplicationAware {
     fileCreationDate = blobNameTokens[3];
     fileCreationTime = blobNameTokens[4];
 
+    // Check for creation timestamp correctness
+    if (!checkBatchServiceChunkNumber(blobNameTokens[6])) {
+      return false;
+    }
+
     // Check for progressive value
     if ((blobNameTokens[5] != null) && blobNameTokens[5].matches("\\d{3}")) {
       flowNumber = blobNameTokens[5];
@@ -215,6 +223,18 @@ public class BlobApplicationAware {
 
   }
 
+  boolean checkBatchServiceChunkNumber(String token) {
+    if (!Objects.isNull(token)) {
+      if (token.matches("(\\d{2})")) {
+        batchServiceChunkNumber = token;
+      } else {
+        batchServiceChunkNumber = "";
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
   
 
