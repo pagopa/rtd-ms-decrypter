@@ -96,8 +96,15 @@ public class BlobSplitterImpl implements BlobSplitter {
 
   private String adeNamingConvention(BlobApplicationAware blob) {
     // Note that no chunk number is added to the blob name
-    return "AGGADE." + blob.getSenderCode() + "." + blob.getFileCreationDate() + "."
-        + blob.getFileCreationTime() + "." + blob.getFlowNumber();
+    StringBuilder name = new StringBuilder(
+        "AGGADE." + blob.getSenderCode() + "." + blob.getFileCreationDate() + "."
+            + blob.getFileCreationTime() + "." + blob.getFlowNumber());
+
+    if (!blob.getBatchServiceChunkNumber().equals("")) {
+      name.append(".").append(blob.getBatchServiceChunkNumber());
+    }
+
+    return name.toString();
   }
 
   private void writeChunks(LineIterator it, Writer writer,
