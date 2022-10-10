@@ -157,7 +157,7 @@ public class DecrypterImpl implements Decrypter {
 
         log.info("Copying decrypted stream: {}", blobName);
         if (LargeFileUtils.copy(unencrypted, output) <= 0) {
-          throw new IllegalArgumentException("Can't extract data from encrypted file");
+          throw new IllegalArgumentException("No data found in decrypted file");
         }
 
       } else if (message instanceof PGPOnePassSignatureList) {
