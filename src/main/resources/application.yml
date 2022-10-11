@@ -21,6 +21,7 @@ decrypt:
   splitter:
     threshold: ${SPLITTER_LINE_THRESHOLD:250000}
   enableChunkUpload: ${ENABLE_CHUNK_UPLOAD:false}
+  skipChecksum: ${SKIP_CHECKSUM:false}
 ---
 spring:
   config:
