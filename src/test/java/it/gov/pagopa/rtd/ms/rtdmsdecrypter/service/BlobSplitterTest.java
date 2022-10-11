@@ -1,6 +1,5 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
@@ -203,8 +202,8 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
-          + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber + "."
-          + i, b.getBlob());
+          + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber
+          + String.format("%03d", i), b.getBlob());
       i++;
     }
     assertEquals(4, i);
@@ -220,8 +219,8 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
-              + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber + "."
-              + i,
+              + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber
+              + String.format("%03d", i),
           b.getBlob());
       System.err.println(b.getBlob());
       i++;
@@ -242,8 +241,8 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
-          + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber + "."
-          + i, b.getBlob());
+          + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber
+          + String.format("%03d", i), b.getBlob());
       i++;
     }
     assertEquals(2, i);
