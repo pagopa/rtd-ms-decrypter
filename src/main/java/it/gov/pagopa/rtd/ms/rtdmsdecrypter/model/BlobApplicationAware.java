@@ -223,7 +223,7 @@ public class BlobApplicationAware {
     if (token.matches("(\\d{2})")) {
       batchServiceChunkNumber = token;
     } else {
-      batchServiceChunkNumber = "";
+      batchServiceChunkNumber = "00";
     }
   }
 }
