@@ -33,6 +33,7 @@ public class BlobSplitterImpl implements BlobSplitter {
 
   private String decryptedSuffix = ".decrypted";
 
+  @Value("${decrypt.skipChecksum}")
   private boolean checksumSkipped;
 
   /**
@@ -65,7 +66,8 @@ public class BlobSplitterImpl implements BlobSplitter {
     ) {
       while (it.hasNext()) {
         if (blob.getApp() == Application.ADE) {
-          chunkName = adeNamingConvention(blob) + "." + chunkNum;
+          // Left pad with 0s the chunk number to 3 char
+          chunkName = adeNamingConvention(blob) + String.format("%03d", chunkNum);
         } else {
           chunkName = blob.getBlob() + "." + chunkNum + decryptedSuffix;
         }
@@ -102,6 +104,8 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     if (!blob.getBatchServiceChunkNumber().equals("")) {
       name.append(".").append(blob.getBatchServiceChunkNumber());
+    } else {
+      name.append(".00");
     }
 
     return name.toString();
