@@ -37,6 +37,8 @@ class BlobSplitterTest {
   @Value("${decrypt.resources.base.path}/tmp")
   String tmpDirectory;
 
+  String missingBatchServiceChunkNumberPlaceholder = "00";
+
   String batchServiceChunkNumber = "01";
 
   String containerRTD = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
@@ -50,7 +52,7 @@ class BlobSplitterTest {
   String blobNameTAE = "ADE.99999.TRNLOG.20220721.095718.001." + batchServiceChunkNumber + ".csv";
 
   String blobNameTAEOldNaming =
-      "ADE.99999.TRNLOG.20220721.095718.001." + batchServiceChunkNumber + ".csv";
+      "ADE.99999.TRNLOG.20220721.095718.001.csv";
 
   String blobNameTAEEmpty =
       "ADE.00000.TRNLOG.20220721.095718.001." + batchServiceChunkNumber + ".csv";
@@ -219,10 +221,10 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
-              + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber
+              + b.getFileCreationTime() + "." + b.getFlowNumber() + "."
+              + missingBatchServiceChunkNumberPlaceholder
               + String.format("%03d", i),
           b.getBlob());
-      System.err.println(b.getBlob());
       i++;
     }
     assertEquals(4, i);
