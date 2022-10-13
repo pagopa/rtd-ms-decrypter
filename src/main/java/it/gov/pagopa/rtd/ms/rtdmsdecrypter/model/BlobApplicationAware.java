@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
@@ -133,7 +132,7 @@ public class BlobApplicationAware {
    * @return true if the name matches the format, false otherwise
    */
   private boolean checkNameFormat(String[] blobNameTokens) {
-    if (blobNameTokens.length < 8) {
+    if (blobNameTokens.length < 7) {
       return false;
     }
 
