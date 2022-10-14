@@ -1,7 +1,5 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
@@ -39,18 +37,33 @@ class BlobSplitterTest {
   @Value("${decrypt.resources.base.path}/tmp")
   String tmpDirectory;
 
+  String missingBatchServiceChunkNumberPlaceholder = "00";
+
+  String batchServiceChunkNumber = "01";
+
   String containerRTD = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
 
   String containerTAE = "ade-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
-  String blobNameRTD = "CSTAR.99999.TRNLOG.20220419.121045.001.csv";
+  String blobNameRTD =
+      "CSTAR.99999.TRNLOG.20220419.121045.001." + batchServiceChunkNumber + ".csv";
 
-  String blobNameTAE = "ADE.99999.TRNLOG.20220721.095718.001.csv";
+  String blobNameRTDOldNaming = "CSTAR.99999.TRNLOG.20220419.121045.001.csv";
 
-  String blobNameTAEEmpty = "ADE.00000.TRNLOG.20220721.095718.001.csv";
+  String blobNameTAE = "ADE.99999.TRNLOG.20220721.095718.001." + batchServiceChunkNumber + ".csv";
+
+  String blobNameTAEOldNaming =
+      "ADE.99999.TRNLOG.20220721.095718.001.csv";
+
+  String blobNameTAEEmpty =
+      "ADE.00000.TRNLOG.20220721.095718.001." + batchServiceChunkNumber + ".csv";
 
   BlobApplicationAware fakeBlobRTD;
 
+  BlobApplicationAware fakeBlobRTDOldNaming;
+
   BlobApplicationAware fakeBlobTAE;
+
+  BlobApplicationAware fakeBlobTAEOldNaming;
 
   BlobApplicationAware fakeBlobTAEEmpty;
 
@@ -71,6 +84,18 @@ class BlobSplitterTest {
     fakeBlobRTD.setTargetDir(tmpDirectory);
     fakeBlobRTD.setStatus(Status.DECRYPTED);
     fakeBlobRTD.setApp(Application.RTD);
+
+    //Create the decrypted file for RTD old naming convention
+    FileOutputStream decryptedStreamTransactionsOldNaming = new FileOutputStream(
+        Path.of(tmpDirectory, blobNameRTDOldNaming + ".decrypted").toString());
+    Files.copy(Path.of(resources, blobNameRTDOldNaming), decryptedStreamTransactionsOldNaming);
+
+    //Instantiate a fake RTD blob with old naming convention
+    fakeBlobRTDOldNaming = new BlobApplicationAware(
+        "/blobServices/default/containers/" + containerRTD + "/blobs/" + blobNameRTDOldNaming);
+    fakeBlobRTDOldNaming.setTargetDir(tmpDirectory);
+    fakeBlobRTDOldNaming.setStatus(Status.DECRYPTED);
+    fakeBlobRTDOldNaming.setApp(Application.RTD);
 
     //Create the decrypted file for TAE
     File decryptedFileAggregates = Path.of(tmpDirectory, blobNameTAE).toFile();
@@ -101,6 +126,18 @@ class BlobSplitterTest {
     fakeBlobTAEEmpty.setTargetDir(tmpDirectory);
     fakeBlobTAEEmpty.setStatus(Status.DECRYPTED);
     fakeBlobTAEEmpty.setApp(Application.ADE);
+
+    //Create the decrypted empty file for TAE with old naming convention
+    FileOutputStream decryptedStreamAggregatesOldNaming = new FileOutputStream(
+        Path.of(tmpDirectory, blobNameTAEOldNaming + ".decrypted").toString());
+    Files.copy(Path.of(resources, blobNameTAEOldNaming), decryptedStreamAggregatesOldNaming);
+
+    //Instantiate a fake TAE blob with old naming convention
+    fakeBlobTAEOldNaming = new BlobApplicationAware(
+        "/blobServices/default/containers/" + containerTAE + "/blobs/" + blobNameTAEOldNaming);
+    fakeBlobTAEOldNaming.setTargetDir(tmpDirectory);
+    fakeBlobTAEOldNaming.setStatus(Status.DECRYPTED);
+    fakeBlobTAEOldNaming.setApp(Application.ADE);
   }
 
   @AfterEach
@@ -125,28 +162,7 @@ class BlobSplitterTest {
   }
 
   @Test
-  void shouldSplitTAE() {
-    //Instantiate a fake blob with clear text content
-    blobSplitterImpl.setLineThreshold(1);
-
-    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobTAE);
-    Iterable<BlobApplicationAware> iterable = chunks::iterator;
-    int i = 0;
-    for (BlobApplicationAware b : iterable) {
-      assertEquals(Status.SPLIT, b.getStatus());
-      assertEquals(
-          "AGGADE." + fakeBlobTAE.getSenderCode() + "." + fakeBlobTAE.getFileCreationDate() + "."
-              + fakeBlobTAE.getFileCreationTime() + "." + fakeBlobTAE.getFlowNumber() + "." + i,
-          b.getBlob());
-      i++;
-    }
-    assertEquals(4, i);
-  }
-
-  //This test, contrary to the previous one, tests the scenario where the file run out of lines
-  // before reaching the threshold.
-  @Test
-  void shouldSplitReminder() {
+  void shouldSplitReminderRTD() {
 
     blobSplitterImpl.setLineThreshold(2);
 
@@ -156,6 +172,79 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTD + "." + i + ".decrypted", b.getBlob());
+      i++;
+    }
+    assertEquals(2, i);
+  }
+
+  @Test
+  void shouldSplitRTDOldNaming() {
+
+    blobSplitterImpl.setLineThreshold(1);
+
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTDOldNaming);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.SPLIT, b.getStatus());
+      assertEquals(blobNameRTDOldNaming + "." + i + ".decrypted", b.getBlob());
+      i++;
+    }
+    assertEquals(3, i);
+  }
+
+  @Test
+  void shouldSplitTAE() {
+    //Instantiate a fake blob with clear text content
+    blobSplitterImpl.setLineThreshold(1);
+
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobTAE);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.SPLIT, b.getStatus());
+      assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
+          + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber
+          + String.format("%03d", i), b.getBlob());
+      i++;
+    }
+    assertEquals(4, i);
+  }
+
+  @Test
+  void shouldSplitTAEOldNaming() {
+    //Instantiate a fake blob with clear text content
+    blobSplitterImpl.setLineThreshold(1);
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobTAEOldNaming);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.SPLIT, b.getStatus());
+      assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
+              + b.getFileCreationTime() + "." + b.getFlowNumber() + "."
+              + missingBatchServiceChunkNumberPlaceholder
+              + String.format("%03d", i),
+          b.getBlob());
+      i++;
+    }
+    assertEquals(4, i);
+  }
+
+  //This test, contrary to the previous one, tests the scenario where the file run out of lines
+  // before reaching the threshold.
+  @Test
+  void shouldSplitReminderTAE() {
+
+    blobSplitterImpl.setLineThreshold(2);
+
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobTAE);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.SPLIT, b.getStatus());
+      assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
+          + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber
+          + String.format("%03d", i), b.getBlob());
       i++;
     }
     assertEquals(2, i);

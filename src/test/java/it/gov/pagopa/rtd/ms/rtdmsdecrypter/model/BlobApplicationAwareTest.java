@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,7 +35,7 @@ class BlobApplicationAwareTest {
   String tmpDirectory;
 
   String containerRtd = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
-  String blobNameRtd = "CSTAR.99910.TRNLOG.20220316.164707.001.csv.pgp";
+  String blobNameRtd = "CSTAR.99910.TRNLOG.20220316.164707.001.01.csv.pgp";
 
   BlobApplicationAware fakeBlob;
 
@@ -88,7 +87,8 @@ class BlobApplicationAwareTest {
   @ParameterizedTest
   @ValueSource(strings = {"/blobServices/default/containers/myContainer/blobs/myBlob",
       "/blobServices/default/directories/myContainer/blobs/myBlob",
-      "/blobServices/default/containers/rtd-loremipsum-32489876908u74bh781e2db57k098c5ad034341i8u7y/blobs/CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp"})
+      "/blobServices/default/containers/rtd-loremipsum-32489876908u74bh781e2db57k098c5ad034341i8u7y/blobs/CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp",
+      "/blobServices/default/containers/rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y/blobs/CSTAR.99910.TRNLOG.20220228.103107.001"})
   void shouldMatchNoApp(String blobUri) {
     BlobApplicationAware myBlob = new BlobApplicationAware(blobUri);
     assertSame(BlobApplicationAware.Application.NOAPP, myBlob.getApp());
