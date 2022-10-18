@@ -68,7 +68,7 @@ class RtdMsDecrypterApplicationTest {
   private DirectWithAttributesChannel channel;
 
   private final String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
-  private final String blob = "CSTAR.99910.TRNLOG.20220316.103107.001.csv.pgp";
+  private final String blob = "CSTAR.99910.TRNLOG.20220316.103107.001.01.csv.pgp";
   private final String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blob;
 
   private final String myID = "my_id";
