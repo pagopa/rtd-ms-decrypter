@@ -96,6 +96,11 @@
       <artifactId>commons-text</artifactId>
       <version>1.10.0</version>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.13.4.2</version>
+    </dependency>
     <!--    END VERSION OVERRIDE-->
   </dependencies>
   <dependencyManagement>

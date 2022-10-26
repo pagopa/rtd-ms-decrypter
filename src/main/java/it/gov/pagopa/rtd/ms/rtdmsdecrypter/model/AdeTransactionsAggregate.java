@@ -50,7 +50,7 @@ public class AdeTransactionsAggregate implements DecryptedRecord {
 
   @NotNull
   @CsvBindByPosition(position = 5)
-  @Min(value = 1L, message = "The total amount must be positive")
+  @Min(value = 0L, message = "The total amount must be positive")
   Long totalAmount;
 
   @NotNull
