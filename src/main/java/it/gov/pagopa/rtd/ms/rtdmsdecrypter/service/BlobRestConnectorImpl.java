@@ -89,6 +89,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     putBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
     putBlob.setHeader(new BasicHeader("x-ms-blob-type", "BlockBlob"));
     putBlob.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
+    putBlob.setHeader(new BasicHeader("If-None-Match", "*"));
     putBlob.setEntity(entity);
 
     try (CloseableHttpResponse myResponse = httpClient.execute(putBlob)) {
