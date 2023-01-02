@@ -1,0 +1,70 @@
+microservice-chart:
+  namespace: "rtd"
+  nameOverride: ""
+  fullnameOverride: ""
+
+  livenessProbe:
+    httpGet:
+      path: /actuator/health/liveness
+      port: 8080
+    initialDelaySeconds: 60
+    failureThreshold: 6
+    periodSeconds: 10
+
+  readinessProbe:
+    httpGet:
+      path: /actuator/health/readiness
+      port: 8080
+    initialDelaySeconds: 60
+    failureThreshold: 6
+    periodSeconds: 10
+
+  podAnnotations: { }
+
+  deployment:
+    create: true
+
+  service:
+    create: false
+
+  ingress:
+    create: false
+
+  serviceAccount:
+    create: false
+    annotations: { }
+    name: ""
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    allowPrivilegeEscalation: false
+
+  envSecret:
+    APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-instrumentation-key
+    KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS: evh-rtd-platform-events-rtd-platform-events-sub-key
+    INTERNAL_SERVICES_API_KEY: rtd-internal-api-product-subscription-key
+    CSV_TRANSACTION_PRIVATE_KEY: cstarblobstorage-private-key
+    CSV_TRANSACTION_PRIVATE_KEY_PASS: cstarblobstorage-private-key-passphrase
+
+  envConfigMapExternals:
+    rtddecrypter:
+      JAVA_TOOL_OPTIONS: JAVA_TOOL_OPTIONS
+      APPLICATIONINSIGHTS_ROLE_NAME: APPLICATIONINSIGHTS_ROLE_NAME
+      APPLICATIONINSIGHTS_INSTRUMENTATION_LOGGING_LEVEL: APPLICATIONINSIGHTS_INSTRUMENTATION_LOGGING_LEVEL
+      APPLICATIONINSIGHTS_INSTRUMENTATION_MICROMETER_ENABLED: APPLICATIONINSIGHTS_INSTRUMENTATION_MICROMETER_ENABLED
+      CSV_TRANSACTION_PRIVATE_KEY_PATH: CSV_TRANSACTION_PRIVATE_KEY_PATH
+      CSV_TRANSACTION_DECRYPT_HOST: CSV_TRANSACTION_DECRYPT_HOST
+      SPLITTER_LINE_THRESHOLD: SPLITTER_LINE_THRESHOLD
+      ENABLE_CHUNK_UPLOAD: ENABLE_CHUNK_UPLOAD
+      CONSUMER_TIMEOUT_MS: CONSUMER_TIMEOUT_MS
+
+    rtd-blob-storage-events:
+      KAFKA_TOPIC_BLOB_STORAGE_EVENTS: KAFKA_TOPIC_BLOB_STORAGE_EVENTS
+      KAFKA_BROKER: KAFKA_BROKER
+
+
+
+
