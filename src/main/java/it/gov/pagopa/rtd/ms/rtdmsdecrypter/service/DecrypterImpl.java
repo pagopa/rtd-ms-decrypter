@@ -45,9 +45,6 @@ import org.springframework.stereotype.Service;
 @Getter
 public class DecrypterImpl implements Decrypter {
 
-  @Value("${decrypt.private.key.path}")
-  private String privateKeyPath;
-
   @Value("${decrypt.private.key.password}")
   private String privateKeyPassword;
 
@@ -57,7 +54,7 @@ public class DecrypterImpl implements Decrypter {
   private String privateKey;
 
   @PostConstruct
-  private void readKey() throws IOException {
+  private void readKey() {
     this.privateKey = new String(Base64.getMimeDecoder().decode(this.privateKeyBase64));
   }
 
