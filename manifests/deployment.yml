@@ -51,6 +51,11 @@ spec:
                 secretKeyRef:
                   name: rtddecrypter
                   key: CSV_TRANSACTION_PRIVATE_KEY_PASS
+            - name: CSV_TRANSACTION_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rtddecrypter
+                  key: CSV_TRANSACTION_PRIVATE_KEY
           resources:
             limits:
               cpu: 2
@@ -58,10 +63,3 @@ spec:
             requests:
               cpu: 1
               memory: 4Gi
-      volumes:
-        - name: certs
-          secret:
-            secretName: rtddecrypter
-            items:
-              - key: CSV_TRANSACTION_PRIVATE_KEY
-                path: private.key
