@@ -63,3 +63,5 @@ spec:
             requests:
               cpu: 1
               memory: 4Gi
+      volumes:
+        - name: certs
