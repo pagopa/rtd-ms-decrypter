@@ -21,10 +21,6 @@ microservice-chart:
 
   podAnnotations: { }
 
-  deployment:
-    create: true
-    replicas: 2
-
   service:
     create: false
 

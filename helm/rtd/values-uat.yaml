@@ -7,6 +7,10 @@ microservice-chart:
   ingress:
     host: "uat01.rtd.internal.uat.cstar.pagopa.it"
 
+  deployment:
+    create: true
+    replicas: 1
+
   resources:
     requests:
       memory: "4Gi"
