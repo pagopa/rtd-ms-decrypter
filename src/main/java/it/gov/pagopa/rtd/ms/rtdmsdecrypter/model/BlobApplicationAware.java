@@ -162,6 +162,7 @@ public class BlobApplicationAware {
     try {
       daysFormat.parse(blobNameTokens[3] + blobNameTokens[4]);
     } catch (ParseException e) {
+      log.error("Error parsing date and time: {}", e.getMessage());
       return false;
     }
 
