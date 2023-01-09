@@ -13,11 +13,14 @@ microservice-chart:
 
   resources:
     requests:
-      memory: "4Gi"
-      cpu: "0.7"
+      memory: "2Gi"
+      cpu: "500m"
     limits:
-      memory: "8Gi"
-      cpu: "1"
+      memory: "4Gi"
+      cpu: "700m"
+
+  envSecret:
+    aks-api-url: cstar-d-weu-dev01-aks-apiserver-url
 
   #  autoscaling:
   #    enable: false
