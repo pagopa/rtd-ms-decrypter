@@ -35,9 +35,7 @@ decrypt:
     threshold: ${SPLITTER_LINE_THRESHOLD:250000}
   enableChunkUpload: ${ENABLE_CHUNK_UPLOAD:false}
   skipChecksum: ${SKIP_CHECKSUM:false}
-  upload:
-    enableRTDUpload: ${ENABLE_RTD_UPLOAD:false}
-    enableADEUpload: ${ENABLE_ADE_UPLOAD:false}
+
 ---
 spring:
   config:
