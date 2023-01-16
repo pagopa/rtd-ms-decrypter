@@ -2,6 +2,18 @@ logging:
   level:
     root: INFO
 
+
+# Expose only health probes
+management:
+  metrics.export.defaults.enabled: false
+  info.defaults.enabled: false
+  endpoints.enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+      probes:
+        enabled: true
+
 decrypt:
   resources:
     base:
@@ -22,6 +34,7 @@ decrypt:
     threshold: ${SPLITTER_LINE_THRESHOLD:250000}
   enableChunkUpload: ${ENABLE_CHUNK_UPLOAD:false}
   skipChecksum: ${SKIP_CHECKSUM:false}
+
 ---
 spring:
   config:
