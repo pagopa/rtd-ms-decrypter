@@ -46,6 +46,9 @@ microservice-chart:
     CSV_TRANSACTION_PRIVATE_KEY: cstarblobstorage-private-key
     CSV_TRANSACTION_PRIVATE_KEY_PASS: cstarblobstorage-private-key-passphrase
 
+  envConfig:
+    APPLICATIONINSIGHTS_PREVIEW_PROFILER_ENABLED: "false"
+
   envConfigMapExternals:
     rtddecrypter:
       JAVA_TOOL_OPTIONS: JAVA_TOOL_OPTIONS
