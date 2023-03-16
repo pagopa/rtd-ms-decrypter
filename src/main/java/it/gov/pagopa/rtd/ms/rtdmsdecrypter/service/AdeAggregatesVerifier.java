@@ -23,10 +23,12 @@ public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggreg
   private static final Validator validator = factory.getValidator();
 
   /**
-   * Implementation of {@link BeanVerifier#verifyBean(Object)}, used to verify the validity of the
+   * Implementation of {@link BeanVerifier#verifyBean(Object)}, used to verify the
+   * validity of the
    * {@link AdeTransactionsAggregate} records extracted from the decrypted file.
    *
-   * @param adeTransactionsAggregate The {@link AdeTransactionsAggregate} to be verified
+   * @param adeTransactionsAggregate The {@link AdeTransactionsAggregate} to be
+   *                                 verified
    * @return Boolean representing the validity of the record
    * @throws CsvConstraintViolationException in case of malformed fields
    */
@@ -39,7 +41,8 @@ public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggreg
     if (!violations.isEmpty()) {
       StringBuilder malformedFields = new StringBuilder();
       for (ConstraintViolation<AdeTransactionsAggregate> violation : violations) {
-        malformedFields.append("(").append(violation.getPropertyPath().toString()).append(": ");
+        malformedFields.append("(").append(String.format(" Terminal ID: %s ", adeTransactionsAggregate.getTerminalId()))
+            .append(violation.getPropertyPath().toString()).append(": ");
         malformedFields.append(violation.getMessage()).append(") ");
       }
 

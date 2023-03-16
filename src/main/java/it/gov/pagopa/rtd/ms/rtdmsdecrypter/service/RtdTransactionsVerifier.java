@@ -10,7 +10,8 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
 /**
- * Implementation of {@link BeanVerifier}, used to verify the validity of the {@link RtdTransaction}
+ * Implementation of {@link BeanVerifier}, used to verify the validity of the
+ * {@link RtdTransaction}
  * records extracted from the decrypted file.
  */
 public class RtdTransactionsVerifier implements BeanVerifier<RtdTransaction> {
@@ -27,7 +28,8 @@ public class RtdTransactionsVerifier implements BeanVerifier<RtdTransaction> {
     if (!violations.isEmpty()) {
       StringBuilder malformedFields = new StringBuilder();
       for (ConstraintViolation<RtdTransaction> violation : violations) {
-        malformedFields.append("(").append(violation.getPropertyPath().toString()).append(": ");
+        malformedFields.append("(").append(String.format(" terminal id: %s ", rtdTransactions.getTerminalId()))
+            .append(violation.getPropertyPath().toString()).append(": ");
         malformedFields.append(violation.getMessage()).append(") ");
       }
 
