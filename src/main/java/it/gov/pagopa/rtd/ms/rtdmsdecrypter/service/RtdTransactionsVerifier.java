@@ -3,6 +3,8 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 import com.opencsv.bean.BeanVerifier;
 import com.opencsv.exceptions.CsvConstraintViolationException;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.RtdTransaction;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Set;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -14,6 +16,7 @@ import javax.validation.ValidatorFactory;
  * {@link RtdTransaction}
  * records extracted from the decrypted file.
  */
+@Slf4j
 public class RtdTransactionsVerifier implements BeanVerifier<RtdTransaction> {
 
   private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
@@ -28,14 +31,19 @@ public class RtdTransactionsVerifier implements BeanVerifier<RtdTransaction> {
     if (!violations.isEmpty()) {
       StringBuilder malformedFields = new StringBuilder();
       for (ConstraintViolation<RtdTransaction> violation : violations) {
-        malformedFields.append("[ ")
-            .append(String.format("Acquirer code: %s",
-                rtdTransactions.getAcquirerCode())).append(" - ")
-            .append(String.format("Terminal id: %s",
-                rtdTransactions.getTerminalId())).append(" - ")
-            .append(String.format("Fiscal code: %s",
-                rtdTransactions.getFiscalCode()))
-            .append(" ] Malformed fields extracted : (")
+        if (!violation.getPropertyPath().toString().equals("acquirerCode")) {
+          malformedFields.append(String.format("[ Acquirer code: %s ] ",
+              rtdTransactions.getAcquirerCode()));
+        }
+        if (!violation.getPropertyPath().toString().equals("terminalId")) {
+          malformedFields.append(String.format("[ Terminal id: %s ] ",
+              rtdTransactions.getTerminalId()));
+        }
+        if (!violation.getPropertyPath().toString().equals("fiscalCode")) {
+          malformedFields.append(String.format("[ Fiscal code: %s ] ",
+              rtdTransactions.getFiscalCode()));
+        }
+        malformedFields.append("Malformed fields extracted : (")
             .append(violation.getPropertyPath().toString()).append(": ");
         malformedFields.append(violation.getMessage()).append(") ");
       }

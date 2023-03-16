@@ -41,14 +41,19 @@ public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggreg
     if (!violations.isEmpty()) {
       StringBuilder malformedFields = new StringBuilder();
       for (ConstraintViolation<AdeTransactionsAggregate> violation : violations) {
-        malformedFields.append("[ ")
-            .append(String.format("Acquirer code: %s ",
-                adeTransactionsAggregate.getAcquirerCode())).append(" - ")
-            .append(String.format("Terminal ID: %s",
-                adeTransactionsAggregate.getTerminalId())).append(" - ")
-            .append(String.format("Fiscal code: %s",
-                adeTransactionsAggregate.getFiscalCode()))
-            .append(" ] Malformed fields extracted : (")
+        if (!violation.getPropertyPath().toString().equals("acquirerCode")) {
+          malformedFields.append(String.format("[ Acquirer code: %s ] ",
+              adeTransactionsAggregate.getAcquirerCode()));
+        }
+        if (!violation.getPropertyPath().toString().equals("terminalId")) {
+          malformedFields.append(String.format("[ Terminal id: %s ] ",
+              adeTransactionsAggregate.getTerminalId()));
+        }
+        if (!violation.getPropertyPath().toString().equals("fiscalCode")) {
+          malformedFields.append(String.format("[ Fiscal code: %s ] ",
+              adeTransactionsAggregate.getFiscalCode()));
+        }
+        malformedFields.append("Malformed fields extracted : (")
             .append(violation.getPropertyPath().toString()).append(": ");
         malformedFields.append(violation.getMessage()).append(") ");
       }
