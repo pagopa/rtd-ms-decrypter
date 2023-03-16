@@ -3,8 +3,6 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 import com.opencsv.bean.BeanVerifier;
 import com.opencsv.exceptions.CsvConstraintViolationException;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.RtdTransaction;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Set;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -16,7 +14,6 @@ import javax.validation.ValidatorFactory;
  * {@link RtdTransaction}
  * records extracted from the decrypted file.
  */
-@Slf4j
 public class RtdTransactionsVerifier implements BeanVerifier<RtdTransaction> {
 
   private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
