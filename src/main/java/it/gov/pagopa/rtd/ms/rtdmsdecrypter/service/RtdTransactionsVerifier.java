@@ -28,13 +28,19 @@ public class RtdTransactionsVerifier implements BeanVerifier<RtdTransaction> {
     if (!violations.isEmpty()) {
       StringBuilder malformedFields = new StringBuilder();
       for (ConstraintViolation<RtdTransaction> violation : violations) {
-        malformedFields.append("(").append(String.format(" terminal id: %s ", rtdTransactions.getTerminalId()))
+        malformedFields.append("[ ")
+            .append(String.format("Acquirer code: %s",
+                rtdTransactions.getAcquirerCode())).append(" - ")
+            .append(String.format("Terminal id: %s",
+                rtdTransactions.getTerminalId())).append(" - ")
+            .append(String.format("Fiscal code: %s",
+                rtdTransactions.getFiscalCode()))
+            .append(" ] Malformed fields extracted : (")
             .append(violation.getPropertyPath().toString()).append(": ");
         malformedFields.append(violation.getMessage()).append(") ");
       }
 
-      throw new CsvConstraintViolationException("Malformed fields extracted: "
-          + malformedFields);
+      throw new CsvConstraintViolationException(malformedFields.toString());
     }
 
     return true;

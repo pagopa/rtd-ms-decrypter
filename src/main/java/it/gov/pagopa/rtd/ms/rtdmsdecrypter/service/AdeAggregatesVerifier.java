@@ -41,13 +41,19 @@ public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggreg
     if (!violations.isEmpty()) {
       StringBuilder malformedFields = new StringBuilder();
       for (ConstraintViolation<AdeTransactionsAggregate> violation : violations) {
-        malformedFields.append("(").append(String.format(" Terminal ID: %s ", adeTransactionsAggregate.getTerminalId()))
+        malformedFields.append("[ ")
+            .append(String.format("Acquirer code: %s ",
+                adeTransactionsAggregate.getAcquirerCode())).append(" - ")
+            .append(String.format("Terminal ID: %s",
+                adeTransactionsAggregate.getTerminalId())).append(" - ")
+            .append(String.format("Fiscal code: %s",
+                adeTransactionsAggregate.getFiscalCode()))
+            .append(" ] Malformed fields extracted : (")
             .append(violation.getPropertyPath().toString()).append(": ");
         malformedFields.append(violation.getMessage()).append(") ");
       }
 
-      throw new CsvConstraintViolationException("Malformed fields extracted: "
-          + malformedFields);
+      throw new CsvConstraintViolationException(malformedFields.toString());
     }
 
     if (!validateDate(adeTransactionsAggregate.getTransmissionDate())) {
