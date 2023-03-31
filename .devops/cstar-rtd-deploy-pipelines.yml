@@ -18,6 +18,7 @@ trigger:
       - src/*
       - pom.xml
       - helm/*
+      - Dockerfile
 
 pr: none
 
