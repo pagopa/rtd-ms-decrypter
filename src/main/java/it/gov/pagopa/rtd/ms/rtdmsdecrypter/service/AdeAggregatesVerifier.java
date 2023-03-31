@@ -23,10 +23,12 @@ public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggreg
   private static final Validator validator = factory.getValidator();
 
   /**
-   * Implementation of {@link BeanVerifier#verifyBean(Object)}, used to verify the validity of the
+   * Implementation of {@link BeanVerifier#verifyBean(Object)}, used to verify the
+   * validity of the
    * {@link AdeTransactionsAggregate} records extracted from the decrypted file.
    *
-   * @param adeTransactionsAggregate The {@link AdeTransactionsAggregate} to be verified
+   * @param adeTransactionsAggregate The {@link AdeTransactionsAggregate} to be
+   *                                 verified
    * @return Boolean representing the validity of the record
    * @throws CsvConstraintViolationException in case of malformed fields
    */
@@ -39,12 +41,24 @@ public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggreg
     if (!violations.isEmpty()) {
       StringBuilder malformedFields = new StringBuilder();
       for (ConstraintViolation<AdeTransactionsAggregate> violation : violations) {
-        malformedFields.append("(").append(violation.getPropertyPath().toString()).append(": ");
+        if (!violation.getPropertyPath().toString().equals("acquirerCode")) {
+          malformedFields.append(String.format("[ Acquirer code: %s ] ",
+              adeTransactionsAggregate.getAcquirerCode()));
+        }
+        if (!violation.getPropertyPath().toString().equals("terminalId")) {
+          malformedFields.append(String.format("[ Terminal id: %s ] ",
+              adeTransactionsAggregate.getTerminalId()));
+        }
+        if (!violation.getPropertyPath().toString().equals("fiscalCode")) {
+          malformedFields.append(String.format("[ Fiscal code: %s ] ",
+              adeTransactionsAggregate.getFiscalCode()));
+        }
+        malformedFields.append("Malformed fields extracted : (")
+            .append(violation.getPropertyPath().toString()).append(": ");
         malformedFields.append(violation.getMessage()).append(") ");
       }
 
-      throw new CsvConstraintViolationException("Malformed fields extracted: "
-          + malformedFields);
+      throw new CsvConstraintViolationException(malformedFields.toString());
     }
 
     if (!validateDate(adeTransactionsAggregate.getTransmissionDate())) {
