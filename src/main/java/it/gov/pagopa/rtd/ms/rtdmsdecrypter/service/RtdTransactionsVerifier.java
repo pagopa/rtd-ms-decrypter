@@ -10,7 +10,8 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
 /**
- * Implementation of {@link BeanVerifier}, used to verify the validity of the {@link RtdTransaction}
+ * Implementation of {@link BeanVerifier}, used to verify the validity of the
+ * {@link RtdTransaction}
  * records extracted from the decrypted file.
  */
 public class RtdTransactionsVerifier implements BeanVerifier<RtdTransaction> {
@@ -27,12 +28,24 @@ public class RtdTransactionsVerifier implements BeanVerifier<RtdTransaction> {
     if (!violations.isEmpty()) {
       StringBuilder malformedFields = new StringBuilder();
       for (ConstraintViolation<RtdTransaction> violation : violations) {
-        malformedFields.append("(").append(violation.getPropertyPath().toString()).append(": ");
+        if (!violation.getPropertyPath().toString().equals("acquirerCode")) {
+          malformedFields.append(String.format("[ Acquirer code: %s ] ",
+              rtdTransactions.getAcquirerCode()));
+        }
+        if (!violation.getPropertyPath().toString().equals("terminalId")) {
+          malformedFields.append(String.format("[ Terminal id: %s ] ",
+              rtdTransactions.getTerminalId()));
+        }
+        if (!violation.getPropertyPath().toString().equals("fiscalCode")) {
+          malformedFields.append(String.format("[ Fiscal code: %s ] ",
+              rtdTransactions.getFiscalCode()));
+        }
+        malformedFields.append("Malformed fields extracted : (")
+            .append(violation.getPropertyPath().toString()).append(": ");
         malformedFields.append(violation.getMessage()).append(") ");
       }
 
-      throw new CsvConstraintViolationException("Malformed fields extracted: "
-          + malformedFields);
+      throw new CsvConstraintViolationException(malformedFields.toString());
     }
 
     return true;
