@@ -2,18 +2,17 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.utils.LargeFileUtils;
+import jakarta.annotation.PostConstruct;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Security;
 import java.util.Base64;
 import java.util.Iterator;
-import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -113,8 +112,8 @@ public class DecrypterImpl implements Decrypter {
 
       Object object = pgpF.nextObject();
       // The first object might be a PGP marker packet.
-      if (object instanceof PGPEncryptedDataList) {
-        encrypted = (PGPEncryptedDataList) object;
+      if (object instanceof PGPEncryptedDataList encryptedData) {
+        encrypted = encryptedData;
       } else {
         encrypted = (PGPEncryptedDataList) pgpF.nextObject();
       }
@@ -142,16 +141,13 @@ public class DecrypterImpl implements Decrypter {
 
       Object message = plainFact.nextObject();
 
-      if (message instanceof PGPCompressedData) {
-        PGPCompressedData data = (PGPCompressedData) message;
+      if (message instanceof PGPCompressedData data) {
         JcaPGPObjectFactory pgpFact = new JcaPGPObjectFactory(data.getDataStream());
 
         message = pgpFact.nextObject();
       }
 
-      if (message instanceof PGPLiteralData) {
-        PGPLiteralData ld = (PGPLiteralData) message;
-
+      if (message instanceof PGPLiteralData ld) {
         unencrypted = ld.getInputStream();
 
         log.info("Copying decrypted stream: {}", blobName);
