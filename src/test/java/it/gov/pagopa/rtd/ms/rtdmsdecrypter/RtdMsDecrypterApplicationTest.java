@@ -28,11 +28,14 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.stream.messaging.DirectWithAttributesChannel;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 @EmbeddedKafka(topics = {
     "rtd-platform-events"}, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
 @TestPropertySource(properties = {
@@ -213,7 +216,6 @@ class RtdMsDecrypterApplicationTest {
       verify(blobRestConnectorImpl, times(0)).put(any());
       verify(blobApplicationAware, times(0)).localCleanup();
       verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
-
     });
   }
 
@@ -291,7 +293,7 @@ class RtdMsDecrypterApplicationTest {
       verify(blobVerifierImpl, times(3)).verify(any());
       verify(blobRestConnectorImpl, times(0)).put(any());
       verify(blobApplicationAware, times(0)).localCleanup();
-//      verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
+      verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
     });
   }
 
