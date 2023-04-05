@@ -185,38 +185,38 @@ class RtdMsDecrypterApplicationTest {
     });
   }
 
-//  @Test
-//  void shouldFilterMessageForFailedDecrypt() {
-//
-//    //Prepare fake blob
-//    BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
-//    BlobApplicationAware blobDecrypted = new BlobApplicationAware(blobUri);
-//
-//    //Mock desired step of the blob handling
-//    blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);
-//    //Keep the DOWNLOADED status, this will trigger the filter
-//    blobDecrypted.setStatus(BlobApplicationAware.Status.DOWNLOADED);
-//
-//    //Mock the behaviour of the beans
-//    doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
-//    doReturn(blobDecrypted).when(decrypterImpl).decrypt(any(BlobApplicationAware.class));
-//
-//    await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
-//
-//      //Send the message to the event grid
-//      channel.send(MessageBuilder.withPayload(myList).build());
-//
-//      //Verify if every handling step is called the desired number of time
-//      verify(blobRestConnectorImpl, times(1)).get(any());
-//      verify(decrypterImpl, times(1)).decrypt(any());
-//      verify(blobSplitterImpl, times(0)).split(any());
-//      verify(blobVerifierImpl, times(0)).verify(any());
-//      verify(blobRestConnectorImpl, times(0)).put(any());
-//      verify(blobApplicationAware, times(0)).localCleanup();
-//      verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
-//
-//    });
-//  }
+  @Test
+  void shouldFilterMessageForFailedDecrypt() {
+
+    //Prepare fake blob
+    BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
+    BlobApplicationAware blobDecrypted = new BlobApplicationAware(blobUri);
+
+    //Mock desired step of the blob handling
+    blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    //Keep the DOWNLOADED status, this will trigger the filter
+    blobDecrypted.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+
+    //Mock the behaviour of the beans
+    doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
+    doReturn(blobDecrypted).when(decrypterImpl).decrypt(any(BlobApplicationAware.class));
+
+    await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
+
+      //Send the message to the event grid
+      channel.send(MessageBuilder.withPayload(myList).build());
+
+      //Verify if every handling step is called the desired number of time
+      verify(blobRestConnectorImpl, times(1)).get(any());
+      verify(decrypterImpl, times(1)).decrypt(any());
+      verify(blobSplitterImpl, times(0)).split(any());
+      verify(blobVerifierImpl, times(0)).verify(any());
+      verify(blobRestConnectorImpl, times(0)).put(any());
+      verify(blobApplicationAware, times(0)).localCleanup();
+      verify(handler, times(1)).blobStorageConsumer(any(), any(), any(), any());
+
+    });
+  }
 
   @Test
   void shouldFilterMessageForFailedSplit() {
