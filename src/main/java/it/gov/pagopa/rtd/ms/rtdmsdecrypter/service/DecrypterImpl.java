@@ -112,8 +112,8 @@ public class DecrypterImpl implements Decrypter {
 
       Object object = pgpF.nextObject();
       // The first object might be a PGP marker packet.
-      if (object instanceof PGPEncryptedDataList encryptedData) {
-        encrypted = encryptedData;
+      if (object instanceof PGPEncryptedDataList) {
+        encrypted = (PGPEncryptedDataList) object;
       } else {
         encrypted = (PGPEncryptedDataList) pgpF.nextObject();
       }
@@ -141,13 +141,15 @@ public class DecrypterImpl implements Decrypter {
 
       Object message = plainFact.nextObject();
 
-      if (message instanceof PGPCompressedData data) {
+      if (message instanceof PGPCompressedData) {
+        PGPCompressedData data = (PGPCompressedData) message;
         JcaPGPObjectFactory pgpFact = new JcaPGPObjectFactory(data.getDataStream());
 
         message = pgpFact.nextObject();
       }
 
-      if (message instanceof PGPLiteralData ld) {
+      if (message instanceof PGPLiteralData) {
+        PGPLiteralData ld = (PGPLiteralData) message;
         unencrypted = ld.getInputStream();
 
         log.info("Copying decrypted stream: {}", blobName);
