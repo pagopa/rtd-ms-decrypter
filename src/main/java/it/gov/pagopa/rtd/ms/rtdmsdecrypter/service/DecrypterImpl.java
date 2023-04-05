@@ -150,6 +150,7 @@ public class DecrypterImpl implements Decrypter {
 
       if (message instanceof PGPLiteralData) {
         PGPLiteralData ld = (PGPLiteralData) message;
+
         unencrypted = ld.getInputStream();
 
         log.info("Copying decrypted stream: {}", blobName);
