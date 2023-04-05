@@ -14,4 +14,4 @@ COPY --from=buildtime /build/target/*.jar /app/app.jar
 # The agent is enabled at runtime via JAVA_TOOL_OPTIONS.
 ADD https://github.com/microsoft/ApplicationInsights-Java/releases/download/3.4.9/applicationinsights-agent-3.4.9.jar /app/applicationinsights-agent.jar
 
-ENTRYPOINT ["java","-Xmx4g","-javaagent:/app/applicationinsights-agent.jar","-jar","/app/app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar"]
