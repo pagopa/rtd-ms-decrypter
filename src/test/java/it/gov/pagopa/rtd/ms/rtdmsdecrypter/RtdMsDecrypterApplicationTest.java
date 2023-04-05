@@ -201,11 +201,10 @@ class RtdMsDecrypterApplicationTest {
     doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
     doReturn(blobDecrypted).when(decrypterImpl).decrypt(any(BlobApplicationAware.class));
 
+    //Send the message to the event grid
+    channel.send(MessageBuilder.withPayload(myList).build());
+
     await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
-
-      //Send the message to the event grid
-      channel.send(MessageBuilder.withPayload(myList).build());
-
       //Verify if every handling step is called the desired number of time
       verify(blobRestConnectorImpl, times(1)).get(any());
       verify(decrypterImpl, times(1)).decrypt(any());
