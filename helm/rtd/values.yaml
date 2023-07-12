@@ -43,7 +43,6 @@ microservice-chart:
     runAsNonRoot: true
     runAsUser: 10000
     runAsGroup: 10000
-    fsGroup: 20000
 
   envSecret:
     APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-instrumentation-key
