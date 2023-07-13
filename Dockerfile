@@ -3,7 +3,7 @@ FROM maven:3.9.3-amazoncorretto-17@sha256:4ab7db7bd5f95e58b0ba1346ff29d6abdd9b73
 WORKDIR /build
 COPY . .
 
-RUN mvn clean package -DskipTests
+RUN mvn clean package
 
 FROM amazoncorretto:17.0.7-al2023-headless@sha256:18154896dc03cab39734594c592b73ba506e105e66c81753083cf06235f5c714 as runtime
 
