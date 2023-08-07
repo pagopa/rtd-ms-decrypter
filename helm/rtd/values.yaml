@@ -46,7 +46,7 @@ microservice-chart:
 
   envSecret:
     APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-instrumentation-key
-    KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS: evh-rtd-platform-events-rtd-platform-events-sub-key
+    KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS: evh-rtd-platform-events-rtd-platform-events-sub-rtd
     INTERNAL_SERVICES_API_KEY: rtd-internal-api-product-subscription-key
     CSV_TRANSACTION_PRIVATE_KEY: cstarblobstorage-private-key
     CSV_TRANSACTION_PRIVATE_KEY_PASS: cstarblobstorage-private-key-passphrase
@@ -67,7 +67,7 @@ microservice-chart:
 
     rtd-blob-storage-events:
       KAFKA_TOPIC_BLOB_STORAGE_EVENTS: KAFKA_TOPIC_BLOB_STORAGE_EVENTS
-      KAFKA_BROKER: KAFKA_BROKER
+      KAFKA_BROKER: KAFKA_BROKER_RTD
 
 
 
