@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.1</version>
+        <version>3.1.2</version>
         <relativePath/>
         <!-- lookup parent from repository -->
     </parent>
     <groupId>it.gov.pagopa.rtd.ms</groupId>
     <artifactId>rtd-ms-decrypter</artifactId>
-    <version>1.1.5</version>
+    <version>1.1.6</version>
     <name>rtd-ms-decrypter</name>
     <description>Microservice capable of decrypting PGP files</description>
     <properties>
@@ -40,13 +40,13 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpg-jdk18on</artifactId>
-            <version>1.72.2</version>
+            <version>1.76</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
+            <version>2.13.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -64,7 +64,7 @@
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
-            <version>5.7.1</version>
+            <version>5.8</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -107,7 +107,7 @@
             <dependency>
                 <groupId>org.yaml</groupId>
                 <artifactId>snakeyaml</artifactId>
-                <version>2.0</version>
+                <version>2.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -121,12 +121,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>3.3.0</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>10.0</version>
+                        <version>10.12.2</version>
                     </dependency>
                 </dependencies>
                 <executions>
