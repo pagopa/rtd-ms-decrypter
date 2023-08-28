@@ -26,6 +26,8 @@
         <snakeyaml.version>2.1</snakeyaml.version>
         <maven-checkstyle-plugin.version>3.3.0</maven-checkstyle-plugin.version>
         <checkstyle.version>10.12.2</checkstyle.version>
+        <kafka.version>3.5.1</kafka.version>
+		<spring-kafka.version>3.0.10</spring-kafka.version>
     </properties>
     <dependencies>
         <dependency>
@@ -79,6 +81,11 @@
             <artifactId>commons-text</artifactId>
             <version>${commons-text.version}</version>
         </dependency>
+        <dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+			<version>${spring-kafka.version}</version>
+		</dependency>
         <!-- TEST -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
