@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.4</version>
+        <version>3.1.5</version>
         <relativePath/>
         <!-- lookup parent from repository -->
     </parent>
     <groupId>it.gov.pagopa.rtd.ms</groupId>
     <artifactId>rtd-ms-decrypter</artifactId>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
     <name>rtd-ms-decrypter</name>
     <description>Microservice capable of decrypting PGP files</description>
     <properties>
@@ -21,9 +21,9 @@
         <bcpg-jdk18on.version>1.76</bcpg-jdk18on.version>
         <commons-io.version>2.13.0</commons-io.version>
         <httpclient.version>4.5.14</httpclient.version>
-        <opencsv.version>5.8</opencsv.version>
+        <opencsv.version>5.9</opencsv.version>
         <commons-text.version>1.10.0</commons-text.version>
-        <snakeyaml.version>2.1</snakeyaml.version>
+        <snakeyaml.version>2.2</snakeyaml.version>
         <maven-checkstyle-plugin.version>3.3.0</maven-checkstyle-plugin.version>
         <checkstyle.version>10.12.2</checkstyle.version>
         <kafka.version>3.5.1</kafka.version>
@@ -200,7 +200,6 @@
                 </executions>
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
-                    <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
                     <linkXRef>false</linkXRef>
