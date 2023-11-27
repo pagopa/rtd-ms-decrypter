@@ -28,6 +28,8 @@
         <checkstyle.version>10.12.2</checkstyle.version>
         <kafka.version>3.5.1</kafka.version>
         <snappy.version>1.1.10.5</snappy.version>
+        <sonar.exclusions>**/telemetry/**.java</sonar.exclusions>
+        <applicationinsights.enabled>true</applicationinsights.enabled>
     </properties>
     <dependencies>
         <dependency>
@@ -81,6 +83,34 @@
             <artifactId>commons-text</artifactId>
             <version>${commons-text.version}</version>
         </dependency>
+        <!-- Opentelemetry -->
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-mongo-3.1</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-spring-kafka-2.7</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-kafka-clients-2.6</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-logback-appender-1.0</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Azure Monitor OpenTelemetry Exporter -->
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-monitor-opentelemetry-exporter</artifactId>
+            <version>1.0.0-beta.12</version>
+        </dependency>
         <!-- TEST -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -123,6 +153,20 @@
                 <groupId>org.xerial.snappy</groupId>
                 <artifactId>snappy-java</artifactId>
                 <version>${snappy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>1.31.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry.instrumentation</groupId>
+                <artifactId>opentelemetry-instrumentation-bom-alpha</artifactId>
+                <version>1.31.0-alpha</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
