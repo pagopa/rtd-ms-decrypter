@@ -34,10 +34,6 @@
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-mongodb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
@@ -94,10 +90,6 @@
         </dependency>
         <dependency>
             <groupId>io.opentelemetry.instrumentation</groupId>
-            <artifactId>opentelemetry-mongo-3.1</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry.instrumentation</groupId>
             <artifactId>opentelemetry-spring-kafka-2.7</artifactId>
         </dependency>
         <dependency>
@@ -113,7 +105,7 @@
         <dependency>
             <groupId>com.azure</groupId>
             <artifactId>azure-monitor-opentelemetry-exporter</artifactId>
-            <version>1.0.0-beta.12</version>
+            <version>1.0.0-beta.11</version>
         </dependency>
         <!-- TEST -->
         <dependency>
