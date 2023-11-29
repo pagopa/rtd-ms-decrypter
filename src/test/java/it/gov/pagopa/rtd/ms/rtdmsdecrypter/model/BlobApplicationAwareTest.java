@@ -23,9 +23,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ExtendWith(OutputCaptureExtension.class)
+@ActiveProfiles("test")
 class BlobApplicationAwareTest {
 
   @Value("${decrypt.resources.base.path}")

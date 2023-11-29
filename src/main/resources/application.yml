@@ -1,12 +1,30 @@
+spring.application.name: rtddecrypter
 logging:
   level:
     root: INFO
     org.apache.kafka: WARN
 
+# OpenTelemetry
+applicationinsights.enabled: '@applicationinsights.enabled@'
+otel.log.level: ${OPENTELEMETRY_LOG_LEVEL:INFO}
+otel.instrumentation.logback-appender.enabled: true # enable logback instrumentation
+otel.traces.sampler.probability: 1.0 # sample probability for tracing (spans)
+otel.metric.export.interval: 60000 # sampling rate for metrics (millis)
+otel.exporter.otlp.enabled: false # disable send to OTLP endpoint
 
 # Expose only health probes
 management:
-  metrics.export.defaults.enabled: false
+  metrics:
+    export.defaults.enabled: false
+    enable:
+      all: false
+      process.cpu: true
+      system.cpu: true
+      jvm.memory: true
+      application: true
+  endpoints:
+    enabled-by-default: false
+    web.exposure.include: health
   info.defaults.enabled: false
   endpoints.enabled-by-default: false
   endpoint:
@@ -57,6 +75,8 @@ spring:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
             value:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+applicationinsights.enabled: false
 ---
 spring:
   config:
