@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.4</version>
+        <version>3.1.5</version>
         <relativePath/>
         <!-- lookup parent from repository -->
     </parent>
     <groupId>it.gov.pagopa.rtd.ms</groupId>
     <artifactId>rtd-ms-decrypter</artifactId>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
     <name>rtd-ms-decrypter</name>
     <description>Microservice capable of decrypting PGP files</description>
     <properties>
@@ -21,13 +21,15 @@
         <bcpg-jdk18on.version>1.76</bcpg-jdk18on.version>
         <commons-io.version>2.13.0</commons-io.version>
         <httpclient.version>4.5.14</httpclient.version>
-        <opencsv.version>5.8</opencsv.version>
+        <opencsv.version>5.9</opencsv.version>
         <commons-text.version>1.10.0</commons-text.version>
-        <snakeyaml.version>2.1</snakeyaml.version>
+        <snakeyaml.version>2.2</snakeyaml.version>
         <maven-checkstyle-plugin.version>3.3.0</maven-checkstyle-plugin.version>
         <checkstyle.version>10.12.2</checkstyle.version>
         <kafka.version>3.5.1</kafka.version>
         <snappy.version>1.1.10.5</snappy.version>
+        <sonar.exclusions>**/telemetry/**.java</sonar.exclusions>
+        <applicationinsights.enabled>true</applicationinsights.enabled>
     </properties>
     <dependencies>
         <dependency>
@@ -81,6 +83,30 @@
             <artifactId>commons-text</artifactId>
             <version>${commons-text.version}</version>
         </dependency>
+        <!-- Opentelemetry -->
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-spring-kafka-2.7</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-kafka-clients-2.6</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-logback-appender-1.0</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Azure Monitor OpenTelemetry Exporter -->
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-monitor-opentelemetry-exporter</artifactId>
+            <version>1.0.0-beta.11</version>
+        </dependency>
         <!-- TEST -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -124,6 +150,20 @@
                 <artifactId>snappy-java</artifactId>
                 <version>${snappy.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>1.31.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry.instrumentation</groupId>
+                <artifactId>opentelemetry-instrumentation-bom-alpha</artifactId>
+                <version>1.31.0-alpha</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -132,35 +172,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>${maven-checkstyle-plugin.version}</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.puppycrawl.tools</groupId>
-                        <artifactId>checkstyle</artifactId>
-                        <version>${checkstyle.version}</version>
-                    </dependency>
-                </dependencies>
-                <executions>
-                    <execution>
-                        <?m2e execute onConfiguration?>
-                        <id>validate</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <configLocation>google_checks.xml</configLocation>
-                    <encoding>UTF-8</encoding>
-                    <consoleOutput>true</consoleOutput>
-                    <failsOnError>true</failsOnError>
-                    <linkXRef>false</linkXRef>
-                </configuration>
             </plugin>
         </plugins>
     </build>
