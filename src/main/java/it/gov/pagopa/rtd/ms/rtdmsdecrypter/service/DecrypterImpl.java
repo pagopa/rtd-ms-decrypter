@@ -81,7 +81,7 @@ public class DecrypterImpl implements Decrypter {
     } catch (IllegalArgumentException e) {
       log.warn("{}: {}", e.getMessage(), blob.getBlob());
       decryptFailed = true;
-    } catch (PGPException | IOException e) {
+    } catch (PGPException | IOException | ClassCastException e) {
       log.error("Cannot decrypt {}: {}", blob.getBlob(), e.getMessage());
       decryptFailed = true;
     }
@@ -112,8 +112,8 @@ public class DecrypterImpl implements Decrypter {
 
       Object object = pgpF.nextObject();
       // The first object might be a PGP marker packet.
-      if (object instanceof PGPEncryptedDataList) {
-        encrypted = (PGPEncryptedDataList) object;
+      if (object instanceof PGPEncryptedDataList pgpencrypteddatalist) {
+        encrypted = pgpencrypteddatalist;
       } else {
         encrypted = (PGPEncryptedDataList) pgpF.nextObject();
       }
@@ -141,15 +141,15 @@ public class DecrypterImpl implements Decrypter {
 
       Object message = plainFact.nextObject();
 
-      if (message instanceof PGPCompressedData) {
-        PGPCompressedData data = (PGPCompressedData) message;
+      if (message instanceof PGPCompressedData pgpCompressedData) {
+        PGPCompressedData data = pgpCompressedData;
         JcaPGPObjectFactory pgpFact = new JcaPGPObjectFactory(data.getDataStream());
 
         message = pgpFact.nextObject();
       }
 
-      if (message instanceof PGPLiteralData) {
-        PGPLiteralData ld = (PGPLiteralData) message;
+      if (message instanceof PGPLiteralData pgpLiteralData) {
+        PGPLiteralData ld = pgpLiteralData;
 
         unencrypted = ld.getInputStream();
 
