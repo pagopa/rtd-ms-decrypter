@@ -10,6 +10,7 @@ microservice-chart:
   deployment:
     create: true
     replicas: 1
+    forceRedeploy: true
 
   resources:
     requests:
