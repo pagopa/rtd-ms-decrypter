@@ -81,7 +81,7 @@ public class DecrypterImpl implements Decrypter {
     } catch (IllegalArgumentException e) {
       log.warn("{}: {}", e.getMessage(), blob.getBlob());
       decryptFailed = true;
-    } catch (PGPException | IOException | ClassCastException e) {
+    } catch (Exception e) {
       log.error("Cannot decrypt {}: {}", blob.getBlob(), e.getMessage());
       decryptFailed = true;
     }
