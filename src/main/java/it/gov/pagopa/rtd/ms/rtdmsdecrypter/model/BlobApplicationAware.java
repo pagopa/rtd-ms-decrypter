@@ -25,6 +25,7 @@ public class BlobApplicationAware {
   public enum Application {
     RTD,
     ADE,
+    WALLET,
     NOAPP
   }
 
@@ -41,6 +42,10 @@ public class BlobApplicationAware {
     UPLOADED,
     DELETED
   }
+
+  private static final int RTD_NAME_CHUNK_NUM = 7;
+  private static final int WALLET_NAME_CHUNK_NUM = 7;
+
 
   private String blobUri;
   private String container;
@@ -64,11 +69,15 @@ public class BlobApplicationAware {
 
   private String targetContainerAde = "ade-transactions-decrypted";
   private String targetContainerRtd = "rtd-transactions-decrypted";
+  private String targetContainerWallet = "wallet-contracts-decrypted";
 
   private String targetDir = "/tmp";
 
-  private Pattern uriPattern = Pattern.compile(
-      "^.*containers/((ade|rtd)-transactions-[a-z0-9]{44})/blobs/(.*)");
+  private Pattern uriRtdPattern = Pattern.compile(
+      "^.*containers/((ade|rtd)(-transactions-[a-z0-9]{44}))/blobs/(.*)");
+
+  private Pattern uriWalletPattern = Pattern.compile(
+      "^.*containers/wallet/blobs/contracts-encrypted/(.*)");
 
   private static final String WRONG_FORMAT_NAME_WARNING_MSG = "Wrong name format:";
   private static final String CONFLICTING_SERVICE_WARNING_MSG = "Conflicting service in URI:";
@@ -85,12 +94,12 @@ public class BlobApplicationAware {
     blobUri = uri;
     status = Status.INIT;
 
-    Matcher matcher = uriPattern.matcher(uri);
+    Matcher matcherRtd = uriRtdPattern.matcher(uri);
+    Matcher matcherWallet = uriWalletPattern.matcher(uri);
 
-    if (matcher.matches()) {
-
-      container = matcher.group(1);
-      blob = matcher.group(3);
+    if (matcherRtd.matches()) {
+      container = matcherRtd.group(1);
+      blob = matcherRtd.group(4);
       originalBlobName = blob;
 
       //Tokenized blob name for checking compliance
@@ -99,14 +108,14 @@ public class BlobApplicationAware {
       //Set status, regardless of name correctness
       status = Status.RECEIVED;
 
-      if (checkNameFormat(blobNameTokenized)) {
+      if (checkRtdNameFormat(blobNameTokenized)) {
 
         //Check whether the blob's service matches in path and name, then assign Application
-        if (matcher.group(2).equalsIgnoreCase("ADE") && blobNameTokenized[0]
+        if (matcherRtd.group(2).equalsIgnoreCase("ADE") && blobNameTokenized[0]
             .equalsIgnoreCase("ADE")) {
           app = Application.ADE;
           targetContainer = targetContainerAde;
-        } else if (matcher.group(2).equalsIgnoreCase("RTD")
+        } else if (matcherRtd.group(2).equalsIgnoreCase("RTD")
             && blobNameTokenized[0].equalsIgnoreCase("CSTAR")) {
           app = Application.RTD;
           targetContainer = targetContainerRtd;
@@ -118,10 +127,29 @@ public class BlobApplicationAware {
         log.warn(WRONG_FORMAT_NAME_WARNING_MSG + blobUri);
         app = Application.NOAPP;
       }
-    } else {
-      log.info(EVENT_NOT_OF_INTEREST_WARNING_MSG + blobUri);
-      app = Application.NOAPP;
+      return;
     }
+
+    if (matcherWallet.matches()) {
+      blob = matcherWallet.group(0);
+      originalBlobName = blob;
+
+      String[] blobNameTokenized = blob.split("\\.");
+
+      status = Status.RECEIVED;
+
+      if (checkWalletNameFormat(blobNameTokenized)) {
+        app = Application.WALLET;
+        targetContainer = targetContainerWallet;
+      } else {
+        log.warn(WRONG_FORMAT_NAME_WARNING_MSG + blobUri);
+        app = Application.NOAPP;
+      }
+      return;
+    }
+
+    log.info(EVENT_NOT_OF_INTEREST_WARNING_MSG + blobUri);
+    app = Application.NOAPP;
   }
 
   /**
@@ -131,12 +159,12 @@ public class BlobApplicationAware {
    * @param blobNameTokens values obtained from the name of the blob (separated by dots)
    * @return true if the name matches the format, false otherwise
    */
-  private boolean checkNameFormat(String[] blobNameTokens) {
-    if (blobNameTokens.length < 7) {
+  private boolean checkRtdNameFormat(String[] blobNameTokens) {
+
+    if (blobNameTokens.length < RTD_NAME_CHUNK_NUM) {
       return false;
     }
 
-    // Check for application name (add new services to the regex)
     if (!blobNameTokens[0].matches("(ADE|CSTAR)")) {
       return false;
     }
@@ -149,35 +177,44 @@ public class BlobApplicationAware {
     senderCode = blobNameTokens[1];
 
     // Check for filetype (fixed "TRNLOG" value)
-    // Should ignore case?
     if (!blobNameTokens[2].equalsIgnoreCase("TRNLOG")) {
       return false;
     }
 
+    extractBatchServiceChunkNumber(blobNameTokens[6]);
+    return checkDateTimeFormat(blobNameTokens, 3, 4) && extractFlowNumber(blobNameTokens[5]);
+  }
+
+  private boolean checkWalletNameFormat(String[] blobNameTokens) {
+    if (blobNameTokens.length != WALLET_NAME_CHUNK_NUM) {
+      return false;
+    }
+
+    if (!blobNameTokens[1].equals("CONTRACTS")) {
+      return false;
+    }
+
+    return checkDateTimeFormat(blobNameTokens, 2, 3) && extractFlowNumber(blobNameTokens[4]);
+
+  }
+
+  private boolean checkDateTimeFormat(String[] blobNameTokens, int datePosition, int timePosition) {
     SimpleDateFormat daysFormat = new SimpleDateFormat("yyyyMMddHHmmss");
     // Make the format refuse wrong date and time (default behavior is to overflow values in
     // following date)
     daysFormat.setLenient(false);
 
     try {
-      daysFormat.parse(blobNameTokens[3] + blobNameTokens[4]);
+      daysFormat.parse(blobNameTokens[datePosition] + blobNameTokens[timePosition]);
     } catch (ParseException e) {
       log.error("Error parsing date and time: {}", e.getMessage());
       return false;
     }
 
-    fileCreationDate = blobNameTokens[3];
-    fileCreationTime = blobNameTokens[4];
+    fileCreationDate = blobNameTokens[datePosition];
+    fileCreationTime = blobNameTokens[timePosition];
 
-    extractBatchServiceChunkNumber(blobNameTokens[6]);
-
-    // Check for progressive value
-    if (blobNameTokens[5].matches("\\d{3}")) {
-      flowNumber = blobNameTokens[5];
-      return true;
-    } else {
-      return false;
-    }
+    return true;
   }
 
   /**
@@ -219,6 +256,16 @@ public class BlobApplicationAware {
 
   }
 
+  boolean extractFlowNumber(String token) {
+    // Check for progressive value
+    if (token.matches("\\d{3}")) {
+      flowNumber = token;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   void extractBatchServiceChunkNumber(String token) {
     if (token.matches("(\\d{2})")) {
       batchServiceChunkNumber = token;
@@ -227,5 +274,3 @@ public class BlobApplicationAware {
     }
   }
 }
-  
-
