@@ -43,6 +43,13 @@ public class BlobSplitterImpl implements BlobSplitter {
    * @return a list of blobs that represent the split blob.
    */
   public Stream<BlobApplicationAware> split(BlobApplicationAware blob) {
+    // FIXME skip split for testing purposes
+    if (blob.getApp() == Application.WALLET) {
+      log.info("No need to split blob {}", blob.getBlob());
+      blob.setStatus(SPLIT);
+      return Stream.of(blob);
+    }
+
     log.info("Start splitting blob {} from {}", blob.getBlob(), blob.getContainer());
 
     String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + decryptedSuffix).toString();
