@@ -77,7 +77,7 @@ public class BlobApplicationAware {
       "^.*containers/((ade|rtd)(-transactions-[a-z0-9]{44}))/blobs/(.*)");
 
   private Pattern uriWalletPattern = Pattern.compile(
-      "^.*containers/wallet/blobs/contracts-encrypted/(.*)");
+      "^.*containers/(wallet)/blobs/contracts-encrypted/(.*)");
 
   private static final String WRONG_FORMAT_NAME_WARNING_MSG = "Wrong name format:";
   private static final String CONFLICTING_SERVICE_WARNING_MSG = "Conflicting service in URI:";
@@ -131,7 +131,8 @@ public class BlobApplicationAware {
     }
 
     if (matcherWallet.matches()) {
-      blob = matcherWallet.group(0);
+      container = matcherWallet.group(1);
+      blob = matcherWallet.group(2);
       originalBlobName = blob;
 
       String[] blobNameTokenized = blob.split("\\.");
