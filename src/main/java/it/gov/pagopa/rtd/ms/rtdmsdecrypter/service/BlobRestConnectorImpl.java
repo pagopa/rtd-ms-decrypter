@@ -1,6 +1,7 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -49,8 +50,15 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
    */
   public BlobApplicationAware get(BlobApplicationAware blob) {
     log.info("Start GET blob {} from {}", blob.getBlob(), blob.getContainer());
+    String targetBlob = blob.getBlob();
+    if (blob.getApp().equals(Application.WALLET)) {
+      targetBlob = "contracts-encrypted/" + blob.getBlob();
+    }
 
-    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob.getBlob();
+    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + targetBlob;
+
+    log.info("Getting file from {}", uri);
+
     final HttpGet getBlob = new HttpGet(uri);
     getBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
 
