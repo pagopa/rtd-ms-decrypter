@@ -47,7 +47,7 @@ public class BlobSplitterImpl implements BlobSplitter {
     if (blob.getApp() == Application.WALLET) {
       log.info("No need to split blob {}", blob.getBlob());
       blob.setStatus(SPLIT);
-      blob.setBlob(blob.getBlob() + "." + decryptedSuffix);
+      blob.setBlob(blob.getBlob() + decryptedSuffix);
       return Stream.of(blob);
     }
 
