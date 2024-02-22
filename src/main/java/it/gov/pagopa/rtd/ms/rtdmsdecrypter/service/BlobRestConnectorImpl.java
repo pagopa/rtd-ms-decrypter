@@ -4,6 +4,7 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Objects;
@@ -18,6 +19,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -69,6 +71,27 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     getBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
 
     try {
+      HttpResponse response = httpClient.execute(getBlob);
+      int statusCode = response.getStatusLine().getStatusCode();
+
+      if (statusCode == HttpStatus.SC_OK) {
+        InputStream result = response.getEntity().getContent();
+
+        OutputStream outputStream = new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile());
+        IOUtils.copy(result, outputStream);
+        result.close();
+        outputStream.close();
+
+        blob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+        log.info("Successful GET of blob {} from {}", blob.getBlob(), blob.getContainer());
+      } else {
+        log.error("Cannot GET blob {} from {}: {}", blob.getBlob(), blob.getContainer(), statusCode);
+      }
+    } catch (Exception e) {
+      log.error("Cannot GET blob {} from {}: {}", blob.getBlob(), blob.getContainer(), e.getMessage());
+    }
+
+    try {
       OutputStream result = httpClient.execute(getBlob,
           new FileDownloadResponseHandler(
               new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile())));
@@ -76,8 +99,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
       blob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
       log.info("Successful GET of blob {} from {}", blob.getBlob(), blob.getContainer());
     } catch (Exception ex) {
-      log.error("Cannot GET blob {} from {}: {}", blob.getBlob(), blob.getContainer(),
-          ex.getMessage());
+      log.error("Cannot GET blob {} from {}: {}", blob.getBlob(), blob.getContainer(), ex.getMessage());
     }
 
     return blob;
