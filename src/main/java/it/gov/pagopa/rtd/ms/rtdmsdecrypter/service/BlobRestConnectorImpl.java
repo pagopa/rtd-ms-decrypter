@@ -39,6 +39,9 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   @Value("${decrypt.blobclient.basepath}")
   private String blobBasePath;
 
+  @Value("${decrypt.blobclient.sftp-basepath}")
+  private String sftpBlobBasePath;
+
   @Autowired
   CloseableHttpClient httpClient;
 
@@ -51,11 +54,14 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   public BlobApplicationAware get(BlobApplicationAware blob) {
     log.info("Start GET blob {} from {}", blob.getBlob(), blob.getContainer());
     String targetBlob = blob.getBlob();
+    String targetBasePath = blobBasePath;
+
     if (blob.getApp().equals(Application.WALLET)) {
       targetBlob = "contracts-encrypted/" + blob.getBlob();
+      targetBasePath = sftpBlobBasePath;
     }
 
-    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + targetBlob;
+    String uri = baseUrl + "/" + targetBasePath + "/" + blob.getContainer() + "/" + targetBlob;
 
     log.info("Getting file from {}", uri);
 

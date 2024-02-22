@@ -45,6 +45,7 @@ decrypt:
     baseurl: https://${CSV_TRANSACTION_DECRYPT_HOST:internal.it}
   blobclient:
     basepath: storage
+    sftp-basepath: storage
     apikey: ${INTERNAL_SERVICES_API_KEY:myapikey}
     targetContainer:
       rtd: rtd-transactions-decrypted
