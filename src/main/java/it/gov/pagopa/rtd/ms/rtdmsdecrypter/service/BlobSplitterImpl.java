@@ -43,7 +43,19 @@ public class BlobSplitterImpl implements BlobSplitter {
    * @return a list of blobs that represent the split blob.
    */
   public Stream<BlobApplicationAware> split(BlobApplicationAware blob) {
-    // FIXME skip split for testing purposes
+    log.info("Start splitting blob {} from {}", blob.getBlob(), blob.getContainer());
+
+    String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + decryptedSuffix).toString();
+
+    ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
+
+    int chunkNum = 0;
+    boolean successfulSplit;
+
+    if (blob.getApp() == Application.ADE || blob.getApp() == Application.RTD) {
+      chunkNum = splitRtdTaeBlob(blob, blobPath, blobSplit);
+    }
+
     if (blob.getApp() == Application.WALLET) {
       log.info("No need to split blob {}", blob.getBlob());
       blob.setStatus(SPLIT);
@@ -51,21 +63,19 @@ public class BlobSplitterImpl implements BlobSplitter {
       return Stream.of(blob);
     }
 
-    log.info("Start splitting blob {} from {}", blob.getBlob(), blob.getContainer());
+    if (chunkNum > 0) {
+      successfulSplit = true;
+    } else {
+      successfulSplit = false;
+    }
 
-    String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + decryptedSuffix).toString();
+    return finalizeSplit(blob, successfulSplit, chunkNum, blobSplit);
+  }
 
-    ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
+  private int splitRtdTaeBlob(BlobApplicationAware blob, String blobPath,
+      ArrayList<BlobApplicationAware> blobSplit) {
 
-    //Flag for fail split
-    boolean failSplit = false;
-
-    //Flag for skipping first checksum line
-    checksumSkipped = false;
-
-    //Incremental integer for chunk numbering
     int chunkNum = 0;
-
     String chunkName;
 
     try (
@@ -83,7 +93,7 @@ public class BlobSplitterImpl implements BlobSplitter {
                 Path.of(blob.getTargetDir(), chunkName).toString(),
                 true).getChannel(),
             StandardCharsets.UTF_8)) {
-          writeChunks(it, writer, blob);
+          writeCsvChunks(it, writer, blob);
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
               blob.getBlobUri());
           tmpBlob.setOriginalBlobName(blob.getBlob());
@@ -98,10 +108,9 @@ public class BlobSplitterImpl implements BlobSplitter {
       }
     } catch (IOException e) {
       log.error("Missing blob file:{}", blobPath);
-      failSplit = true;
+      return 0;
     }
-
-    return finalizeSplit(blob, failSplit, chunkNum, blobSplit);
+    return chunkNum;
   }
 
   private String adeNamingConvention(BlobApplicationAware blob) {
@@ -111,7 +120,7 @@ public class BlobSplitterImpl implements BlobSplitter {
         + blob.getBatchServiceChunkNumber();
   }
 
-  private void writeChunks(LineIterator it, Writer writer,
+  private void writeCsvChunks(LineIterator it, Writer writer,
       BlobApplicationAware blob)
       throws IOException {
     // Counter for current line number (from 0 to lineThreshold)
@@ -134,10 +143,11 @@ public class BlobSplitterImpl implements BlobSplitter {
     }
   }
 
-  private Stream<BlobApplicationAware> finalizeSplit(BlobApplicationAware blob, boolean failSplit,
+  private Stream<BlobApplicationAware> finalizeSplit(BlobApplicationAware blob,
+      boolean successfulSplit,
       int chunkNum, ArrayList<BlobApplicationAware> blobSplit) {
 
-    if (!failSplit) {
+    if (successfulSplit) {
       log.info("Obtained {} chunk/s from blob:{}", chunkNum, blob.getBlob());
       for (BlobApplicationAware b : blobSplit) {
         b.setOrigianalFileChunksNumber(chunkNum);

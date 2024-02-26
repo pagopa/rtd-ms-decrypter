@@ -149,6 +149,7 @@ class BlobSplitterTest {
   void shouldSplitRTD() {
 
     blobSplitterImpl.setLineThreshold(1);
+    blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTD);
     Iterable<BlobApplicationAware> iterable = chunks::iterator;
@@ -162,9 +163,27 @@ class BlobSplitterTest {
   }
 
   @Test
+  void shouldSplitRTDNotSkippingChecksum() {
+
+    blobSplitterImpl.setLineThreshold(1);
+    blobSplitterImpl.setChecksumSkipped(true);
+
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTD);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.SPLIT, b.getStatus());
+      assertEquals(blobNameRTD + "." + i + ".decrypted", b.getBlob());
+      i++;
+    }
+    assertEquals(4, i);
+  }
+
+  @Test
   void shouldSplitReminderRTD() {
 
     blobSplitterImpl.setLineThreshold(2);
+    blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTD);
     Iterable<BlobApplicationAware> iterable = chunks::iterator;
@@ -181,6 +200,7 @@ class BlobSplitterTest {
   void shouldSplitRTDOldNaming() {
 
     blobSplitterImpl.setLineThreshold(1);
+    blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTDOldNaming);
     Iterable<BlobApplicationAware> iterable = chunks::iterator;
@@ -197,6 +217,7 @@ class BlobSplitterTest {
   void shouldSplitTAE() {
     //Instantiate a fake blob with clear text content
     blobSplitterImpl.setLineThreshold(1);
+    blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobTAE);
     Iterable<BlobApplicationAware> iterable = chunks::iterator;
@@ -215,6 +236,8 @@ class BlobSplitterTest {
   void shouldSplitTAEOldNaming() {
     //Instantiate a fake blob with clear text content
     blobSplitterImpl.setLineThreshold(1);
+    blobSplitterImpl.setChecksumSkipped(false);
+
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobTAEOldNaming);
     Iterable<BlobApplicationAware> iterable = chunks::iterator;
     int i = 0;
@@ -236,6 +259,7 @@ class BlobSplitterTest {
   void shouldSplitReminderTAE() {
 
     blobSplitterImpl.setLineThreshold(2);
+    blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobTAE);
     Iterable<BlobApplicationAware> iterable = chunks::iterator;
@@ -257,6 +281,7 @@ class BlobSplitterTest {
     fakeBlobRTD.setTargetDir("pippo");
     fakeBlobRTD.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobSplitterImpl.setLineThreshold(1);
+    blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTD);
     ArrayList<BlobApplicationAware> originalMissingBlob = (ArrayList<BlobApplicationAware>) chunks.collect(
