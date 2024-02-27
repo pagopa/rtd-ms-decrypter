@@ -1,16 +1,28 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status.SPLIT;
+import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl.deserializeAndVerifyContract;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.WalletContract;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.WalletExportHeader;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
 import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.stream.Stream;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +42,10 @@ public class BlobSplitterImpl implements BlobSplitter {
   //Max number of lines allowed in one blob chunk.
   @Value("${decrypt.splitter.threshold}")
   private int lineThreshold;
+
+  //Max number of lines allowed in one contracts blob chunk.
+  @Value("${decrypt.splitter.walletThreshold}")
+  private int contractsSplitThreshold;
 
   private String decryptedSuffix = ".decrypted";
 
@@ -56,10 +72,7 @@ public class BlobSplitterImpl implements BlobSplitter {
     }
 
     if (blob.getApp() == Application.WALLET) {
-      log.info("No need to split blob {}", blob.getBlob());
-      blob.setStatus(SPLIT);
-      blob.setBlob(blob.getBlob() + decryptedSuffix);
-      return Stream.of(blob);
+      successfulSplit = splitWalletBlob(blob, blobPath, blobSplit);
     }
 
     return finalizeSplit(blob, successfulSplit, blobSplit);
@@ -106,6 +119,92 @@ public class BlobSplitterImpl implements BlobSplitter {
     return true;
   }
 
+  private boolean splitWalletBlob(BlobApplicationAware blob, String blobPath,
+      ArrayList<BlobApplicationAware> blobSplit) {
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    JsonFactory jsonFactory = new JsonFactory();
+    ArrayList<WalletContract> contracts = new ArrayList<>();
+
+    int chunkNum = 0;
+
+    try (InputStream inputStream = new FileInputStream(blobPath)) {
+      JsonParser jsonParser = jsonFactory.createParser(inputStream);
+
+      if (jsonParser.nextToken() != JsonToken.START_OBJECT) {
+        log.error("Validation error: malformed wallet export");
+        return false;
+      }
+
+      if (jsonParser.nextToken() != JsonToken.FIELD_NAME && jsonParser.getCurrentName()
+          .equals("header")) {
+        log.error("Validation error: expected wallet export header");
+        return false;
+      }
+
+      jsonParser.nextToken();
+      WalletExportHeader header = objectMapper.readValue(jsonParser, WalletExportHeader.class);
+      log.info("Contracts export header:  {}", header.toString());
+
+      if (jsonParser.nextToken() != JsonToken.FIELD_NAME && jsonParser.getCurrentName()
+          .equals("contracts")) {
+        log.error("Validation error: expected wallet export contracts");
+        return false;
+      }
+
+      if (jsonParser.nextToken() != JsonToken.START_ARRAY) {
+        log.error("Validation error: expected wallet export contracts array");
+        return false;
+      }
+
+      int contractsCounter = 0;
+      int contractsSplitCounter = 0;
+      log.info("verifying {}", blob.getBlob());
+
+      // Iterate over the tokens until the end of the contracts array
+      while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+
+        try {
+          WalletContract contract = deserializeAndVerifyContract(objectMapper, jsonParser,
+              contractsCounter);
+          log.info("extracted {}", contract);
+
+          if (contract == null) {
+            return false;
+          }
+          contracts.add(contract);
+          contractsCounter++;
+          contractsSplitCounter++;
+
+          if (contractsSplitCounter % contractsSplitThreshold == 0) {
+            log.info("Splitting {}", blob.getBlob());
+            BlobApplicationAware currentChunk = writeJsonChunk(contracts, blob, chunkNum);
+            if (currentChunk == null) {
+              return false;
+            }
+            contractsSplitCounter = 0;
+            chunkNum++;
+            blobSplit.add(currentChunk);
+          }
+        } catch (UnrecognizedPropertyException e) {
+          log.error("Failed to deserialize the contract {}: {}", contractsCounter, e.getMessage());
+        }
+      }
+
+      //Write residual contracts in another chunk
+      if (!contracts.isEmpty()) {
+        BlobApplicationAware currentChunk = writeJsonChunk(contracts, blob, chunkNum);
+        blobSplit.add(currentChunk);
+      }
+
+    } catch (IOException e) {
+      log.error("Missing blob file:{}", blobPath);
+      return false;
+    }
+
+    return true;
+  }
+
   private String adeNamingConvention(BlobApplicationAware blob) {
     // Note that no chunk number is added to the blob name
     return "AGGADE." + blob.getSenderCode() + "." + blob.getFileCreationDate() + "."
@@ -134,6 +233,44 @@ public class BlobSplitterImpl implements BlobSplitter {
       }
       i++;
     }
+  }
+
+  private BlobApplicationAware writeJsonChunk(ArrayList<WalletContract> contracts,
+      BlobApplicationAware blob, int chunkNum) {
+    String chunkName = blob.getBlob() + "." + chunkNum + decryptedSuffix;
+    BlobApplicationAware chunkBlob = new BlobApplicationAware(
+        blob.getBlobUri());
+    chunkBlob.setOriginalBlobName(blob.getBlob());
+    chunkBlob.setStatus(SPLIT);
+    chunkBlob.setApp(blob.getApp());
+    chunkBlob.setBlob(chunkName);
+    chunkBlob.setBlobUri(
+        blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/"
+            + chunkName);
+    chunkBlob.setTargetDir(blob.getTargetDir());
+
+    try {
+      HashMap<String, ArrayList<WalletContract>> split_export = new HashMap<String, ArrayList<WalletContract>>();
+      split_export.put("contracts", contracts);
+      ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
+      String contractsSerialization = objectWriter.writeValueAsString(split_export);
+
+      try (Writer writer = Channels.newWriter(new FileOutputStream(
+              Path.of(chunkBlob.getTargetDir(), chunkBlob.getBlob()).toString(),
+              true).getChannel(),
+          StandardCharsets.UTF_8)) {
+        writer.append(contractsSerialization);
+      } catch (IOException e) {
+        log.error("Failed to serialize contracts of blob {}", chunkBlob.getBlob());
+        return null;
+      }
+    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+      log.error("Failed to serialize contracts of blob {}", chunkBlob.getBlob());
+      return null;
+    } finally {
+      contracts.clear();
+    }
+    return chunkBlob;
   }
 
   private Stream<BlobApplicationAware> finalizeSplit(BlobApplicationAware blob,
