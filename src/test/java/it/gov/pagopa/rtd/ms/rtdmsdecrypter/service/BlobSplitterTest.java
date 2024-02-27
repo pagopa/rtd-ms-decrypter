@@ -157,6 +157,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTD + "." + i + ".decrypted", b.getBlob());
+      assertEquals(b.getOrigianalFileChunksNumber(), 3);
       i++;
     }
     assertEquals(3, i);
@@ -174,6 +175,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTD + "." + i + ".decrypted", b.getBlob());
+      assertEquals(b.getOrigianalFileChunksNumber(), 4);
       i++;
     }
     assertEquals(4, i);
@@ -191,6 +193,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTD + "." + i + ".decrypted", b.getBlob());
+      assertEquals(b.getOrigianalFileChunksNumber(), 2);
       i++;
     }
     assertEquals(2, i);
@@ -208,6 +211,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTDOldNaming + "." + i + ".decrypted", b.getBlob());
+      assertEquals(b.getOrigianalFileChunksNumber(), 3);
       i++;
     }
     assertEquals(3, i);
@@ -227,6 +231,7 @@ class BlobSplitterTest {
       assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
           + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber
           + String.format("%03d", i), b.getBlob());
+      assertEquals(b.getOrigianalFileChunksNumber(), 4);
       i++;
     }
     assertEquals(4, i);
@@ -248,6 +253,7 @@ class BlobSplitterTest {
               + missingBatchServiceChunkNumberPlaceholder
               + String.format("%03d", i),
           b.getBlob());
+      assertEquals(b.getOrigianalFileChunksNumber(), 4);
       i++;
     }
     assertEquals(4, i);
@@ -269,6 +275,7 @@ class BlobSplitterTest {
       assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
           + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber
           + String.format("%03d", i), b.getBlob());
+      assertEquals(b.getOrigianalFileChunksNumber(), 2);
       i++;
     }
     assertEquals(2, i);

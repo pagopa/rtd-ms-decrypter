@@ -49,11 +49,10 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
 
-    int chunkNum = 0;
-    boolean successfulSplit;
+    boolean successfulSplit = false;
 
     if (blob.getApp() == Application.ADE || blob.getApp() == Application.RTD) {
-      chunkNum = splitRtdTaeBlob(blob, blobPath, blobSplit);
+      successfulSplit = splitRtdTaeBlob(blob, blobPath, blobSplit);
     }
 
     if (blob.getApp() == Application.WALLET) {
@@ -63,16 +62,10 @@ public class BlobSplitterImpl implements BlobSplitter {
       return Stream.of(blob);
     }
 
-    if (chunkNum > 0) {
-      successfulSplit = true;
-    } else {
-      successfulSplit = false;
-    }
-
-    return finalizeSplit(blob, successfulSplit, chunkNum, blobSplit);
+    return finalizeSplit(blob, successfulSplit, blobSplit);
   }
 
-  private int splitRtdTaeBlob(BlobApplicationAware blob, String blobPath,
+  private boolean splitRtdTaeBlob(BlobApplicationAware blob, String blobPath,
       ArrayList<BlobApplicationAware> blobSplit) {
 
     int chunkNum = 0;
@@ -108,9 +101,9 @@ public class BlobSplitterImpl implements BlobSplitter {
       }
     } catch (IOException e) {
       log.error("Missing blob file:{}", blobPath);
-      return 0;
+      return false;
     }
-    return chunkNum;
+    return true;
   }
 
   private String adeNamingConvention(BlobApplicationAware blob) {
@@ -144,13 +137,12 @@ public class BlobSplitterImpl implements BlobSplitter {
   }
 
   private Stream<BlobApplicationAware> finalizeSplit(BlobApplicationAware blob,
-      boolean successfulSplit,
-      int chunkNum, ArrayList<BlobApplicationAware> blobSplit) {
+      boolean successfulSplit, ArrayList<BlobApplicationAware> blobSplit) {
 
     if (successfulSplit) {
-      log.info("Obtained {} chunk/s from blob:{}", chunkNum, blob.getBlob());
+      log.info("Obtained {} chunk/s from blob:{}", blobSplit.size(), blob.getBlob());
       for (BlobApplicationAware b : blobSplit) {
-        b.setOrigianalFileChunksNumber(chunkNum);
+        b.setOrigianalFileChunksNumber(blobSplit.size());
       }
       return blobSplit.stream();
     } else {
