@@ -51,13 +51,12 @@ public class BlobVerifierImpl implements BlobVerifier {
    * decrypted.
    */
   public BlobApplicationAware verify(BlobApplicationAware blob) {
-    log.info("START Verifying {}", blob.getBlob());
-
-    // FIXME skip verify for testing purposes
     if (blob.getApp() == Application.WALLET) {
       blob.setStatus(VERIFIED);
       return blob;
     }
+
+    log.info("START Verifying {}", blob.getBlob());
 
     FileReader fileReader;
 

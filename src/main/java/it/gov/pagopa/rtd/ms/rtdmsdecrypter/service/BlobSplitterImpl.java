@@ -59,8 +59,6 @@ public class BlobSplitterImpl implements BlobSplitter {
    * @return a list of blobs that represent the split blob.
    */
   public Stream<BlobApplicationAware> split(BlobApplicationAware blob) {
-    log.info("Start splitting blob {} from {}", blob.getBlob(), blob.getContainer());
-
     String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + decryptedSuffix).toString();
 
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
@@ -68,10 +66,12 @@ public class BlobSplitterImpl implements BlobSplitter {
     boolean successfulSplit = false;
 
     if (blob.getApp() == Application.ADE || blob.getApp() == Application.RTD) {
+      log.info("Start splitting blob {} from {}", blob.getBlob(), blob.getContainer());
       successfulSplit = splitRtdTaeBlob(blob, blobPath, blobSplit);
     }
 
     if (blob.getApp() == Application.WALLET) {
+      log.info("Start splitting and verifying blob {} from {}", blob.getBlob(), blob.getContainer());
       successfulSplit = splitWalletBlob(blob, blobPath, blobSplit);
     }
 
@@ -159,7 +159,6 @@ public class BlobSplitterImpl implements BlobSplitter {
 
       int contractsCounter = 0;
       int contractsSplitCounter = 0;
-      log.info("verifying {}", blob.getBlob());
 
       // Iterate over the tokens until the end of the contracts array
       while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
@@ -167,7 +166,6 @@ public class BlobSplitterImpl implements BlobSplitter {
         try {
           WalletContract contract = deserializeAndVerifyContract(objectMapper, jsonParser,
               contractsCounter);
-          log.info("extracted {}", contract);
 
           if (contract == null) {
             return false;
