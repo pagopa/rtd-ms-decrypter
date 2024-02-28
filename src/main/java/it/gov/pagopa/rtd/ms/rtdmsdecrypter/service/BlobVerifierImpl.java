@@ -124,10 +124,15 @@ public class BlobVerifierImpl implements BlobVerifier {
 
       if (contractViolations.isEmpty()) {
 
-        if ((contract.getAction().equals("CREATE") && contract.getImportOutcome().equals("KO"))
-            || (contract.getAction().equals("DELETE") && contract.getImportOutcome()
-            .equals("OK"))) {
-          log.error("Conflicting couple (action, import_outcome) on contract {}",
+        if (contract.getAction().equals("CREATE") && !contract.getImportOutcome().equals("OK")) {
+          log.error(
+              "Validation error on contract {}: conflicting action CREATE and import_outcome not OK",
+              (contractsCounter + 1));
+          return null;
+        }
+
+        if (contract.getImportOutcome().equals("KO") && contract.getReasonMessage() == null) {
+          log.error("Validation error on contract {}: import outcome KO and no reason message",
               (contractsCounter + 1));
           return null;
         }
@@ -138,18 +143,22 @@ public class BlobVerifierImpl implements BlobVerifier {
           Set<ConstraintViolation<ContractMethodAttributes>> contractMethodAttributeViolations = validator.validate(
               currentContractMethodAttributes);
           if (!contractMethodAttributeViolations.isEmpty()) {
-            log.error("Method attibutes of contract {} are not valid", (contractsCounter + 1));
+            log.error("Validation error on contract {}: method attributes are not valid",
+                (contractsCounter + 1));
+            for (ConstraintViolation<ContractMethodAttributes> violation : contractMethodAttributeViolations) {
+              log.error("{}", violation.getMessage());
+            }
             return null;
           }
         } else if (!contract.getAction().equals("DELETE")) {
-          log.error("Method attibutes of contract {} are empty", (contractsCounter + 1));
+          log.error("Method attributes of contract {} are empty", (contractsCounter + 1));
           return null;
         }
 
       } else {
+        log.error("Validation error in contract {}: fields are not valid", (contractsCounter + 1));
         for (ConstraintViolation<WalletContract> violation : contractViolations) {
-          log.error("Validation error in contract " + (contractsCounter + 1) + " : "
-              + violation.getMessage());
+          log.error("{}", violation.getMessage());
         }
         return null;
 
