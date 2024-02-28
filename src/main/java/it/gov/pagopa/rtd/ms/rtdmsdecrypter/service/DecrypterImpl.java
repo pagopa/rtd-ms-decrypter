@@ -97,7 +97,6 @@ public class DecrypterImpl implements Decrypter {
 
   protected void decryptFile(InputStream input, OutputStream output, String blobName)
       throws IOException, PGPException {
-    log.info("Getting private key");
     InputStream keyInput = IOUtils.toInputStream(this.privateKey, StandardCharsets.UTF_8);
     char[] passwd = this.privateKeyPassword.toCharArray();
 
@@ -109,7 +108,6 @@ public class DecrypterImpl implements Decrypter {
     try {
       JcaPGPObjectFactory pgpF = new JcaPGPObjectFactory(input);
       PGPEncryptedDataList encrypted;
-      log.info("Try getting object from pgp file");
 
       Object object = pgpF.nextObject();
       // The first object might be a PGP marker packet.
@@ -119,7 +117,6 @@ public class DecrypterImpl implements Decrypter {
         encrypted = (PGPEncryptedDataList) pgpF.nextObject();
       }
 
-      log.info("Iterating over objects");
       // Find the secret key
       Iterator<PGPEncryptedData> it = encrypted.getEncryptedDataObjects();
       PGPPrivateKey secretKey = null;
@@ -136,14 +133,10 @@ public class DecrypterImpl implements Decrypter {
         throw new PGPException("Secret key for message not found.");
       }
 
-      log.info("Secret key has been found");
-
       clear = pbe.getDataStream(new JcePublicKeyDataDecryptorFactoryBuilder()
           .setProvider("BC").build(secretKey));
 
       JcaPGPObjectFactory plainFact = new JcaPGPObjectFactory(clear);
-
-      log.info("Getting message");
 
       Object message = plainFact.nextObject();
 
