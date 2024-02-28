@@ -2,31 +2,31 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.FileEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.message.BasicHeader;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.io.entity.FileEntity;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Concrete implementation of a BlobRestConnector interface.
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class BlobRestConnectorImpl implements BlobRestConnector {
 
   @Value("${decrypt.api.baseurl}")
@@ -38,8 +38,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   @Value("${decrypt.blobclient.basepath}")
   private String blobBasePath;
 
-  @Autowired
-  CloseableHttpClient httpClient;
+  private final CloseableHttpClient httpClient;
 
   /**
    * Method that allows the get of the blob from a remote storage.
@@ -55,18 +54,31 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     getBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
 
     try {
-      OutputStream result = httpClient.execute(getBlob,
-          new FileDownloadResponseHandler(
-              new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile())));
-      result.close();
+      httpClient.execute(getBlob, processGetResponse(blob));
       blob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
       log.info("Successful GET of blob {} from {}", blob.getBlob(), blob.getContainer());
+    } catch (ResponseStatusException ex) {
+      log.error("Cannot GET blob {} in {}. Invalid HTTP response: {}, {}", blob.getBlob(),
+          blob.getTargetContainer(), ex.getStatusCode().value(), ex.getReason());
     } catch (Exception ex) {
       log.error("Cannot GET blob {} from {}: {}", blob.getBlob(), blob.getContainer(),
           ex.getMessage());
     }
 
     return blob;
+  }
+
+  @NotNull
+  protected HttpClientResponseHandler<Integer> processGetResponse(
+      BlobApplicationAware blob) {
+    return response -> {
+      if (response.getCode() != HttpStatus.SC_OK) {
+        throw new ResponseStatusException(HttpStatusCode.valueOf(response.getCode()),
+            response.getReasonPhrase());
+      }
+      return StreamUtils.copy(Objects.requireNonNull(response.getEntity().getContent()),
+          new FileOutputStream(Path.of(blob.getTargetDir(), blob.getBlob()).toFile()));
+    };
   }
 
   /**
@@ -92,15 +104,13 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     putBlob.setHeader(new BasicHeader("If-None-Match", "*"));
     putBlob.setEntity(entity);
 
-    try (CloseableHttpResponse myResponse = httpClient.execute(putBlob)) {
-      int status = myResponse.getStatusLine().getStatusCode();
-      if (status == HttpStatus.SC_CREATED) {
-        blob.setStatus(BlobApplicationAware.Status.UPLOADED);
-        log.info("Successful PUT of blob {} in {}", blob.getBlob(), blob.getTargetContainer());
-      } else {
-        log.error("Cannot PUT blob {} in {}. Invalid HTTP response: {}, {}", blob.getBlob(),
-            blob.getTargetContainer(), status, myResponse.getStatusLine().getReasonPhrase());
-      }
+    try {
+      httpClient.execute(putBlob, processPutResponse());
+      blob.setStatus(BlobApplicationAware.Status.UPLOADED);
+      log.info("Successful PUT of blob {} in {}", blob.getBlob(), blob.getTargetContainer());
+    } catch (ResponseStatusException ex) {
+      log.error("Cannot PUT blob {} in {}. Invalid HTTP response: {}, {}", blob.getBlob(),
+          blob.getTargetContainer(), ex.getStatusCode().value(), ex.getReason());
     } catch (Exception ex) {
       log.error("Cannot PUT blob {} in {}. Unexpected error: {}", blob.getBlob(),
           blob.getTargetContainer(), ex.getMessage());
@@ -108,19 +118,15 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     return blob;
   }
 
-  static class FileDownloadResponseHandler implements ResponseHandler<OutputStream> {
-
-    private final OutputStream target;
-
-    public FileDownloadResponseHandler(OutputStream target) {
-      this.target = target;
-    }
-
-    @Override
-    public OutputStream handleResponse(HttpResponse response) throws IOException {
-      StreamUtils.copy(Objects.requireNonNull(response.getEntity().getContent()), this.target);
-      return this.target;
-    }
-
+  @NotNull
+  protected HttpClientResponseHandler<Void> processPutResponse() {
+    return response -> {
+      int status = response.getCode();
+      if (status != HttpStatus.SC_CREATED) {
+        throw new ResponseStatusException(HttpStatusCode.valueOf(status),
+            response.getReasonPhrase());
+      }
+      return null;
+    };
   }
 }

@@ -2,50 +2,48 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import java.io.IOException;
-import java.io.OutputStream;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.CloseableHttpClient;
+import java.nio.charset.StandardCharsets;
+import org.apache.commons.io.IOUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.impl.io.DefaultClassicHttpResponseFactory;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.web.server.ResponseStatusException;
 
 
-@SpringBootTest
-@ActiveProfiles("test")
-@EmbeddedKafka(topics = {
-    "rtd-platform-events"}, partitions = 1, bootstrapServersProperty = "spring.cloud.stream.kafka.binder.brokers")
-@ExtendWith(OutputCaptureExtension.class)
+@ExtendWith({OutputCaptureExtension.class, MockitoExtension.class})
 class BlobRestConnectorTest {
 
-  @Autowired
   BlobRestConnectorImpl blobRestConnectorImpl;
 
-  @MockBean
+  @Mock
   CloseableHttpClient client;
 
   private final static String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
@@ -55,87 +53,67 @@ class BlobRestConnectorTest {
 
   private BlobApplicationAware blobIn;
 
-
   @BeforeEach
   public void setUp() {
     blobIn = new BlobApplicationAware(
         "/blobServices/default/containers/" + container + "/blobs/" + blobName);
+    blobRestConnectorImpl = new BlobRestConnectorImpl(client);
   }
 
   @Test
   void shouldGet(CapturedOutput output) throws IOException {
-    // Improvement idea: mock all the stuff needed in order to allow the FileDownloadResponseHandler
-    // class to create a file in a temporary directory and test the content of the downloaded file
-    // for an expected content.
-    OutputStream mockedOutputStream = mock(OutputStream.class);
-    doReturn(mockedOutputStream).when(client)
-        .execute(any(HttpGet.class), any(BlobRestConnectorImpl.FileDownloadResponseHandler.class));
-
     BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobIn);
 
     verify(client, times(1)).execute(any(HttpUriRequest.class),
-        ArgumentMatchers.<ResponseHandler<OutputStream>>any());
+        any(HttpClientResponseHandler.class));
     assertEquals(BlobApplicationAware.Status.DOWNLOADED, blobOut.getStatus());
     assertThat(output.getOut(), containsString("Successful GET of blob "));
     assertThat(output.getOut(), not(containsString("Cannot GET blob ")));
-
   }
 
   @Test
   void shouldFailGet(CapturedOutput output) throws IOException {
     doThrow(new IOException(EXCEPTION_MESSAGE)).when(client)
-
-        .execute(any(HttpGet.class), any(BlobRestConnectorImpl.FileDownloadResponseHandler.class));
+        .execute(any(HttpGet.class), any(HttpClientResponseHandler.class));
 
     BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobIn);
 
     verify(client, times(1)).execute(any(HttpUriRequest.class),
-        ArgumentMatchers.<ResponseHandler<OutputStream>>any());
+        any(HttpClientResponseHandler.class));
     assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
-    assertThat(output.getOut(), containsString("Cannot GET blob"));
     assertThat(output.getOut(), containsString("Cannot GET blob"));
   }
 
   @Test
   void shouldFailGetNullResponse(CapturedOutput output) throws IOException {
+    doThrow(new NullPointerException()).when(client)
+        .execute(any(HttpGet.class), any(HttpClientResponseHandler.class));
 
     BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobIn);
 
     verify(client, times(1)).execute(any(HttpUriRequest.class),
-        ArgumentMatchers.<ResponseHandler<OutputStream>>any());
+        any(HttpClientResponseHandler.class));
     assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
     assertThat(output.getOut(), containsString("Cannot GET blob"));
-
   }
 
   @Test
   void shouldPut(CapturedOutput output) throws IOException {
-    StatusLine mockedStatusLine = mock(StatusLine.class);
-    doReturn(HttpStatus.SC_CREATED).when(mockedStatusLine).getStatusCode();
-    CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
-    doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
-    doReturn(mockedResponse).when(client).execute(any(HttpPut.class));
-
     BlobApplicationAware blobOut = blobRestConnectorImpl.put(blobIn);
 
-    verify(client, times(1)).execute(any(HttpPut.class));
+    verify(client, times(1)).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
     assertEquals(BlobApplicationAware.Status.UPLOADED, blobOut.getStatus());
     assertThat(output.getOut(), not(containsString("Cannot PUT blob ")));
   }
 
   @Test
   void shouldFailPutHttpError(CapturedOutput output) throws IOException {
-    StatusLine mockedStatusLine = mock(StatusLine.class);
-    doReturn(HttpStatus.SC_INTERNAL_SERVER_ERROR).when(mockedStatusLine).getStatusCode();
-    doReturn("Internal Server Error").when(mockedStatusLine).getReasonPhrase();
-
-    CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
-    doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
-    doReturn(mockedResponse).when(client).execute(any(HttpPut.class));
+    doThrow(new ResponseStatusException(HttpStatusCode.valueOf(404), "not_found"))
+        .when(client).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
 
     BlobApplicationAware blobOut = blobRestConnectorImpl.put(blobIn);
 
-    verify(client, times(1)).execute(any(HttpPut.class));
+    verify(client, times(1)).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
     assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
     assertThat(output.getOut(), containsString("Cannot PUT blob "));
   }
@@ -143,13 +121,59 @@ class BlobRestConnectorTest {
   @Test
   void shouldFailPutUnexpectedError(CapturedOutput output) throws IOException {
     doThrow(new IOException(EXCEPTION_MESSAGE)).when(client)
-        .execute(any(HttpGet.class), any(BlobRestConnectorImpl.FileDownloadResponseHandler.class));
+        .execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
 
     BlobApplicationAware blobOut = blobRestConnectorImpl.put(blobIn);
 
-    verify(client, times(1)).execute(any(HttpPut.class));
+    verify(client, times(1)).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
     assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
     assertThat(output.getOut(), containsString("Cannot PUT blob "));
+  }
 
+  @Test
+  void givenGetResponse200ThenReturnsInt() throws HttpException, IOException {
+    var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(200, "test");
+    response.setEntity(
+        new BasicHttpEntity(IOUtils.toInputStream("fake_content", StandardCharsets.UTF_8),
+            ContentType.TEXT_PLAIN));
+
+    var byteCopied = blobRestConnectorImpl.processGetResponse(blobIn).handleResponse(response);
+
+    assertThat(byteCopied, greaterThan(0));
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {201, 202, 203, 301, 400, 404, 500, 502})
+  void givenBadStatusCodeAsGetResponseThenThrowException(int statusCode)
+      throws IOException {
+    try (var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(statusCode,
+        "test")) {
+
+      var lambda = blobRestConnectorImpl.processGetResponse(blobIn);
+
+      assertThrows(ResponseStatusException.class, () -> lambda.handleResponse(response));
+    }
+  }
+
+  @Test
+  void givenPutResponse201ThenReturnsNull() throws HttpException, IOException {
+    var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(201, "test");
+
+    var value = blobRestConnectorImpl.processPutResponse().handleResponse(response);
+
+    assertNull(value);
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {301, 400, 404, 500, 502})
+  void givenBadStatusCodeAsPutResponseThenThrowException(int statusCode)
+      throws IOException {
+    try (var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(statusCode,
+        "test")) {
+
+      var lambda = blobRestConnectorImpl.processPutResponse();
+
+      assertThrows(ResponseStatusException.class, () -> lambda.handleResponse(response));
+    }
   }
 }
