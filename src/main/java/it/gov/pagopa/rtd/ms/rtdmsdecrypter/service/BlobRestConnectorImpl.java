@@ -58,7 +58,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
       blob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
       log.info("Successful GET of blob {} from {}", blob.getBlob(), blob.getContainer());
     } catch (ResponseStatusException ex) {
-      log.error("Cannot GET blob {} in {}. Invalid HTTP response: {}, {}", blob.getBlob(),
+      log.error("Cannot GET blob {} from {}. Invalid HTTP response: {}, {}", blob.getBlob(),
           blob.getTargetContainer(), ex.getStatusCode().value(), ex.getReason());
     } catch (Exception ex) {
       log.error("Cannot GET blob {} from {}: {}", blob.getBlob(), blob.getContainer(),
