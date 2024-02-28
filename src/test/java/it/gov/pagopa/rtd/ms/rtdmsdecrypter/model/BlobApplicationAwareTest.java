@@ -16,25 +16,13 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
 
-import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
-@ExtendWith(OutputCaptureExtension.class)
-@ActiveProfiles("test")
 class BlobApplicationAwareTest {
 
-  @Value("${decrypt.resources.base.path}")
-  String resources;
-
-  @Value("${decrypt.resources.base.path}/tmp")
-  String tmpDirectory;
+  String tmpDirectory = "src/test/resources/tmp";
 
   String containerRtd = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
   String blobNameRtd = "CSTAR.99910.TRNLOG.20220316.164707.001.01.csv.pgp";
