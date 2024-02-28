@@ -175,7 +175,6 @@ public class BlobSplitterImpl implements BlobSplitter {
           contractsSplitCounter++;
 
           if (contractsSplitCounter % contractsSplitThreshold == 0) {
-            log.info("Splitting {}", blob.getBlob());
             BlobApplicationAware currentChunk = writeJsonChunk(contracts, blob, chunkNum);
             if (currentChunk == null) {
               return false;
