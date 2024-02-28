@@ -54,7 +54,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     getBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
 
     try {
-      httpClient.execute(getBlob, processGetResponse(blob));
+      httpClient.execute(getBlob, downloadFileIn(blob));
       blob.setStatus(BlobApplicationAware.Status.DOWNLOADED);
       log.info("Successful GET of blob {} from {}", blob.getBlob(), blob.getContainer());
     } catch (ResponseStatusException ex) {
@@ -69,8 +69,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   }
 
   @NotNull
-  protected HttpClientResponseHandler<Integer> processGetResponse(
-      BlobApplicationAware blob) {
+  protected HttpClientResponseHandler<Integer> downloadFileIn(BlobApplicationAware blob) {
     return response -> {
       if (response.getCode() != HttpStatus.SC_OK) {
         throw new ResponseStatusException(HttpStatusCode.valueOf(response.getCode()),
@@ -105,7 +104,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     putBlob.setEntity(entity);
 
     try {
-      httpClient.execute(putBlob, processPutResponse());
+      httpClient.execute(putBlob, validateStatusCode());
       blob.setStatus(BlobApplicationAware.Status.UPLOADED);
       log.info("Successful PUT of blob {} in {}", blob.getBlob(), blob.getTargetContainer());
     } catch (ResponseStatusException ex) {
@@ -119,7 +118,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   }
 
   @NotNull
-  protected HttpClientResponseHandler<Void> processPutResponse() {
+  protected HttpClientResponseHandler<Void> validateStatusCode() {
     return response -> {
       int status = response.getCode();
       if (status != HttpStatus.SC_CREATED) {

@@ -149,7 +149,7 @@ class BlobRestConnectorTest {
         new BasicHttpEntity(IOUtils.toInputStream("fake_content", StandardCharsets.UTF_8),
             ContentType.TEXT_PLAIN));
 
-    var byteCopied = blobRestConnectorImpl.processGetResponse(blobIn).handleResponse(response);
+    var byteCopied = blobRestConnectorImpl.downloadFileIn(blobIn).handleResponse(response);
 
     assertThat(byteCopied, greaterThan(0));
   }
@@ -161,7 +161,7 @@ class BlobRestConnectorTest {
     try (var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(statusCode,
         "test")) {
 
-      var lambda = blobRestConnectorImpl.processGetResponse(blobIn);
+      var lambda = blobRestConnectorImpl.downloadFileIn(blobIn);
 
       assertThrows(ResponseStatusException.class, () -> lambda.handleResponse(response));
     }
@@ -171,7 +171,7 @@ class BlobRestConnectorTest {
   void givenPutResponse201ThenReturnsNull() throws HttpException, IOException {
     var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(201, "test");
 
-    var value = blobRestConnectorImpl.processPutResponse().handleResponse(response);
+    var value = blobRestConnectorImpl.validateStatusCode().handleResponse(response);
 
     assertNull(value);
   }
@@ -183,7 +183,7 @@ class BlobRestConnectorTest {
     try (var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(statusCode,
         "test")) {
 
-      var lambda = blobRestConnectorImpl.processPutResponse();
+      var lambda = blobRestConnectorImpl.validateStatusCode();
 
       assertThrows(ResponseStatusException.class, () -> lambda.handleResponse(response));
     }
