@@ -176,7 +176,7 @@ class BlobSplitterTest {
   @Test
   void shouldSplitRTD() {
 
-    blobSplitterImpl.setLineThreshold(1);
+    blobSplitterImpl.setAggregatesLineThreshold(1);
     blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTD);
@@ -211,7 +211,7 @@ class BlobSplitterTest {
   @Test
   void shouldSplitRTDNotSkippingChecksum() {
 
-    blobSplitterImpl.setLineThreshold(1);
+    blobSplitterImpl.setAggregatesLineThreshold(1);
     blobSplitterImpl.setChecksumSkipped(true);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTD);
@@ -229,7 +229,7 @@ class BlobSplitterTest {
   @Test
   void shouldSplitReminderRTD() {
 
-    blobSplitterImpl.setLineThreshold(2);
+    blobSplitterImpl.setAggregatesLineThreshold(2);
     blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTD);
@@ -247,7 +247,7 @@ class BlobSplitterTest {
   @Test
   void shouldSplitRTDOldNaming() {
 
-    blobSplitterImpl.setLineThreshold(1);
+    blobSplitterImpl.setAggregatesLineThreshold(1);
     blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTDOldNaming);
@@ -265,7 +265,7 @@ class BlobSplitterTest {
   @Test
   void shouldSplitTAE() {
     //Instantiate a fake blob with clear text content
-    blobSplitterImpl.setLineThreshold(1);
+    blobSplitterImpl.setAggregatesLineThreshold(1);
     blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobTAE);
@@ -285,7 +285,7 @@ class BlobSplitterTest {
   @Test
   void shouldSplitTAEOldNaming() {
     //Instantiate a fake blob with clear text content
-    blobSplitterImpl.setLineThreshold(1);
+    blobSplitterImpl.setAggregatesLineThreshold(1);
     blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobTAEOldNaming);
@@ -309,7 +309,7 @@ class BlobSplitterTest {
   @Test
   void shouldSplitReminderTAE() {
 
-    blobSplitterImpl.setLineThreshold(2);
+    blobSplitterImpl.setAggregatesLineThreshold(2);
     blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobTAE);
@@ -332,7 +332,7 @@ class BlobSplitterTest {
     //Set the wrong directory for locating the decrypted fake blob
     fakeBlobRTD.setTargetDir("pippo");
     fakeBlobRTD.setStatus(BlobApplicationAware.Status.DOWNLOADED);
-    blobSplitterImpl.setLineThreshold(1);
+    blobSplitterImpl.setAggregatesLineThreshold(1);
     blobSplitterImpl.setChecksumSkipped(false);
 
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTD);

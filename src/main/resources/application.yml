@@ -51,8 +51,8 @@ decrypt:
       rtd: rtd-transactions-decrypted
       ade: ade-transactions-decrypted
   splitter:
-    threshold: ${SPLITTER_LINE_THRESHOLD:250000}
-    walletThreshold: ${SPLITTER_LINE_THRESHOLD:250000}
+    aggregatesThreshold: ${AGGREGATES_SPLITTER_LINE_THRESHOLD:250000}
+    walletThreshold: ${CONTRACTS_SPLITTER_LINE_THRESHOLD:100000}
   enableChunkUpload: ${ENABLE_CHUNK_UPLOAD:false}
   skipChecksum: ${SKIP_CHECKSUM:false}
 

@@ -40,8 +40,8 @@ import org.springframework.stereotype.Service;
 public class BlobSplitterImpl implements BlobSplitter {
 
   //Max number of lines allowed in one blob chunk.
-  @Value("${decrypt.splitter.threshold}")
-  private int lineThreshold;
+  @Value("${decrypt.splitter.aggregatesThreshold}")
+  private int aggregatesLineThreshold;
 
   //Max number of lines allowed in one contracts blob chunk.
   @Value("${decrypt.splitter.walletThreshold}")
@@ -213,9 +213,9 @@ public class BlobSplitterImpl implements BlobSplitter {
   private void writeCsvChunks(LineIterator it, Writer writer,
       BlobApplicationAware blob)
       throws IOException {
-    // Counter for current line number (from 0 to lineThreshold)
+    // Counter for current line number (from 0 to aggregatesLineThreshold)
     int i = 0;
-    while (i < lineThreshold) {
+    while (i < aggregatesLineThreshold) {
       if (it.hasNext()) {
         String line = it.nextLine();
         //Skip the checksum line (the first one)
