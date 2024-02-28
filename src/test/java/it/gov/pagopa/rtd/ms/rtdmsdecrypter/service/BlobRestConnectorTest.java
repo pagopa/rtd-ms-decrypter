@@ -85,6 +85,18 @@ class BlobRestConnectorTest {
   }
 
   @Test
+  void shouldFailGetHttpError(CapturedOutput output) throws IOException {
+    doThrow(new ResponseStatusException(HttpStatusCode.valueOf(404), "not_found"))
+        .when(client).execute(any(HttpGet.class), any(HttpClientResponseHandler.class));
+
+    BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobIn);
+
+    verify(client, times(1)).execute(any(HttpGet.class), any(HttpClientResponseHandler.class));
+    assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
+    assertThat(output.getOut(), containsString("Cannot GET blob "));
+  }
+
+  @Test
   void shouldFailGetNullResponse(CapturedOutput output) throws IOException {
     doThrow(new NullPointerException()).when(client)
         .execute(any(HttpGet.class), any(HttpClientResponseHandler.class));
