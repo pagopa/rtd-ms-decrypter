@@ -209,6 +209,23 @@ class BlobSplitterTest {
   }
 
   @Test
+  void shouldSplitWalletWithReminder() {
+
+    blobSplitterImpl.setContractsSplitThreshold(3);
+
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobWallet);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.SPLIT, b.getStatus());
+      assertEquals(blobNameWallet + "." + i + ".decrypted", b.getBlob());
+      assertEquals(b.getOrigianalFileChunksNumber(), 2);
+      i++;
+    }
+    assertEquals(2, i);
+  }
+
+  @Test
   void shouldSplitRTDNotSkippingChecksum() {
 
     blobSplitterImpl.setAggregatesLineThreshold(1);
