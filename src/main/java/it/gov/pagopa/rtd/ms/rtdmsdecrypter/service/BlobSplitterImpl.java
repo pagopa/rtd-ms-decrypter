@@ -71,7 +71,8 @@ public class BlobSplitterImpl implements BlobSplitter {
     }
 
     if (blob.getApp() == Application.WALLET) {
-      log.info("Start splitting and verifying blob {} from {}", blob.getBlob(), blob.getContainer());
+      log.info("Start splitting and verifying blob {} from {}", blob.getBlob(),
+          blob.getContainer());
       successfulSplit = splitWalletBlob(blob, blobPath, blobSplit);
     }
 
@@ -124,9 +125,6 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     ObjectMapper objectMapper = new ObjectMapper();
     JsonFactory jsonFactory = new JsonFactory();
-    ArrayList<WalletContract> contracts = new ArrayList<>();
-
-    int chunkNum = 0;
 
     try (InputStream inputStream = new FileInputStream(blobPath)) {
       JsonParser jsonParser = jsonFactory.createParser(inputStream);
@@ -157,49 +155,12 @@ public class BlobSplitterImpl implements BlobSplitter {
         return false;
       }
 
-      int contractsCounter = 0;
-      int contractsSplitCounter = 0;
-
-      // Iterate over the tokens until the end of the contracts array
-      while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-
-        try {
-          WalletContract contract = deserializeAndVerifyContract(objectMapper, jsonParser,
-              contractsCounter);
-
-          if (contract == null) {
-            return false;
-          }
-          contracts.add(contract);
-          contractsCounter++;
-          contractsSplitCounter++;
-
-          if (contractsSplitCounter % contractsSplitThreshold == 0) {
-            BlobApplicationAware currentChunk = writeJsonChunk(contracts, blob, chunkNum);
-            if (currentChunk == null) {
-              return false;
-            }
-            contractsSplitCounter = 0;
-            chunkNum++;
-            blobSplit.add(currentChunk);
-          }
-        } catch (UnrecognizedPropertyException e) {
-          log.error("Failed to deserialize the contract {}: {}", contractsCounter, e.getMessage());
-        }
-      }
-
-      //Write residual contracts in another chunk
-      if (!contracts.isEmpty()) {
-        BlobApplicationAware currentChunk = writeJsonChunk(contracts, blob, chunkNum);
-        blobSplit.add(currentChunk);
-      }
+      return deserializeAndSplitContracts(jsonParser, blobSplit, objectMapper, blob);
 
     } catch (IOException e) {
       log.error("Missing blob file:{}", blobPath);
       return false;
     }
-
-    return true;
   }
 
   private String adeNamingConvention(BlobApplicationAware blob) {
@@ -266,6 +227,51 @@ public class BlobSplitterImpl implements BlobSplitter {
       contracts.clear();
     }
     return chunkBlob;
+  }
+
+  private boolean deserializeAndSplitContracts(JsonParser jsonParser,
+      ArrayList<BlobApplicationAware> blobSplit, ObjectMapper objectMapper,
+      BlobApplicationAware blob)
+      throws IOException {
+    int contractsCounter = 0;
+    int contractsSplitCounter = 0;
+    int chunkNum = 0;
+    ArrayList<WalletContract> contracts = new ArrayList<>();
+
+    // Iterate over the tokens until the end of the contracts array
+    while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+
+      try {
+        WalletContract contract = deserializeAndVerifyContract(objectMapper, jsonParser,
+            contractsCounter);
+
+        if (contract == null) {
+          return false;
+        }
+        contracts.add(contract);
+        contractsCounter++;
+        contractsSplitCounter++;
+
+        if (contractsSplitCounter % contractsSplitThreshold == 0) {
+          BlobApplicationAware currentChunk = writeJsonChunk(contracts, blob, chunkNum);
+          if (currentChunk == null) {
+            return false;
+          }
+          contractsSplitCounter = 0;
+          chunkNum++;
+          blobSplit.add(currentChunk);
+        }
+      } catch (UnrecognizedPropertyException e) {
+        log.error("Failed to deserialize the contract {}: {}", contractsCounter, e.getMessage());
+      }
+    }
+
+    //Write residual contracts in another chunk
+    if (!contracts.isEmpty()) {
+      BlobApplicationAware currentChunk = writeJsonChunk(contracts, blob, chunkNum);
+      blobSplit.add(currentChunk);
+    }
+    return true;
   }
 
   private Stream<BlobApplicationAware> finalizeSplit(BlobApplicationAware blob,
