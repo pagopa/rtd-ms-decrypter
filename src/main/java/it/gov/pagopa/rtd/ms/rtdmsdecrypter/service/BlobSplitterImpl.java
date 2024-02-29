@@ -247,10 +247,8 @@ public class BlobSplitterImpl implements BlobSplitter {
     chunkBlob.setTargetDir(blob.getTargetDir());
 
     try {
-      HashMap<String, ArrayList<WalletContract>> split_export = new HashMap<String, ArrayList<WalletContract>>();
-      split_export.put("contracts", contracts);
       ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
-      String contractsSerialization = objectWriter.writeValueAsString(split_export);
+      String contractsSerialization = objectWriter.writeValueAsString(contracts);
 
       try (Writer writer = Channels.newWriter(new FileOutputStream(
               Path.of(chunkBlob.getTargetDir(), chunkBlob.getBlob()).toString(),
