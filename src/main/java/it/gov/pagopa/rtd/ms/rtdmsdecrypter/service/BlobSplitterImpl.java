@@ -4,17 +4,19 @@ import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Sta
 import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl.deserializeAndVerifyContract;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.WalletContract;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.WalletExportHeader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
@@ -22,7 +24,6 @@ import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.stream.Stream;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +61,6 @@ public class BlobSplitterImpl implements BlobSplitter {
    */
   public Stream<BlobApplicationAware> split(BlobApplicationAware blob) {
     String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + decryptedSuffix).toString();
-
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
 
     boolean successfulSplit = false;
@@ -193,42 +193,6 @@ public class BlobSplitterImpl implements BlobSplitter {
     }
   }
 
-  private BlobApplicationAware writeJsonChunk(ArrayList<WalletContract> contracts,
-      BlobApplicationAware blob, int chunkNum) {
-    String chunkName = blob.getBlob() + "." + chunkNum + decryptedSuffix;
-    BlobApplicationAware chunkBlob = new BlobApplicationAware(
-        blob.getBlobUri());
-    chunkBlob.setOriginalBlobName(blob.getBlob());
-    chunkBlob.setStatus(SPLIT);
-    chunkBlob.setApp(blob.getApp());
-    chunkBlob.setBlob(chunkName);
-    chunkBlob.setBlobUri(
-        blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/"
-            + chunkName);
-    chunkBlob.setTargetDir(blob.getTargetDir());
-
-    try {
-      ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
-      String contractsSerialization = objectWriter.writeValueAsString(contracts);
-
-      try (Writer writer = Channels.newWriter(new FileOutputStream(
-              Path.of(chunkBlob.getTargetDir(), chunkBlob.getBlob()).toString(),
-              true).getChannel(),
-          StandardCharsets.UTF_8)) {
-        writer.append(contractsSerialization);
-      } catch (IOException e) {
-        log.error("Failed to serialize contracts of blob {}", chunkBlob.getBlob());
-        return null;
-      }
-    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-      log.error("Failed to serialize contracts of blob {}", chunkBlob.getBlob());
-      return null;
-    } finally {
-      contracts.clear();
-    }
-    return chunkBlob;
-  }
-
   private boolean deserializeAndSplitContracts(JsonParser jsonParser,
       ArrayList<BlobApplicationAware> blobSplit, ObjectMapper objectMapper,
       BlobApplicationAware blob)
@@ -236,41 +200,56 @@ public class BlobSplitterImpl implements BlobSplitter {
     int contractsCounter = 0;
     int contractsSplitCounter = 0;
     int chunkNum = 0;
-    ArrayList<WalletContract> contracts = new ArrayList<>();
+    boolean isChunkOpen = false;
+
+    JsonFactory jsonFactory = new JsonFactory();
+    BlobApplicationAware chunkBlob = null;
+    File chunkOutputFile;
+    FileWriter fileWriter = null;
+    JsonGenerator jsonGenerator = null;
 
     // Iterate over the tokens until the end of the contracts array
     while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-
+      if (!isChunkOpen) {
+        chunkBlob = blobChunkConstructor(blob, chunkNum);
+        chunkOutputFile = new File(
+            Path.of(chunkBlob.getTargetDir(), chunkBlob.getBlob()).toString());
+        fileWriter = new FileWriter(chunkOutputFile);
+        jsonGenerator = jsonFactory.createGenerator(fileWriter);
+        jsonGenerator.writeStartArray();
+        isChunkOpen = true;
+      }
       try {
         WalletContract contract = deserializeAndVerifyContract(objectMapper, jsonParser,
             contractsCounter);
-
         if (contract == null) {
           return false;
         }
-        contracts.add(contract);
-        contractsCounter++;
         contractsSplitCounter++;
+        contractsCounter++;
+
+        objectMapper.writeValue(jsonGenerator, contract);
 
         if (contractsSplitCounter % contractsSplitThreshold == 0) {
-          BlobApplicationAware currentChunk = writeJsonChunk(contracts, blob, chunkNum);
-          if (currentChunk == null) {
-            return false;
-          }
-          contractsSplitCounter = 0;
+          jsonGenerator.writeEndArray();
+          jsonGenerator.close();
+          fileWriter.close();
+          isChunkOpen = false;
+          blobSplit.add(chunkBlob);
           chunkNum++;
-          blobSplit.add(currentChunk);
         }
       } catch (UnrecognizedPropertyException e) {
         log.error("Failed to deserialize the contract {}: {}", contractsCounter, e.getMessage());
       }
     }
 
-    //Write residual contracts in another chunk
-    if (!contracts.isEmpty()) {
-      BlobApplicationAware currentChunk = writeJsonChunk(contracts, blob, chunkNum);
-      blobSplit.add(currentChunk);
+    if (isChunkOpen) {
+      jsonGenerator.writeEndArray();
+      jsonGenerator.close();
+      fileWriter.close();
+      blobSplit.add(chunkBlob);
     }
+
     return true;
   }
 
@@ -289,5 +268,20 @@ public class BlobSplitterImpl implements BlobSplitter {
       blob.localCleanup();
       return Stream.of(blob);
     }
+  }
+
+  private BlobApplicationAware blobChunkConstructor(BlobApplicationAware blob, int chunkNum) {
+    String chunkName = blob.getBlob() + "." + chunkNum + decryptedSuffix;
+    BlobApplicationAware chunkBlob = new BlobApplicationAware(
+        blob.getBlobUri());
+    chunkBlob.setOriginalBlobName(blob.getBlob());
+    chunkBlob.setStatus(SPLIT);
+    chunkBlob.setApp(blob.getApp());
+    chunkBlob.setBlob(chunkName);
+    chunkBlob.setBlobUri(
+        blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/"
+            + chunkName);
+    chunkBlob.setTargetDir(blob.getTargetDir());
+    return chunkBlob;
   }
 }
