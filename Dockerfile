@@ -5,7 +5,7 @@ COPY . .
 
 RUN mvn clean package
 
-FROM amazoncorretto:17.0.9-alpine3.18@sha256:97077b491447b095b0fe8d6d6863526dec637b3e6f8f34e50787690b529253f3 AS runtime
+FROM amazoncorretto:17.0.10-alpine3.19@sha256:7fa638463726cb1646100882b2baafd1b78978007bbfc28cb36a7fb5e9ebe8dd AS runtime
 
 VOLUME /tmp
 WORKDIR /app
