@@ -146,7 +146,7 @@ public class BlobVerifierImpl implements BlobVerifier {
             log.error("Validation error on contract {}: method attributes are not valid",
                 (contractsCounter + 1));
             for (ConstraintViolation<ContractMethodAttributes> violation : contractMethodAttributeViolations) {
-              log.error("{}", violation.getMessage());
+              log.error("{} {}", violation.getPropertyPath(), violation.getMessage());
             }
             return null;
           }

@@ -21,7 +21,7 @@
                 "card_payment_circuit": "MAESTRO",
                 "new_contract_identifier": "1e04de1f762b440fa5c444464603bc7c",
                 "original_contract_identifier": "3b1288edc1f14e0a97129d84fbf1f01e",
-                "card_bin": "4595"
+                "card_bin": "459521"
             }
         },
         {
@@ -35,7 +35,7 @@
                 "card_payment_circuit": "MASTERCARD",
                 "new_contract_identifier": "21645e16d5494ab599fd3f6fdf9ef7ec",
                 "original_contract_identifier": "2fb8a9f2804f4acb96c57129bab65b8b",
-                "card_bin": "3474"
+                "card_bin": "347486"
             }
         },
         {
@@ -49,7 +49,7 @@
                 "card_payment_circuit": "MAESTRO",
                 "new_contract_identifier": "fee6c7da10c44f168a7a4bd2c82f5ab0",
                 "original_contract_identifier": "6563990fb0a8409fbe6df4e49a6361c8",
-                "card_bin": "4486"
+                "card_bin": "448600"
             }
         },
         {
