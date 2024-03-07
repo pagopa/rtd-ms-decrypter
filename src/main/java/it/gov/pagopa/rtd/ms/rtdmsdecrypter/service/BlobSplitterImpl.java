@@ -29,6 +29,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -84,6 +85,7 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     int chunkNum = 0;
     String chunkName;
+    MutableBoolean isChecksumSkipped = new MutableBoolean(checksumSkipped);
 
     try (
         LineIterator it = FileUtils.lineIterator(
@@ -100,7 +102,7 @@ public class BlobSplitterImpl implements BlobSplitter {
                 Path.of(blob.getTargetDir(), chunkName).toString(),
                 true).getChannel(),
             StandardCharsets.UTF_8)) {
-          writeCsvChunks(it, writer, blob);
+          writeCsvChunks(it, writer, blob, isChecksumSkipped);
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
               blob.getBlobUri());
           tmpBlob.setOriginalBlobName(blob.getBlob());
@@ -171,7 +173,7 @@ public class BlobSplitterImpl implements BlobSplitter {
   }
 
   private void writeCsvChunks(LineIterator it, Writer writer,
-      BlobApplicationAware blob)
+      BlobApplicationAware blob, MutableBoolean isChecksumSkipped)
       throws IOException {
     // Counter for current line number (from 0 to aggregatesLineThreshold)
     int i = 0;
@@ -179,9 +181,9 @@ public class BlobSplitterImpl implements BlobSplitter {
       if (it.hasNext()) {
         String line = it.nextLine();
         //Skip the checksum line (the first one)
-        if (!checksumSkipped) {
+        if (Boolean.FALSE.equals(isChecksumSkipped.getValue())) {
           log.info("Checksum: {} {}", blob.getBlob(), line);
-          checksumSkipped = true;
+          isChecksumSkipped.setTrue();
           i--;
         } else {
           writer.append(line).append("\n");
