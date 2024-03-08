@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
@@ -137,7 +138,7 @@ public class BlobSplitterImpl implements BlobSplitter {
         return false;
       }
 
-      if (jsonParser.nextToken() != JsonToken.FIELD_NAME && jsonParser.getCurrentName()
+      if (jsonParser.nextToken() == JsonToken.FIELD_NAME && !jsonParser.getCurrentName()
           .equals("header")) {
         log.error("Validation error: expected wallet export header");
         return false;
@@ -160,7 +161,7 @@ public class BlobSplitterImpl implements BlobSplitter {
 
       return deserializeAndSplitContracts(jsonParser, blobSplit, objectMapper, blob);
 
-    } catch (JsonParseException e) {
+    } catch (JsonParseException | MismatchedInputException e) {
       log.error("Validation error: malformed wallet export");
       return false;
     } catch (IOException e) {
