@@ -5,6 +5,7 @@ import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl.deser
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -146,8 +147,8 @@ public class BlobSplitterImpl implements BlobSplitter {
       WalletExportHeader header = objectMapper.readValue(jsonParser, WalletExportHeader.class);
       log.info("Contracts export header:  {}", header.toString());
 
-      if (jsonParser.nextToken() != JsonToken.FIELD_NAME && jsonParser.getCurrentName()
-          .equals("contracts")) {
+      if (jsonParser.getCurrentName() == null || jsonParser.nextToken() != JsonToken.FIELD_NAME
+          || !jsonParser.getCurrentName().equals("contracts")) {
         log.error("Validation error: expected wallet export contracts");
         return false;
       }
@@ -159,6 +160,9 @@ public class BlobSplitterImpl implements BlobSplitter {
 
       return deserializeAndSplitContracts(jsonParser, blobSplit, objectMapper, blob);
 
+    } catch (JsonParseException e) {
+      log.error("Validation error: malformed wallet export");
+      return false;
     } catch (IOException e) {
       log.error("Missing blob file:{}", blobPath);
       return false;
@@ -266,7 +270,7 @@ public class BlobSplitterImpl implements BlobSplitter {
       return blobSplit.stream();
     } else {
       // If split fails, return the original blob (without the SPLIT status)
-      log.info("Failed splitting blob:{}", blob.getBlob());
+      log.info("Failed splitting blob: {}", blob.getBlob());
       blob.localCleanup();
       return Stream.of(blob);
     }

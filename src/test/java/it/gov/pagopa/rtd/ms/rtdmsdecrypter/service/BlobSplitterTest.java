@@ -64,6 +64,14 @@ class BlobSplitterTest {
 
   String blobNameWallet = "WALLET.CONTRACTS.20240222.111835.001.json.pgp.decrypted";
 
+  String blobNameWalletMalformed = "WALLET.CONTRACTS.20240307.000000.001.json.pgp.decrypted";
+
+  String blobNameWalletMalformedJson = "WALLET.CONTRACTS.20240310.000000.001.json.pgp.decrypted";
+
+  String blobNameWalletNoContracts = "WALLET.CONTRACTS.20240308.000000.001.json.pgp.decrypted";
+
+  String blobNameWalletNoArrayContracts = "WALLET.CONTRACTS.20240309.000000.001.json.pgp.decrypted";
+
   BlobApplicationAware fakeBlobRTD;
 
   BlobApplicationAware fakeBlobRTDOldNaming;
@@ -75,6 +83,14 @@ class BlobSplitterTest {
   BlobApplicationAware fakeBlobTAEEmpty;
 
   BlobApplicationAware fakeBlobWallet;
+
+  BlobApplicationAware malformedBlobWallet;
+
+  BlobApplicationAware malformedJsonBlobWallet;
+
+  BlobApplicationAware noContractsBlobWallet;
+
+  BlobApplicationAware noArrayContractsBlobWallet;
 
   @BeforeEach
   void setUp() throws IOException {
@@ -166,12 +182,74 @@ class BlobSplitterTest {
     fakeBlobWallet.setStatus(Status.DECRYPTED);
     fakeBlobWallet.setApp(Application.WALLET);
 
+    //Create a malformed decrypted file for Wallet migration
+    File malformedDecryptedExportFile = Path.of(tmpDirectory, blobNameWalletMalformed).toFile();
+    malformedDecryptedExportFile.getParentFile().mkdirs();
+    malformedDecryptedExportFile.createNewFile();
+    FileOutputStream malformedDecryptedWalletStream = new FileOutputStream(
+        Path.of(tmpDirectory, blobNameWalletMalformed + ".decrypted").toString());
+    Files.copy(Path.of(resources, blobNameWalletMalformed), malformedDecryptedWalletStream);
+
+    //Instantiate a fake Wallet blob with clear text content
+    malformedBlobWallet = new BlobApplicationAware(
+        "/blobServices/default/containers/" + containerWallet + "/blobs/" + contractsFolder + "/"
+            + blobNameWalletMalformed);
+    malformedBlobWallet.setTargetDir(tmpDirectory);
+    malformedBlobWallet.setStatus(Status.DECRYPTED);
+    malformedBlobWallet.setApp(Application.WALLET);
+
+    //Create a malformed decrypted file for Wallet migration
+    File malformedJsonDecryptedExportFile = Path.of(tmpDirectory, blobNameWalletMalformedJson).toFile();
+    malformedJsonDecryptedExportFile.getParentFile().mkdirs();
+    malformedJsonDecryptedExportFile.createNewFile();
+    FileOutputStream malformedJsonDecryptedWalletStream = new FileOutputStream(
+        Path.of(tmpDirectory, blobNameWalletMalformedJson + ".decrypted").toString());
+    Files.copy(Path.of(resources, blobNameWalletMalformedJson), malformedJsonDecryptedWalletStream);
+
+    //Instantiate a fake Wallet blob with clear text content
+    malformedJsonBlobWallet = new BlobApplicationAware(
+        "/blobServices/default/containers/" + containerWallet + "/blobs/" + contractsFolder + "/"
+            + blobNameWalletMalformedJson);
+    malformedJsonBlobWallet.setTargetDir(tmpDirectory);
+    malformedJsonBlobWallet.setStatus(Status.DECRYPTED);
+    malformedJsonBlobWallet.setApp(Application.WALLET);
+
+    //Create a decrypted file for Wallet migration without contracts array
+    File noContractsDecryptedExportFile = Path.of(tmpDirectory, blobNameWalletNoContracts).toFile();
+    noContractsDecryptedExportFile.getParentFile().mkdirs();
+    noContractsDecryptedExportFile.createNewFile();
+    FileOutputStream noContractsdDecryptedWalletStream = new FileOutputStream(
+        Path.of(tmpDirectory, blobNameWalletNoContracts + ".decrypted").toString());
+    Files.copy(Path.of(resources, blobNameWalletNoContracts), noContractsdDecryptedWalletStream);
+
+    //Instantiate a fake no-contracts Wallet blob with clear text content
+    noContractsBlobWallet = new BlobApplicationAware(
+        "/blobServices/default/containers/" + containerWallet + "/blobs/" + contractsFolder + "/"
+            + blobNameWalletNoContracts);
+    noContractsBlobWallet.setTargetDir(tmpDirectory);
+    noContractsBlobWallet.setStatus(Status.DECRYPTED);
+    noContractsBlobWallet.setApp(Application.WALLET);
+
+    //Create a decrypted file for Wallet migration without contracts as array
+    File noArrayContractsDecryptedExportFile = Path.of(tmpDirectory, blobNameWalletNoArrayContracts).toFile();
+    noArrayContractsDecryptedExportFile.getParentFile().mkdirs();
+    noArrayContractsDecryptedExportFile.createNewFile();
+    FileOutputStream noArrayContractsdDecryptedWalletStream = new FileOutputStream(
+        Path.of(tmpDirectory, blobNameWalletNoArrayContracts + ".decrypted").toString());
+
+    //Instantiate a fake no-contracts Wallet blob with clear text content
+    noArrayContractsBlobWallet = new BlobApplicationAware(
+        "/blobServices/default/containers/" + containerWallet + "/blobs/" + contractsFolder + "/"
+            + blobNameWalletNoArrayContracts);
+    noArrayContractsBlobWallet.setTargetDir(tmpDirectory);
+    noArrayContractsBlobWallet.setStatus(Status.DECRYPTED);
+    noArrayContractsBlobWallet.setApp(Application.WALLET);
   }
 
-  @AfterEach
-  void cleanTmpFiles() throws IOException {
-    FileUtils.deleteDirectory(Path.of(tmpDirectory).toFile());
-  }
+//  @AfterEach
+//  void cleanTmpFiles() throws IOException {
+//    FileUtils.deleteDirectory(Path.of(tmpDirectory).toFile());
+//  }
 
   @Test
   void shouldSplitRTD() {
@@ -206,6 +284,66 @@ class BlobSplitterTest {
       i++;
     }
     assertEquals(4, i);
+  }
+
+  @Test
+  void shouldNotSplitWalletMalformed() {
+    blobSplitterImpl.setContractsSplitThreshold(1);
+
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(malformedBlobWallet);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.DELETED, b.getStatus());
+      assertEquals(blobNameWalletMalformed, b.getBlob());
+      i++;
+    }
+    assertEquals(1, i);
+  }
+
+  @Test
+  void shouldNotSplitWalletMalformedJson() {
+    blobSplitterImpl.setContractsSplitThreshold(1);
+
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(malformedJsonBlobWallet);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.DELETED, b.getStatus());
+      assertEquals(blobNameWalletMalformedJson, b.getBlob());
+      i++;
+    }
+    assertEquals(1, i);
+  }
+
+  @Test
+  void shouldNotSplitWalletNoContracts() {
+    blobSplitterImpl.setContractsSplitThreshold(1);
+
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(noContractsBlobWallet);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.DELETED, b.getStatus());
+      assertEquals(blobNameWalletNoContracts, b.getBlob());
+      i++;
+    }
+    assertEquals(1, i);
+  }
+
+  @Test
+  void shouldNotSplitWalletNoArrayContracts() {
+    blobSplitterImpl.setContractsSplitThreshold(1);
+
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(noArrayContractsBlobWallet);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.DELETED, b.getStatus());
+      assertEquals(blobNameWalletNoArrayContracts, b.getBlob());
+      i++;
+    }
+    assertEquals(1, i);
   }
 
   @Test
