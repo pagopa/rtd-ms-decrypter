@@ -42,6 +42,10 @@ class BlobVerifierTest {
 
   String containerTAE = "ade-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
 
+  String containerWallet = "wallet";
+
+  String contractsFolder = "contracts-encrypted";
+
   String blobNameRTD = "CSTAR.99999.TRNLOG.20220419.121045.001.01.csv";
 
   String blobNameTAE = "ADE.99999.TRNLOG.20220721.095718.001.01.csv";
@@ -50,6 +54,8 @@ class BlobVerifierTest {
 
   String blobNameRTDEmpty = "CSTAR.00000.TRNLOG.20220419.121045.001.01.csv";
 
+  String blobNameWallet = "WALLET.CONTRACTS.20240222.111835.001.json.pgp";
+
   BlobApplicationAware fakeBlobRTD;
 
   BlobApplicationAware fakeBlobTAE;
@@ -57,6 +63,8 @@ class BlobVerifierTest {
   BlobApplicationAware fakeBlobTAEEmpty;
 
   BlobApplicationAware fakeBlobRTDEmpty;
+
+  BlobApplicationAware fakeBlobWallet;
 
   @BeforeEach
   void setUp() throws IOException {
@@ -126,6 +134,14 @@ class BlobVerifierTest {
     fakeBlobRTDEmpty.setTargetDir(tmpDirectory);
     fakeBlobRTDEmpty.setStatus(Status.SPLIT);
     fakeBlobRTDEmpty.setApp(Application.RTD);
+
+    //Instantiate a dummy Wallet blob
+    fakeBlobWallet = new BlobApplicationAware(
+        "/blobServices/default/containers/" + containerWallet + "/blobs/" + contractsFolder + "/"
+            + blobNameWallet);
+    fakeBlobWallet.setTargetDir(tmpDirectory);
+    fakeBlobWallet.setStatus(Status.SPLIT);
+    fakeBlobWallet.setApp(Application.WALLET);
   }
 
   @AfterEach
@@ -183,6 +199,11 @@ class BlobVerifierTest {
     assertEquals(Status.SPLIT, fakeBlobTAEEmpty.getStatus());
   }
 
+  @Test
+  void shouldVerifyWallet() {
+    blobVerifierImpl.verify(fakeBlobWallet);
+    assertEquals(Status.VERIFIED, fakeBlobWallet.getStatus());
+  }
 
   @ParameterizedTest
   @ValueSource(strings = {
