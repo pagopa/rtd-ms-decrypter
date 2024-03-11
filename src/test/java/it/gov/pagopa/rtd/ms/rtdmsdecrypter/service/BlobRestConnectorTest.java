@@ -47,22 +47,42 @@ class BlobRestConnectorTest {
   CloseableHttpClient client;
 
   private final static String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
+
+  private final static String containerWallet = "wallet";
   private final static String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
+
+  private final static String blobNameWallet = "WALLET.CONTRACTS.20240222.111835.001.json.pgp";
 
   private final String EXCEPTION_MESSAGE = "Cannot connect.";
 
   private BlobApplicationAware blobIn;
 
+  private BlobApplicationAware blobInWallet;
+
   @BeforeEach
   public void setUp() {
     blobIn = new BlobApplicationAware(
         "/blobServices/default/containers/" + container + "/blobs/" + blobName);
+    blobInWallet = new BlobApplicationAware(
+        "/blobServices/default/containers/" + containerWallet + "/blobs/contracts-encrypted/"
+            + blobNameWallet);
     blobRestConnectorImpl = new BlobRestConnectorImpl(client);
   }
 
   @Test
   void shouldGet(CapturedOutput output) throws IOException {
     BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobIn);
+
+    verify(client, times(1)).execute(any(HttpUriRequest.class),
+        any(HttpClientResponseHandler.class));
+    assertEquals(BlobApplicationAware.Status.DOWNLOADED, blobOut.getStatus());
+    assertThat(output.getOut(), containsString("Successful GET of blob "));
+    assertThat(output.getOut(), not(containsString("Cannot GET blob ")));
+  }
+
+  @Test
+  void shouldGetWalletFile(CapturedOutput output) throws IOException {
+    BlobApplicationAware blobOut = blobRestConnectorImpl.get(blobInWallet);
 
     verify(client, times(1)).execute(any(HttpUriRequest.class),
         any(HttpClientResponseHandler.class));
