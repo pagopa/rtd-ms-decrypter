@@ -47,9 +47,14 @@ decrypt:
     basepath: storage
     sftp-basepath: sftp-storage
     apikey: ${INTERNAL_SERVICES_API_KEY:myapikey}
+    inputContainer:
+      wallet: nexi
+    inputDirectory:
+      wallet: in
     targetContainer:
       rtd: rtd-transactions-decrypted
       ade: ade-transactions-decrypted
+      wallet: wallet-contracts-decrypted
   splitter:
     aggregatesThreshold: ${AGGREGATES_SPLITTER_LINE_THRESHOLD:250000}
     walletThreshold: ${CONTRACTS_SPLITTER_LINE_THRESHOLD:100000}

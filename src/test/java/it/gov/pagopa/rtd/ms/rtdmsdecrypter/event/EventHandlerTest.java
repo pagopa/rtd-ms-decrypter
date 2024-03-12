@@ -85,7 +85,7 @@ class EventHandlerTest {
   @CsvSource({
       "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp",
       "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, CSTAR.a9911.TRNLOG.20220228.203107.001.csv.pgp",
-      "wallet, contracts-encrypted/WALLET.CONTRACTS.20220228.203107.001.csv.pgp"})
+      "nexi, in/WALLET.CONTRACTS.20220228.203107.001.csv.pgp"})
   void blobUriShouldPassRegex(String container, String blobName) {
 
     String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;
@@ -152,8 +152,8 @@ class EventHandlerTest {
   @CsvSource({
       "ade-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, CSTAR.99910.TRNLOG.20220228.203107.001.01.csv.pgp",
       "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, ADE.99910.TRNLOG.20220228.203107.001.01.csv.pgp",
-      "wallet-contracts-encrypted, CSTAR.99910.TRNLOG.20220228.203107.001.01.csv.pgp",
-      "wallet-contracts-encrypted, ADE.99910.TRNLOG.20220228.203107.001.01.csv.pgp",
+      "nexi, CSTAR.99910.TRNLOG.20220228.203107.001.01.csv.pgp",
+      "nexi, ADE.99910.TRNLOG.20220228.203107.001.01.csv.pgp",
       "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, WALLET.CONTRACTS.20220228.203107.001.csv.pgp",
       "ade-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, WALLET.CONTRACTS.20220228.203107.001.csv.pgp"})
   void blobUriShouldFailConflictingService(String container, String blobName) {

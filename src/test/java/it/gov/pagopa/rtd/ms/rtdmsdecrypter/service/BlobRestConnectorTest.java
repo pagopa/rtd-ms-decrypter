@@ -48,7 +48,10 @@ class BlobRestConnectorTest {
 
   private final static String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
 
-  private final static String containerWallet = "wallet";
+  private final static String containerWallet = "nexi";
+
+  private final static String directoryWallet = "in";
+
   private final static String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
 
   private final static String blobNameWallet = "WALLET.CONTRACTS.20240222.111835.001.json.pgp";
@@ -64,7 +67,7 @@ class BlobRestConnectorTest {
     blobIn = new BlobApplicationAware(
         "/blobServices/default/containers/" + container + "/blobs/" + blobName);
     blobInWallet = new BlobApplicationAware(
-        "/blobServices/default/containers/" + containerWallet + "/blobs/contracts-encrypted/"
+        "/blobServices/default/containers/" + containerWallet + "/blobs/" + directoryWallet + "/"
             + blobNameWallet);
     blobRestConnectorImpl = new BlobRestConnectorImpl(client);
   }

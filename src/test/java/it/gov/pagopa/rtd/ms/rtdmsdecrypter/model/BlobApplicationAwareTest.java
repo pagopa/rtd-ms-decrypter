@@ -77,8 +77,8 @@ class BlobApplicationAwareTest {
 
   @Test
   void shouldMatchRegexWallet() {
-    String containerWallet = "wallet";
-    String contractsFolder = "contracts-encrypted";
+    String containerWallet = "nexi";
+    String contractsFolder = "in";
     String blobWallet = "WALLET.CONTRACTS.20240101.203107.001.json.pgp";
     String blobUri =
         "/blobServices/default/containers/" + containerWallet + "/blobs/" + contractsFolder + "/"

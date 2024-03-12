@@ -45,9 +45,9 @@ class BlobSplitterTest {
 
   String containerTAE = "ade-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
 
-  String containerWallet = "wallet";
+  String containerWallet = "nexi";
 
-  String contractsFolder = "contracts-encrypted";
+  String contractsFolder = "in";
 
   String blobNameRTD =
       "CSTAR.99999.TRNLOG.20220419.121045.001." + batchServiceChunkNumber + ".csv";

@@ -67,8 +67,14 @@ public class BlobApplicationAware {
 
   private Integer origianalFileChunksNumber;
 
+  private String inputContainerWallet = "nexi";
+
+  private String inputDirectoryWallet = "in";
+
   private String targetContainerAde = "ade-transactions-decrypted";
+
   private String targetContainerRtd = "rtd-transactions-decrypted";
+
   private String targetContainerWallet = "wallet-contracts-decrypted";
 
   private String targetDir = "/tmp";
@@ -77,7 +83,7 @@ public class BlobApplicationAware {
       "^.*containers/((ade|rtd)(-transactions-[a-z0-9]{44}))/blobs/(.*)");
 
   private Pattern uriWalletPattern = Pattern.compile(
-      "^.*containers/(wallet)/blobs/contracts-encrypted/(.*)");
+      "^.*containers/(" + inputContainerWallet + ")/blobs/" + inputDirectoryWallet + "/(.*)");
 
   private static final String WRONG_FORMAT_NAME_WARNING_MSG = "Wrong name format:";
   private static final String CONFLICTING_SERVICE_WARNING_MSG = "Conflicting service in URI:";

@@ -56,7 +56,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     String targetBasePath = blobBasePath;
 
     if (blob.getApp().equals(Application.WALLET)) {
-      targetBlob = "contracts-encrypted/" + blob.getBlob();
+      targetBlob = "in/" + blob.getBlob();
       targetBasePath = sftpBlobBasePath;
     }
 
