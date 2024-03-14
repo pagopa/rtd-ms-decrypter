@@ -43,7 +43,6 @@ public class BlobApplicationAware {
     VERIFIED,
     SPLIT,
     UPLOADED,
-    ENRICH,
     DELETED
   }
 
@@ -109,7 +108,7 @@ public class BlobApplicationAware {
 
     numChunk = 0;
     totChunk = 0;
-    
+
     blobUri = uri;
     status = Status.INIT;
 
