@@ -5,6 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
@@ -12,7 +15,8 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Class representing a blob-stored transactions file, and it's processing state.
+ * Class representing a blob-stored transactions file, and it's processing
+ * state.
  */
 @Getter
 @Setter
@@ -39,6 +43,7 @@ public class BlobApplicationAware {
     VERIFIED,
     SPLIT,
     UPLOADED,
+    ENRICH,
     DELETED
   }
 
@@ -60,7 +65,7 @@ public class BlobApplicationAware {
 
   private String batchServiceChunkNumber;
 
-  private Integer origianalFileChunksNumber;
+  private Integer originalFileChunksNumber;
 
   private String targetContainerAde = "ade-transactions-decrypted";
   private String targetContainerRtd = "rtd-transactions-decrypted";
@@ -73,8 +78,16 @@ public class BlobApplicationAware {
   private static final String WRONG_FORMAT_NAME_WARNING_MSG = "Wrong name format:";
   private static final String CONFLICTING_SERVICE_WARNING_MSG = "Conflicting service in URI:";
   private static final String EVENT_NOT_OF_INTEREST_WARNING_MSG = "Event not of interest:";
-
   private static final String FAIL_FILE_DELETE_WARNING_MSG = "Failed to delete local blob file:";
+
+  // Enrich metadata fields
+  private Set<String> numMerchant;
+  private int numCancelledTrx;
+  private int numPositiveTrx;
+  private long totalAmountCancelledTrx;
+  private long totalAmountPositiveTrx;
+  private LocalDate minAccountingDate;
+  private LocalDate maxAccountingDate;
 
   /**
    * Constructor.
@@ -82,6 +95,15 @@ public class BlobApplicationAware {
    * @param uri the blob URI
    */
   public BlobApplicationAware(String uri) {
+
+    numMerchant = new HashSet<String>();
+    numCancelledTrx = 0;
+    numPositiveTrx = 0;
+    totalAmountCancelledTrx = 0;
+    totalAmountPositiveTrx = 0;
+    minAccountingDate = LocalDate.MAX;
+    maxAccountingDate = LocalDate.MIN;
+
     blobUri = uri;
     status = Status.INIT;
 
@@ -93,15 +115,16 @@ public class BlobApplicationAware {
       blob = matcher.group(3);
       originalBlobName = blob;
 
-      //Tokenized blob name for checking compliance
+      // Tokenized blob name for checking compliance
       String[] blobNameTokenized = blob.split("\\.");
 
-      //Set status, regardless of name correctness
+      // Set status, regardless of name correctness
       status = Status.RECEIVED;
 
       if (checkNameFormat(blobNameTokenized)) {
 
-        //Check whether the blob's service matches in path and name, then assign Application
+        // Check whether the blob's service matches in path and name, then assign
+        // Application
         if (matcher.group(2).equalsIgnoreCase("ADE") && blobNameTokenized[0]
             .equalsIgnoreCase("ADE")) {
           app = Application.ADE;
@@ -128,7 +151,8 @@ public class BlobApplicationAware {
    * This method matches PagoPA file name's standard Specifics can be found at:
    * https://docs.pagopa.it/digital-transaction-register/v/digital-transaction-filter/acquirer-integration-with-pagopa-centrostella/integration/standard-pagopa-file-transactions
    *
-   * @param blobNameTokens values obtained from the name of the blob (separated by dots)
+   * @param blobNameTokens values obtained from the name of the blob (separated by
+   *                       dots)
    * @return true if the name matches the format, false otherwise
    */
   private boolean checkNameFormat(String[] blobNameTokens) {
@@ -155,7 +179,8 @@ public class BlobApplicationAware {
     }
 
     SimpleDateFormat daysFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-    // Make the format refuse wrong date and time (default behavior is to overflow values in
+    // Make the format refuse wrong date and time (default behavior is to overflow
+    // values in
     // following date)
     daysFormat.setLenient(false);
 
@@ -181,7 +206,8 @@ public class BlobApplicationAware {
   }
 
   /**
-   * This method deletes the local files left by the blob handling (get, decrypt, split, put).
+   * This method deletes the local files left by the blob handling (get, decrypt,
+   * split, put).
    *
    * @return the blob with its status set to deleted.
    */
@@ -191,18 +217,18 @@ public class BlobApplicationAware {
     File tmpFile = Path.of(targetDir, blob).toFile();
 
     try {
-      //Delete the chunk
+      // Delete the chunk
       if (tmpFile.exists()) {
         Files.delete(tmpFile.toPath());
       }
 
-      //Delete the original encrypted file (if present)
+      // Delete the original encrypted file (if present)
       tmpFile = Path.of(this.targetDir, originalBlobName).toFile();
       if (tmpFile.exists()) {
         Files.delete(tmpFile.toPath());
       }
 
-      //Delete the original decrypted file (if present)
+      // Delete the original decrypted file (if present)
       tmpFile = Path.of(this.targetDir, originalBlobName + ".decrypted").toFile();
       if (tmpFile.exists()) {
         Files.delete(tmpFile.toPath());
@@ -227,5 +253,3 @@ public class BlobApplicationAware {
     }
   }
 }
-  
-

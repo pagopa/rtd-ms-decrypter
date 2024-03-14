@@ -96,13 +96,14 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
         Path.of(blob.getTargetDir(), blob.getBlob()).toFile(),
         ContentType.create("application/octet-stream"));
 
+
     final HttpPut putBlob = new HttpPut(uri);
     putBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
     putBlob.setHeader(new BasicHeader("x-ms-blob-type", "BlockBlob"));
     putBlob.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
     putBlob.setHeader(new BasicHeader("If-None-Match", "*"));
     putBlob.setEntity(entity);
-
+    
     try {
       httpClient.execute(putBlob, validateStatusCode());
       blob.setStatus(BlobApplicationAware.Status.UPLOADED);
