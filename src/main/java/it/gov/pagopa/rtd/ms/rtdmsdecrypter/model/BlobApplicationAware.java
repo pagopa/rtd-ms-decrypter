@@ -89,6 +89,9 @@ public class BlobApplicationAware {
   private LocalDate minAccountingDate;
   private LocalDate maxAccountingDate;
 
+  private int numChunk;
+  private int totChunk;
+
   /**
    * Constructor.
    *
@@ -104,6 +107,9 @@ public class BlobApplicationAware {
     minAccountingDate = LocalDate.MAX;
     maxAccountingDate = LocalDate.MIN;
 
+    numChunk = 0;
+    totChunk = 0;
+    
     blobUri = uri;
     status = Status.INIT;
 
