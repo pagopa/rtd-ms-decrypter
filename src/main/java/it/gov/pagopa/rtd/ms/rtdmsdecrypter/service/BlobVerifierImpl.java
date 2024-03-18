@@ -111,19 +111,19 @@ public class BlobVerifierImpl implements BlobVerifier {
 
   private void gatheringMetadataAndCount(BlobApplicationAware blob, DecryptedRecord decryptedRecord){
     AdeTransactionsAggregate tempAdeAgg = (AdeTransactionsAggregate) decryptedRecord;
-      blob.getNumMerchant().add(tempAdeAgg.getMerchantId());
+      blob.getReportMetaData().getNumMerchant().add(tempAdeAgg.getMerchantId());
       if (tempAdeAgg.getOperationType().equals("00")){
-        blob.setNumPositiveTrx(blob.getNumPositiveTrx()+tempAdeAgg.getNumTrx());
-        blob.setTotalAmountPositiveTrx(blob.getTotalAmountPositiveTrx()+ tempAdeAgg.getTotalAmount());
+        blob.getReportMetaData().setNumPositiveTrx(blob.getReportMetaData().getNumPositiveTrx()+tempAdeAgg.getNumTrx());
+        blob.getReportMetaData().setTotalAmountPositiveTrx(blob.getReportMetaData().getTotalAmountPositiveTrx()+ tempAdeAgg.getTotalAmount());
       }else{
-        blob.setNumCancelledTrx(blob.getNumCancelledTrx()+tempAdeAgg.getNumTrx());
-        blob.setTotalAmountCancelledTrx(blob.getTotalAmountCancelledTrx()+tempAdeAgg.getTotalAmount());
+        blob.getReportMetaData().setNumCancelledTrx(blob.getReportMetaData().getNumCancelledTrx()+tempAdeAgg.getNumTrx());
+        blob.getReportMetaData().setTotalAmountCancelledTrx(blob.getReportMetaData().getTotalAmountCancelledTrx()+tempAdeAgg.getTotalAmount());
       }
-      if(blob.getMinAccountingDate().isAfter(LocalDate.parse(tempAdeAgg.getAccountingDate()))){
-        blob.setMinAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
+      if(blob.getReportMetaData().getMinAccountingDate().isAfter(LocalDate.parse(tempAdeAgg.getAccountingDate()))){
+        blob.getReportMetaData().setMinAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
       }
-      if(blob.getMaxAccountingDate().isBefore(LocalDate.parse(tempAdeAgg.getAccountingDate()))){
-        blob.setMaxAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
+      if(blob.getReportMetaData().getMaxAccountingDate().isBefore(LocalDate.parse(tempAdeAgg.getAccountingDate()))){
+        blob.getReportMetaData().setMaxAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
       }
       numberOfDeserializeRecords++;
   }

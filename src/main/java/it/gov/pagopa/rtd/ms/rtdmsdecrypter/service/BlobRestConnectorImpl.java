@@ -43,7 +43,8 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   /**
    * Method that allows the get of the blob from a remote storage.
    *
-   * @param blob a blob that has been received from the event hub but not downloaded.
+   * @param blob a blob that has been received from the event hub but not
+   *             downloaded.
    * @return a locally available blob
    */
   public BlobApplicationAware get(BlobApplicationAware blob) {
@@ -89,13 +90,11 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   public BlobApplicationAware put(BlobApplicationAware blob) {
     log.info("Start PUT blob {} to {}", blob.getBlob(), blob.getTargetContainer());
 
-    String uri =
-        baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob.getBlob();
+    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob.getBlob();
 
     FileEntity entity = new FileEntity(
         Path.of(blob.getTargetDir(), blob.getBlob()).toFile(),
         ContentType.create("application/octet-stream"));
-
 
     final HttpPut putBlob = new HttpPut(uri);
     putBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
@@ -105,7 +104,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     putBlob.setHeader(new BasicHeader("x-ms-meta-numChunk:", blob.getNumChunk()));
     putBlob.setHeader(new BasicHeader("x-ms-meta-totalChunk:", blob.getTotChunk()));
     putBlob.setEntity(entity);
-    
+
     try {
       httpClient.execute(putBlob, validateStatusCode());
       blob.setStatus(BlobApplicationAware.Status.UPLOADED);
@@ -130,5 +129,42 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
       }
       return null;
     };
+  }
+
+  @Override
+  public BlobApplicationAware setMetadata(BlobApplicationAware blob) {
+    log.info("Start SET metadata for  {} to {}", blob.getBlob(), blob.getTargetContainer());
+
+    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob
+        + "?comp=metadata";
+
+    final HttpPut setMetadata = new HttpPut(uri);
+
+    setMetadata.setHeader(new BasicHeader("x-ms-date", ""));
+    setMetadata.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
+
+    setMetadata.setHeader(new BasicHeader("x-ms-meta-numMerchant:", blob.getReportMetaData().getNumMerchant()));
+    setMetadata.setHeader(new BasicHeader("x-ms-meta-numCancelledTrx:", blob.getReportMetaData().getNumCancelledTrx()));
+    setMetadata.setHeader(new BasicHeader("x-ms-meta-numPositiveTrx:", blob.getReportMetaData().getNumPositiveTrx()));
+    setMetadata.setHeader(
+        new BasicHeader("x-ms-meta-totalAmountCancelledTrx:", blob.getReportMetaData().getTotalAmountCancelledTrx()));
+    setMetadata.setHeader(
+        new BasicHeader("x-ms-meta-totalAmountPositiveTrx:", blob.getReportMetaData().getTotalAmountPositiveTrx()));
+    setMetadata
+        .setHeader(new BasicHeader("x-ms-meta-maxAccountingDate:", blob.getReportMetaData().getMaxAccountingDate()));
+    setMetadata
+        .setHeader(new BasicHeader("x-ms-meta-minAccountingDate:", blob.getReportMetaData().getMinAccountingDate()));
+
+    try {
+      httpClient.execute(setMetadata, validateStatusCode());
+      log.info("Successful SET metadata of blob {} in {}", blob.getBlob(), blob.getTargetContainer());
+    } catch (ResponseStatusException ex) {
+      log.error("Cannot SET metadata for the blob {} in {}. Invalid HTTP response: {}, {}", blob.getBlob(),
+          blob.getTargetContainer(), ex.getStatusCode().value(), ex.getReason());
+    } catch (Exception ex) {
+      log.error("Cannot SET metadata for the blob {} in {}. Unexpected error: {}", blob.getBlob(),
+          blob.getTargetContainer(), ex.getMessage());
+    }
+    return blob;
   }
 }

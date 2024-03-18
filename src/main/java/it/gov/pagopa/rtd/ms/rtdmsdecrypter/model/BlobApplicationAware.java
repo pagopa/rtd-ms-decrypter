@@ -43,6 +43,7 @@ public class BlobApplicationAware {
     VERIFIED,
     SPLIT,
     UPLOADED,
+    ENRICH,
     DELETED
   }
 
@@ -80,13 +81,7 @@ public class BlobApplicationAware {
   private static final String FAIL_FILE_DELETE_WARNING_MSG = "Failed to delete local blob file:";
 
   // Enrich metadata fields
-  private Set<String> numMerchant;
-  private int numCancelledTrx;
-  private int numPositiveTrx;
-  private long totalAmountCancelledTrx;
-  private long totalAmountPositiveTrx;
-  private LocalDate minAccountingDate;
-  private LocalDate maxAccountingDate;
+  private ReportMetaData reportMetaData;
 
   private int numChunk;
   private int totChunk;
@@ -98,13 +93,7 @@ public class BlobApplicationAware {
    */
   public BlobApplicationAware(String uri) {
 
-    numMerchant = new HashSet<String>();
-    numCancelledTrx = 0;
-    numPositiveTrx = 0;
-    totalAmountCancelledTrx = 0;
-    totalAmountPositiveTrx = 0;
-    minAccountingDate = LocalDate.MAX;
-    maxAccountingDate = LocalDate.MIN;
+    reportMetaData = new ReportMetaData();
 
     numChunk = 0;
     totChunk = 0;
