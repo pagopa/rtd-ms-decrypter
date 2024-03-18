@@ -5,9 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
@@ -54,11 +51,10 @@ public class BlobApplicationAware {
   private Status status;
   private String targetContainer;
   private String originalBlobName;
+  private BlobApplicationAware originalBlob; 
 
   private String senderCode;
-
   private String fileCreationDate;
-
   private String fileCreationTime;
 
   private String flowNumber;
@@ -94,7 +90,8 @@ public class BlobApplicationAware {
   public BlobApplicationAware(String uri) {
 
     reportMetaData = new ReportMetaData();
-
+    originalBlob = new BlobApplicationAware("");
+    
     numChunk = 0;
     totChunk = 0;
 

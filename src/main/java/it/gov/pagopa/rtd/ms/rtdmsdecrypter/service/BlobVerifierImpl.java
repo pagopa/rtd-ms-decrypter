@@ -40,6 +40,7 @@ public class BlobVerifierImpl implements BlobVerifier {
   private VerifierFactory verifierFactory;
 
   private long numberOfDeserializeRecords;
+
   /**
    * Verify method, used to verify the validity of the
    * {@link BlobApplicationAware} records
@@ -75,10 +76,10 @@ public class BlobVerifierImpl implements BlobVerifier {
     CsvToBean<DecryptedRecord> csvToBean = builder.build();
 
     Stream<DecryptedRecord> deserialized = csvToBean.stream();
-  
+
     // Enrich report
     if (blob.getApp() == Application.ADE && isValid) {
-      deserialized.forEach(i -> gatheringMetadataAndCount(blob,i));
+      deserialized.forEach(i -> gatheringMetadataAndCount(blob, i));
     } else {
       numberOfDeserializeRecords = deserialized.count();
     }
@@ -109,22 +110,25 @@ public class BlobVerifierImpl implements BlobVerifier {
         deserializedSize, violations);
   }
 
-  private void gatheringMetadataAndCount(BlobApplicationAware blob, DecryptedRecord decryptedRecord){
+  private void gatheringMetadataAndCount(BlobApplicationAware blob, DecryptedRecord decryptedRecord) {
     AdeTransactionsAggregate tempAdeAgg = (AdeTransactionsAggregate) decryptedRecord;
-      blob.getReportMetaData().getNumMerchant().add(tempAdeAgg.getMerchantId());
-      if (tempAdeAgg.getOperationType().equals("00")){
-        blob.getReportMetaData().setNumPositiveTrx(blob.getReportMetaData().getNumPositiveTrx()+tempAdeAgg.getNumTrx());
-        blob.getReportMetaData().setTotalAmountPositiveTrx(blob.getReportMetaData().getTotalAmountPositiveTrx()+ tempAdeAgg.getTotalAmount());
-      }else{
-        blob.getReportMetaData().setNumCancelledTrx(blob.getReportMetaData().getNumCancelledTrx()+tempAdeAgg.getNumTrx());
-        blob.getReportMetaData().setTotalAmountCancelledTrx(blob.getReportMetaData().getTotalAmountCancelledTrx()+tempAdeAgg.getTotalAmount());
-      }
-      if(blob.getReportMetaData().getMinAccountingDate().isAfter(LocalDate.parse(tempAdeAgg.getAccountingDate()))){
-        blob.getReportMetaData().setMinAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
-      }
-      if(blob.getReportMetaData().getMaxAccountingDate().isBefore(LocalDate.parse(tempAdeAgg.getAccountingDate()))){
-        blob.getReportMetaData().setMaxAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
-      }
-      numberOfDeserializeRecords++;
+    blob.getReportMetaData().getNumMerchant().add(tempAdeAgg.getMerchantId());
+    if (tempAdeAgg.getOperationType().equals("00")) {
+      blob.getReportMetaData().setNumPositiveTrx(blob.getReportMetaData().getNumPositiveTrx() + tempAdeAgg.getNumTrx());
+      blob.getReportMetaData().setTotalAmountPositiveTrx(
+          blob.getReportMetaData().getTotalAmountPositiveTrx() + tempAdeAgg.getTotalAmount());
+    } else {
+      blob.getReportMetaData()
+          .setNumCancelledTrx(blob.getReportMetaData().getNumCancelledTrx() + tempAdeAgg.getNumTrx());
+      blob.getReportMetaData().setTotalAmountCancelledTrx(
+          blob.getReportMetaData().getTotalAmountCancelledTrx() + tempAdeAgg.getTotalAmount());
+    }
+    if (blob.getReportMetaData().getMinAccountingDate().isAfter(LocalDate.parse(tempAdeAgg.getAccountingDate()))) {
+      blob.getReportMetaData().setMinAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
+    }
+    if (blob.getReportMetaData().getMaxAccountingDate().isBefore(LocalDate.parse(tempAdeAgg.getAccountingDate()))) {
+      blob.getReportMetaData().setMaxAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
+    }
+    numberOfDeserializeRecords++;
   }
 }
