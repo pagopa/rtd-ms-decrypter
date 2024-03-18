@@ -10,6 +10,7 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.config.VerifierFactory;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.AdeTransactionsAggregate;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.DecryptedRecord;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.ReportMetaData;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import java.time.LocalDate;
 import java.io.FileNotFoundException;
@@ -112,22 +113,23 @@ public class BlobVerifierImpl implements BlobVerifier {
 
   private void gatheringMetadataAndCount(BlobApplicationAware blob, DecryptedRecord decryptedRecord) {
     AdeTransactionsAggregate tempAdeAgg = (AdeTransactionsAggregate) decryptedRecord;
-    blob.getReportMetaData().getNumMerchant().add(tempAdeAgg.getMerchantId());
+    ReportMetaData reportMetaData =  blob.getOriginalBlob().getReportMetaData();
+    reportMetaData.getMerchantList().add(tempAdeAgg.getMerchantId());
     if (tempAdeAgg.getOperationType().equals("00")) {
-      blob.getReportMetaData().setNumPositiveTrx(blob.getReportMetaData().getNumPositiveTrx() + tempAdeAgg.getNumTrx());
-      blob.getReportMetaData().setTotalAmountPositiveTrx(
-          blob.getReportMetaData().getTotalAmountPositiveTrx() + tempAdeAgg.getTotalAmount());
+      reportMetaData.setNumPositiveTrx(reportMetaData.getNumPositiveTrx() + tempAdeAgg.getNumTrx());
+      reportMetaData.setTotalAmountPositiveTrx(
+        reportMetaData.getTotalAmountPositiveTrx() + tempAdeAgg.getTotalAmount());
     } else {
-      blob.getReportMetaData()
-          .setNumCancelledTrx(blob.getReportMetaData().getNumCancelledTrx() + tempAdeAgg.getNumTrx());
-      blob.getReportMetaData().setTotalAmountCancelledTrx(
-          blob.getReportMetaData().getTotalAmountCancelledTrx() + tempAdeAgg.getTotalAmount());
+      reportMetaData
+          .setNumCancelledTrx(reportMetaData.getNumCancelledTrx() + tempAdeAgg.getNumTrx());
+          reportMetaData.setTotalAmountCancelledTrx(
+        reportMetaData.getTotalAmountCancelledTrx() + tempAdeAgg.getTotalAmount());
     }
-    if (blob.getReportMetaData().getMinAccountingDate().isAfter(LocalDate.parse(tempAdeAgg.getAccountingDate()))) {
-      blob.getReportMetaData().setMinAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
+    if (reportMetaData.getMinAccountingDate().isAfter(LocalDate.parse(tempAdeAgg.getAccountingDate()))) {
+      reportMetaData.setMinAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
     }
-    if (blob.getReportMetaData().getMaxAccountingDate().isBefore(LocalDate.parse(tempAdeAgg.getAccountingDate()))) {
-      blob.getReportMetaData().setMaxAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
+    if (reportMetaData.getMaxAccountingDate().isBefore(LocalDate.parse(tempAdeAgg.getAccountingDate()))) {
+      reportMetaData.setMaxAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
     }
     numberOfDeserializeRecords++;
   }

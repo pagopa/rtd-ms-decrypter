@@ -141,6 +141,7 @@ class BlobVerifierTest {
 
   @Test
   void shouldVerifyTAE() {
+    fakeBlobTAE.setOriginalBlob(fakeBlobTAE);
     blobVerifierImpl.verify(fakeBlobTAE);
     assertEquals(Status.VERIFIED, fakeBlobTAE.getStatus());
   }
@@ -178,7 +179,7 @@ class BlobVerifierTest {
   void shouldFailVerifyTAE(String malformedAggregateRecord) throws IOException {
     Files.write(Path.of(tmpDirectory, blobNameTAEEmpty + ".decrypted"),
         malformedAggregateRecord.getBytes(), StandardOpenOption.APPEND);
-
+    fakeBlobTAEEmpty.setOriginalBlob(fakeBlobTAEEmpty);
     blobVerifierImpl.verify(fakeBlobTAEEmpty);
     assertEquals(Status.SPLIT, fakeBlobTAEEmpty.getStatus());
   }

@@ -40,7 +40,7 @@ public class BlobApplicationAware {
     VERIFIED,
     SPLIT,
     UPLOADED,
-    ENRICH,
+    ENRICHED,
     DELETED
   }
 
@@ -50,7 +50,6 @@ public class BlobApplicationAware {
   private Application app;
   private Status status;
   private String targetContainer;
-  private String originalBlobName;
   private BlobApplicationAware originalBlob; 
 
   private String senderCode;
@@ -90,7 +89,7 @@ public class BlobApplicationAware {
   public BlobApplicationAware(String uri) {
 
     reportMetaData = new ReportMetaData();
-    originalBlob = new BlobApplicationAware("");
+    originalBlob = null;
     
     numChunk = 0;
     totChunk = 0;
@@ -104,7 +103,6 @@ public class BlobApplicationAware {
 
       container = matcher.group(1);
       blob = matcher.group(3);
-      originalBlobName = blob;
 
       // Tokenized blob name for checking compliance
       String[] blobNameTokenized = blob.split("\\.");
@@ -214,13 +212,13 @@ public class BlobApplicationAware {
       }
 
       // Delete the original encrypted file (if present)
-      tmpFile = Path.of(this.targetDir, originalBlobName).toFile();
+      tmpFile = Path.of(this.targetDir, originalBlob.getBlob()).toFile();
       if (tmpFile.exists()) {
         Files.delete(tmpFile.toPath());
       }
 
       // Delete the original decrypted file (if present)
-      tmpFile = Path.of(this.targetDir, originalBlobName + ".decrypted").toFile();
+      tmpFile = Path.of(this.targetDir, originalBlob.getBlob() + ".decrypted").toFile();
       if (tmpFile.exists()) {
         Files.delete(tmpFile.toPath());
       }
