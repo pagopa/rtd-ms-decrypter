@@ -62,10 +62,10 @@ public class EventHandler {
           .filter(b -> BlobApplicationAware.Status.VERIFIED.equals(b.getStatus()))
           .collect(Collectors.toList());
 
-      if (!chunks.isEmpty()) {
+      BlobApplicationAware originalBlob = chunks.stream().findFirst()
+          .map(BlobApplicationAware::getOriginalBlob).orElse(null);
 
-        BlobApplicationAware originalBlob = chunks.stream().findFirst()
-            .map(BlobApplicationAware::getOriginalBlob).orElse(null);
+      if (!chunks.isEmpty() && originalBlob != null) {
 
         if (verifiedChunks.size() == chunks.size()) {
           long uploadedChunks = verifiedChunks.stream()
@@ -78,12 +78,8 @@ public class EventHandler {
               chunks.get(0).getOriginalBlob().getBlob());
         }
 
-        if (!originalBlob.equals(null)) {
-          blobRestConnectorImpl.setMetadata(originalBlob);
-          log.info("Uploaded pgp Metadata: {}", originalBlob.getBlob());
-        } else {
-          log.error("Problem to find origin blob to enrich metadata");
-        }
+        blobRestConnectorImpl.setMetadata(originalBlob);
+        log.info("Uploaded pgp Metadata: {}", originalBlob.getBlob());
 
         long deletedChunks = chunks.stream()
             .map(BlobApplicationAware::localCleanup)
@@ -93,6 +89,9 @@ public class EventHandler {
             originalBlob.getBlob());
 
         log.info("Handled blob: {}", originalBlob.getBlob());
+      } else {
+        log.error("Number chunks equals to 0 or origin blob is null. Number of chunks: {} Original blob: {} ",
+            chunks.size(), originalBlob);
       }
 
     };
