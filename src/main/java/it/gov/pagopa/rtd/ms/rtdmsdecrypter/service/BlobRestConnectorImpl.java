@@ -133,9 +133,9 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
 
   @Override
   public BlobApplicationAware setMetadata(BlobApplicationAware blob) {
-    log.info("Start SET metadata for  {} to {}", blob.getBlob(), blob.getTargetContainer());
+    log.info("Start SET metadata for  {} to {}", blob.getBlob(), blob.getContainer());
 
-    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getTargetContainer() + "/" + blob
+    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob
         + "?comp=metadata";
 
     final HttpPut setMetadata = new HttpPut(uri);
@@ -158,13 +158,13 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     try {
       httpClient.execute(setMetadata, validateStatusCode());
       blob.setStatus(BlobApplicationAware.Status.ENRICHED);
-      log.info("Successful SET metadata of blob {} in {}", blob.getBlob(), blob.getTargetContainer());
+      log.info("Successful SET metadata of blob {} in {}", blob.getBlob(), blob.getContainer());
     } catch (ResponseStatusException ex) {
       log.error("Cannot SET metadata for the blob {} in {}. Invalid HTTP response: {}, {}", blob.getBlob(),
-          blob.getTargetContainer(), ex.getStatusCode().value(), ex.getReason());
+          blob.getContainer(), ex.getStatusCode().value(), ex.getReason());
     } catch (Exception ex) {
       log.error("Cannot SET metadata for the blob {} in {}. Unexpected error: {}", blob.getBlob(),
-          blob.getTargetContainer(), ex.getMessage());
+          blob.getContainer(), ex.getMessage());
     }
     return blob;
   }
