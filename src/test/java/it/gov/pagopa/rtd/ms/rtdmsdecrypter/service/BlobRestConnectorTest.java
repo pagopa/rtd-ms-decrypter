@@ -54,7 +54,7 @@ class BlobRestConnectorTest {
 
   private final static String blobName = "CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp";
 
-  private final static String blobNameWallet = "WALLET.CONTRACTS.20240222.111835.001.json.pgp";
+  private final static String blobNameWallet = "PAGOPAPM_NPG_CONTRACTS_20240322000000_001_OUT";
 
   private final String EXCEPTION_MESSAGE = "Cannot connect.";
 

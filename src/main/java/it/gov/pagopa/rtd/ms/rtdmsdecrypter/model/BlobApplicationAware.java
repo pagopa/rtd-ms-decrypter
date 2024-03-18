@@ -44,7 +44,7 @@ public class BlobApplicationAware {
   }
 
   private static final int RTD_NAME_CHUNK_NUM = 7;
-  private static final int WALLET_NAME_CHUNK_NUM = 7;
+  private static final int WALLET_NAME_CHUNK_NUM = 6;
 
 
   private String blobUri;
@@ -141,7 +141,7 @@ public class BlobApplicationAware {
       blob = matcherWallet.group(2);
       originalBlobName = blob;
 
-      String[] blobNameTokenized = blob.split("\\.");
+      String[] blobNameTokenized = blob.split("_");
 
       status = Status.RECEIVED;
 
@@ -189,7 +189,8 @@ public class BlobApplicationAware {
     }
 
     extractBatchServiceChunkNumber(blobNameTokens[6]);
-    return checkDateTimeFormat(blobNameTokens, 3, 4) && extractFlowNumber(blobNameTokens[5]);
+    return checkDateTimeFormat(blobNameTokens[3], blobNameTokens[4]) && extractFlowNumber(
+        blobNameTokens[5]);
   }
 
   private boolean checkWalletNameFormat(String[] blobNameTokens) {
@@ -197,29 +198,32 @@ public class BlobApplicationAware {
       return false;
     }
 
-    if (!blobNameTokens[1].equals("CONTRACTS")) {
+    if (!blobNameTokens[0].equals("PAGOPAPM") || !blobNameTokens[1].equals("NPG")
+        || !blobNameTokens[2].equals("CONTRACTS")) {
       return false;
     }
 
-    return checkDateTimeFormat(blobNameTokens, 2, 3) && extractFlowNumber(blobNameTokens[4]);
+    return checkDateTimeFormat(blobNameTokens[3].substring(0, 8), blobNameTokens[3].substring(8))
+        && extractFlowNumber(
+        blobNameTokens[4]);
 
   }
 
-  private boolean checkDateTimeFormat(String[] blobNameTokens, int datePosition, int timePosition) {
+  private boolean checkDateTimeFormat(String date, String time) {
     SimpleDateFormat daysFormat = new SimpleDateFormat("yyyyMMddHHmmss");
     // Make the format refuse wrong date and time (default behavior is to overflow values in
     // following date)
     daysFormat.setLenient(false);
 
     try {
-      daysFormat.parse(blobNameTokens[datePosition] + blobNameTokens[timePosition]);
+      daysFormat.parse(date + time);
     } catch (ParseException e) {
       log.error("Error parsing date and time: {}", e.getMessage());
       return false;
     }
 
-    fileCreationDate = blobNameTokens[datePosition];
-    fileCreationTime = blobNameTokens[timePosition];
+    fileCreationDate = date;
+    fileCreationTime = time;
 
     return true;
   }

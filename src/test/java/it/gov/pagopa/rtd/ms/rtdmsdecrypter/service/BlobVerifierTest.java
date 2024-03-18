@@ -60,7 +60,7 @@ class BlobVerifierTest {
 
   String blobNameRTDEmpty = "CSTAR.00000.TRNLOG.20220419.121045.001.01.csv";
 
-  String blobNameWallet = "WALLET.CONTRACTS.20240222.111835.001.json.pgp";
+  String blobNameWallet = "PAGOPAPM_NPG_CONTRACTS_20240322000000_001_OUT.decrypted";
 
   BlobApplicationAware fakeBlobRTD;
 

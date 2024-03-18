@@ -62,19 +62,19 @@ class BlobSplitterTest {
   String blobNameTAEEmpty =
       "ADE.00000.TRNLOG.20220721.095718.001." + batchServiceChunkNumber + ".csv";
 
-  String blobNameWallet = "WALLET.CONTRACTS.20240222.111835.001.json.pgp.decrypted";
+  String blobNameWallet = "PAGOPAPM_NPG_CONTRACTS_20240323000000_001_OUT.decrypted";
 
-  String blobNameWalletMalformed = "WALLET.CONTRACTS.20240307.000000.001.json.pgp.decrypted";
+  String blobNameWalletMalformed = "PAGOPAPM_NPG_CONTRACTS_20240318000000_001_OUT.decrypted";
 
-  String blobNameWalletMalformedJson = "WALLET.CONTRACTS.20240310.000000.001.json.pgp.decrypted";
+  String blobNameWalletMalformedJson = "PAGOPAPM_NPG_CONTRACTS_20240321000000_001_OUT.decrypted";
 
-  String blobNameWalletNoContracts = "WALLET.CONTRACTS.20240308.000000.001.json.pgp.decrypted";
+  String blobNameWalletNoContracts = "PAGOPAPM_NPG_CONTRACTS_20240319000000_001_OUT.decrypted";
 
-  String blobNameWalletNoArrayContracts = "WALLET.CONTRACTS.20240309.000000.001.json.pgp.decrypted";
+  String blobNameWalletNoArrayContracts = "PAGOPAPM_NPG_CONTRACTS_20240320000000_001_OUT.decrypted";
 
-  String blobNameWalletNoHeader = "WALLET.CONTRACTS.20240311.000000.001.json.pgp.decrypted";
+  String blobNameWalletNoHeader = "PAGOPAPM_NPG_CONTRACTS_20240322000000_001_OUT.decrypted";
 
-  String blobNameWalletMissing = "WALLET.CONTRACTS.20240312.000000.001.json.pgp.decrypted";
+  String blobNameWalletMissing = "PAGOPAPM_NPG_CONTRACTS_20240322000000_002_OUT.decrypted";
 
   BlobApplicationAware fakeBlobRTD;
 
