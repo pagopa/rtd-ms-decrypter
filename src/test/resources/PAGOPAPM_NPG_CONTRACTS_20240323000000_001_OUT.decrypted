@@ -49,7 +49,7 @@
                 "card_payment_circuit": "MAESTRO",
                 "new_contract_identifier": "fee6c7da10c44f168a7a4bd2c82f5ab0",
                 "original_contract_identifier": "6563990fb0a8409fbe6df4e49a6361c8",
-                "card_bin": "448600"
+                "card_bin": "12345678"
             }
         },
         {
