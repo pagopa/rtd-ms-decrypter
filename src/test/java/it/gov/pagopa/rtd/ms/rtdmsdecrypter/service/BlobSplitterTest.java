@@ -208,7 +208,7 @@ class BlobSplitterTest {
           + String.format("%03d", i), b.getBlob());
       i++;
     }
-    assertEquals(4, i);
+    assertEquals(5, i);
   }
 
   @Test
@@ -247,7 +247,7 @@ class BlobSplitterTest {
           + String.format("%03d", i), b.getBlob());
       i++;
     }
-    assertEquals(2, i);
+    assertEquals(3, i);
   }
 
   @Test
