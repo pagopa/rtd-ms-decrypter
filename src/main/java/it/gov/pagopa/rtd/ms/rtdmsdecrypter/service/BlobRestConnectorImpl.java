@@ -38,6 +38,8 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   @Value("${decrypt.blobclient.basepath}")
   private String blobBasePath;
 
+  private String subKeyHeader = "Ocp-Apim-Subscription-Key";
+
   private final CloseableHttpClient httpClient;
 
   /**
@@ -52,7 +54,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
 
     String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob.getBlob();
     final HttpGet getBlob = new HttpGet(uri);
-    getBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
+    getBlob.setHeader(new BasicHeader(subKeyHeader, blobApiKey));
 
     try {
       httpClient.execute(getBlob, downloadFileIn(blob));
@@ -97,7 +99,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
         ContentType.create("application/octet-stream"));
 
     final HttpPut putBlob = new HttpPut(uri);
-    putBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
+    putBlob.setHeader(new BasicHeader(subKeyHeader, blobApiKey));
     putBlob.setHeader(new BasicHeader("x-ms-blob-type", "BlockBlob"));
     putBlob.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
     putBlob.setHeader(new BasicHeader("If-None-Match", "*"));
@@ -139,9 +141,9 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
         + "?comp=metadata";
 
     final HttpPut setMetadata = new HttpPut(uri);
-
+    
+    setMetadata.setHeader(new BasicHeader(subKeyHeader, blobApiKey));
     setMetadata.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
-    setMetadata.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
     setMetadata.setHeader(new BasicHeader("x-ms-meta-numMerchant:", blob.getReportMetaData().getMerchantList().size()));
     setMetadata.setHeader(new BasicHeader("x-ms-meta-numCancelledTrx:", blob.getReportMetaData().getNumCancelledTrx()));
     setMetadata.setHeader(new BasicHeader("x-ms-meta-numPositiveTrx:", blob.getReportMetaData().getNumPositiveTrx()));

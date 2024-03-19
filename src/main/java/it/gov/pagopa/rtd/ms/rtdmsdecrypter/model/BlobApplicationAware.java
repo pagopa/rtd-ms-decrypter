@@ -206,7 +206,6 @@ public class BlobApplicationAware {
     log.info("Start deleting locally blob {}", blob);
 
     File tmpFile = Path.of(targetDir, blob).toFile();
-    System.err.println(originalBlobName);
     try {
       // Delete the chunk
       if (tmpFile.exists()) {

@@ -18,7 +18,7 @@ public class ReportMetaData {
   private LocalDate maxAccountingDate;
 
   public ReportMetaData() {
-    this.merchantList = new HashSet<String>();
+    this.merchantList = new HashSet<>();
     this.numCancelledTrx = 0;
     this.numPositiveTrx = 0;
     this.totalAmountCancelledTrx = 0;

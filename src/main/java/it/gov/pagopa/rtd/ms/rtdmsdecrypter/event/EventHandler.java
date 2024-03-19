@@ -55,12 +55,12 @@ public class EventHandler {
           .filter(b -> BlobApplicationAware.Status.DECRYPTED.equals(b.getStatus()))
           .flatMap(blobSplitterImpl::split)
           .filter(b -> BlobApplicationAware.Status.SPLIT.equals(b.getStatus()))
-          .collect(Collectors.toList());
+          .toList();
 
       List<BlobApplicationAware> verifiedChunks = chunks.stream()
           .map(blobVerifierImpl::verify)
           .filter(b -> BlobApplicationAware.Status.VERIFIED.equals(b.getStatus()))
-          .collect(Collectors.toList());
+          .toList();
 
       BlobApplicationAware originalBlob = chunks.stream().findFirst()
           .map(BlobApplicationAware::getOriginalBlob).orElse(null);
