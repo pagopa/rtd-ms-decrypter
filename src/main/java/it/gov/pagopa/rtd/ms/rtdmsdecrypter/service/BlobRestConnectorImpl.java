@@ -62,8 +62,6 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
 
     String uri = baseUrl + "/" + targetBasePath + "/" + blob.getContainer() + "/" + targetBlob;
 
-    log.info("Getting file from {}", uri);
-
     final HttpGet getBlob = new HttpGet(uri);
     getBlob.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
 
