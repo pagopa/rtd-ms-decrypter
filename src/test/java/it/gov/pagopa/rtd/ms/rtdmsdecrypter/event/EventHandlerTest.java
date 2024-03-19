@@ -104,11 +104,12 @@ class EventHandlerTest {
     doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
     doReturn(blobDecrypted).when(decrypterImpl).decrypt(any(BlobApplicationAware.class));
     //Mock this method call by returning a stream of 3 copies of the same mocked blob
+    blobSplit.setOriginalBlob(blobDecrypted);
     doReturn(Stream.of(blobSplit, blobSplit, blobSplit)).when(blobSplitter)
         .split(any(BlobApplicationAware.class));
     doReturn(blobVerified).when(blobVerifierImpl).verify(any(BlobApplicationAware.class));
     doReturn(blobUploaded).when(blobRestConnectorImpl).put(any(BlobApplicationAware.class));
-
+    
     myConsumer.accept(msg);
     verify(blobRestConnectorImpl, times(1)).get(any());
     verify(decrypterImpl, times(1)).decrypt(any());

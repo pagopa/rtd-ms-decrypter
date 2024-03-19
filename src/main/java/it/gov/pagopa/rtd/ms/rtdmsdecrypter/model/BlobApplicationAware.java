@@ -50,6 +50,7 @@ public class BlobApplicationAware {
   private Application app;
   private Status status;
   private String targetContainer;
+  private String originalBlobName;
   private BlobApplicationAware originalBlob; 
 
   private String senderCode;
@@ -103,6 +104,7 @@ public class BlobApplicationAware {
 
       container = matcher.group(1);
       blob = matcher.group(3);
+      originalBlobName = blob;
 
       // Tokenized blob name for checking compliance
       String[] blobNameTokenized = blob.split("\\.");
@@ -204,7 +206,7 @@ public class BlobApplicationAware {
     log.info("Start deleting locally blob {}", blob);
 
     File tmpFile = Path.of(targetDir, blob).toFile();
-
+    System.err.println(originalBlobName);
     try {
       // Delete the chunk
       if (tmpFile.exists()) {
@@ -212,13 +214,13 @@ public class BlobApplicationAware {
       }
 
       // Delete the original encrypted file (if present)
-      tmpFile = Path.of(this.targetDir, originalBlob.getBlob()).toFile();
+      tmpFile = Path.of(this.targetDir, originalBlobName).toFile();
       if (tmpFile.exists()) {
         Files.delete(tmpFile.toPath());
       }
 
       // Delete the original decrypted file (if present)
-      tmpFile = Path.of(this.targetDir, originalBlob.getBlob() + ".decrypted").toFile();
+      tmpFile = Path.of(this.targetDir, originalBlobName + ".decrypted").toFile();
       if (tmpFile.exists()) {
         Files.delete(tmpFile.toPath());
       }

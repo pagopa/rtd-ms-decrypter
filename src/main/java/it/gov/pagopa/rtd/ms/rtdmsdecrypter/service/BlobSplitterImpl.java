@@ -79,6 +79,7 @@ public class BlobSplitterImpl implements BlobSplitter {
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
               blob.getBlobUri());
           tmpBlob.setOriginalBlob(blob);
+          tmpBlob.setOriginalBlobName(blob.getBlob());;
           tmpBlob.setStatus(SPLIT);
           tmpBlob.setApp(blob.getApp());
           tmpBlob.setBlob(chunkName);

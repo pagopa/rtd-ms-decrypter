@@ -100,7 +100,6 @@ class BlobApplicationAwareTest {
 
     //Set the name of the fake blob to the first chunk
     fakeBlob.setBlob(chunks.get(0).getName());
-
     assertEquals(Status.DELETED, fakeBlob.localCleanup().getStatus());
 
     //Check if the first chunk, the original pgp file and the decrypted file are deleted

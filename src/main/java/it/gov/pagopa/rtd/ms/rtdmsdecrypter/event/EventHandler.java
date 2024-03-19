@@ -65,7 +65,7 @@ public class EventHandler {
       BlobApplicationAware originalBlob = chunks.stream().findFirst()
           .map(BlobApplicationAware::getOriginalBlob).orElse(null);
 
-      if (!chunks.isEmpty() && originalBlob != null) {
+      if (!chunks.isEmpty()) {
 
         if (verifiedChunks.size() == chunks.size()) {
           long uploadedChunks = verifiedChunks.stream()
