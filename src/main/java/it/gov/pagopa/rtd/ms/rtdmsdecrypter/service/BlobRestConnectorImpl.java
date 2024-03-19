@@ -140,9 +140,8 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
 
     final HttpPut setMetadata = new HttpPut(uri);
 
-    setMetadata.setHeader(new BasicHeader("x-ms-date", ""));
     setMetadata.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
-
+    setMetadata.setHeader(new BasicHeader("Ocp-Apim-Subscription-Key", blobApiKey));
     setMetadata.setHeader(new BasicHeader("x-ms-meta-numMerchant:", blob.getReportMetaData().getMerchantList().size()));
     setMetadata.setHeader(new BasicHeader("x-ms-meta-numCancelledTrx:", blob.getReportMetaData().getNumCancelledTrx()));
     setMetadata.setHeader(new BasicHeader("x-ms-meta-numPositiveTrx:", blob.getReportMetaData().getNumPositiveTrx()));

@@ -73,13 +73,13 @@ public class EventHandler {
               .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
               .count();
           log.info("Uploaded chunks: {}", uploadedChunks);
+          blobRestConnectorImpl.setMetadata(originalBlob);
+          log.info("Uploaded pgp Metadata: {}", originalBlob.getBlob());
+
         } else {
           log.error("Not all chunks are verified, no chunks will be uploaded of {}",
               chunks.get(0).getOriginalBlob().getBlob());
         }
-
-        blobRestConnectorImpl.setMetadata(originalBlob);
-        log.info("Uploaded pgp Metadata: {}", originalBlob.getBlob());
 
         long deletedChunks = chunks.stream()
             .map(BlobApplicationAware::localCleanup)

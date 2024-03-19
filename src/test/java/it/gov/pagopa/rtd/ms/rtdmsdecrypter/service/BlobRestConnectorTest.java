@@ -188,4 +188,26 @@ class BlobRestConnectorTest {
       assertThrows(ResponseStatusException.class, () -> lambda.handleResponse(response));
     }
   }
+
+
+  @Test
+  void shouldSetMetadata(CapturedOutput output) throws IOException {
+    BlobApplicationAware blobOut = blobRestConnectorImpl.setMetadata(blobIn);
+
+    verify(client, times(1)).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
+    assertEquals(BlobApplicationAware.Status.ENRICHED, blobOut.getStatus());
+    assertThat(output.getOut(), not(containsString("Cannot SET metadata for the blob")));
+  }
+
+  @Test
+  void shouldFailSetMetadataHttpError(CapturedOutput output) throws IOException {
+    doThrow(new ResponseStatusException(HttpStatusCode.valueOf(404), "not_found"))
+        .when(client).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
+
+    BlobApplicationAware blobOut = blobRestConnectorImpl.setMetadata(blobIn);
+
+    verify(client, times(1)).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
+    assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
+    assertThat(output.getOut(), containsString("Cannot SET metadata for the blob"));
+  }
 }
