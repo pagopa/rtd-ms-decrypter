@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -144,6 +146,14 @@ class BlobVerifierTest {
     fakeBlobTAE.setOriginalBlob(fakeBlobTAE);
     blobVerifierImpl.verify(fakeBlobTAE);
     assertEquals(Status.VERIFIED, fakeBlobTAE.getStatus());
+    assertEquals(4, fakeBlobTAE.getReportMetaData().getMerchantList().size());
+    assertEquals(192, fakeBlobTAE.getReportMetaData().getNumCancelledTrx());
+    assertEquals(210, fakeBlobTAE.getReportMetaData().getNumPositiveTrx());
+    assertEquals(211650, fakeBlobTAE.getReportMetaData().getTotalAmountCancelledTrx());
+    assertEquals(439580, fakeBlobTAE.getReportMetaData().getTotalAmountPositiveTrx());
+    assertEquals("2022-07-17", fakeBlobTAE.getReportMetaData().getMinAccountingDate().toString());
+    assertEquals("2022-07-20", fakeBlobTAE.getReportMetaData().getMaxAccountingDate().toString());
+
   }
 
   @ParameterizedTest
