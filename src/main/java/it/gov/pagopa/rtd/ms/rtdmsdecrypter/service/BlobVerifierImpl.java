@@ -19,6 +19,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +54,7 @@ public class BlobVerifierImpl implements BlobVerifier {
     FileReader fileReader;
     BufferedReader bufferedReader;
     boolean isValid = true;
-    long numberOfDeserializeRecords = 0;
+    AtomicLong numberOfDeserializeRecords = new AtomicLong(0);
     String checkSum = "";
     try {
       fileReader = new FileReader(Path.of(blob.getTargetDir(), blob.getBlob()).toFile());
@@ -84,10 +85,10 @@ public class BlobVerifierImpl implements BlobVerifier {
 
     // Enrich report
     if (blob.getApp() == Application.ADE && isValid) {
-      numberOfDeserializeRecords = deserialized.peek(i -> gatheringMetadataAndCount(blob, i)).count();
+      deserialized.forEach(i -> gatheringMetadataAndCount(blob, i, numberOfDeserializeRecords));
       blob.getOriginalBlob().getReportMetaData().setCheckSum(checkSum);
     } else {
-      numberOfDeserializeRecords = deserialized.count();
+      numberOfDeserializeRecords.set(deserialized.count());
     }
 
     List<CsvException> violations = csvToBean.getCapturedExceptions();
@@ -97,7 +98,7 @@ public class BlobVerifierImpl implements BlobVerifier {
         log.error("Validation error at line " + e.getLineNumber() + " : " + e.getMessage());
       }
       isValid = false;
-    } else if (numberOfDeserializeRecords == 0) {
+    } else if (numberOfDeserializeRecords.get() == 0) {
       log.error("No records found in file {}", blob.getBlob());
       isValid = false;
     }
@@ -105,7 +106,7 @@ public class BlobVerifierImpl implements BlobVerifier {
     if (isValid) {
       blob.setStatus(VERIFIED);
     }
-    logVerificationInformation(blob.getBlob(), numberOfDeserializeRecords,
+    logVerificationInformation(blob.getBlob(), numberOfDeserializeRecords.get(),
         violations.size());
     return blob;
   }
@@ -116,7 +117,7 @@ public class BlobVerifierImpl implements BlobVerifier {
         deserializedSize, violations);
   }
 
-  private void gatheringMetadataAndCount(BlobApplicationAware blob, DecryptedRecord decryptedRecord) {
+  private void gatheringMetadataAndCount(BlobApplicationAware blob, DecryptedRecord decryptedRecord, AtomicLong numberOfDeserializeRecords) {
     AdeTransactionsAggregate tempAdeAgg = (AdeTransactionsAggregate) decryptedRecord;
     ReportMetaData reportMetaData = blob.getOriginalBlob().getReportMetaData();
     reportMetaData.getMerchantList().add(tempAdeAgg.getMerchantId());
@@ -136,5 +137,6 @@ public class BlobVerifierImpl implements BlobVerifier {
     if (reportMetaData.getMaxAccountingDate().isBefore(LocalDate.parse(tempAdeAgg.getAccountingDate()))) {
       reportMetaData.setMaxAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
     }
+    numberOfDeserializeRecords.incrementAndGet();
   }
 }
