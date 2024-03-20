@@ -10,8 +10,8 @@ import lombok.Setter;
 @Setter
 public class ReportMetaData {
   private HashSet<String> merchantList;
-  private int numCancelledTrx;
-  private int numPositiveTrx;
+  private long numCancelledTrx;
+  private long numPositiveTrx;
   private long totalAmountCancelledTrx;
   private long totalAmountPositiveTrx;
   private LocalDate minAccountingDate;
@@ -20,10 +20,10 @@ public class ReportMetaData {
 
   public ReportMetaData() {
     this.merchantList = new HashSet<>();
-    this.numCancelledTrx = 0;
-    this.numPositiveTrx = 0;
-    this.totalAmountCancelledTrx = 0;
-    this.totalAmountPositiveTrx = 0;
+    this.numCancelledTrx = 0L;
+    this.numPositiveTrx = 0L;
+    this.totalAmountCancelledTrx = 0L;
+    this.totalAmountPositiveTrx = 0L;
     this.minAccountingDate = LocalDate.MAX;
     this.maxAccountingDate = LocalDate.MIN;
     this.checkSum = "";

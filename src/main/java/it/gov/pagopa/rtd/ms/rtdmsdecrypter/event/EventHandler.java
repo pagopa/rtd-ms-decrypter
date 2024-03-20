@@ -64,6 +64,8 @@ public class EventHandler {
       BlobApplicationAware originalBlob = chunks.stream().findFirst()
           .map(BlobApplicationAware::getOriginalBlob).orElse(null);
 
+          String originalBlobName = chunks.stream().findFirst()
+          .map(BlobApplicationAware::getOriginalBlobName).orElse("ERROR_NO_ORIGINAL_BLOB_NAME");
       if (!chunks.isEmpty()) {
 
         if (verifiedChunks.size() == chunks.size()) {
@@ -77,7 +79,7 @@ public class EventHandler {
 
         } else {
           log.error("Not all chunks are verified, no chunks will be uploaded of {}",
-              chunks.get(0).getOriginalBlob().getBlob());
+              chunks.get(0).getOriginalBlobName());
         }
 
         long deletedChunks = chunks.stream()
@@ -85,9 +87,9 @@ public class EventHandler {
             .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus())).count();
 
         log.info("Deleted {}/{} chunks of blob: {}", deletedChunks, chunks.size(),
-            originalBlob.getBlob());
+        originalBlobName);
 
-        log.info("Handled blob: {}", originalBlob.getBlob());
+        log.info("Handled blob: {}", originalBlobName);
       } else {
         log.error("Number chunks equals to 0 or origin blob is null. Number of chunks: {} Original blob: {} ",
             chunks.size(), originalBlob);
