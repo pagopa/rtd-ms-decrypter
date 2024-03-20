@@ -126,9 +126,9 @@ public class BlobVerifierImpl implements BlobVerifier {
           reportMetaData.getTotalAmountPositiveTrx() + tempAdeAgg.getTotalAmount());
     } else {
       reportMetaData
-          .setNumCancelledTrx(reportMetaData.getNumCancelledTrx() + tempAdeAgg.getNumTrx());
-      reportMetaData.setTotalAmountCancelledTrx(
-          reportMetaData.getTotalAmountCancelledTrx() + tempAdeAgg.getTotalAmount());
+          .setNumCanceledTrx(reportMetaData.getNumCanceledTrx() + tempAdeAgg.getNumTrx());
+      reportMetaData.setTotalAmountCanceledTrx(
+          reportMetaData.getTotalAmountCanceledTrx() + tempAdeAgg.getTotalAmount());
     }
     if (reportMetaData.getMinAccountingDate().isAfter(LocalDate.parse(tempAdeAgg.getAccountingDate()))) {
       reportMetaData.setMinAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));

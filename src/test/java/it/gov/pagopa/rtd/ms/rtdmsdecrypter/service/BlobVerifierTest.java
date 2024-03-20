@@ -146,9 +146,9 @@ class BlobVerifierTest {
     blobVerifierImpl.verify(fakeBlobTAE);
     assertEquals(Status.VERIFIED, fakeBlobTAE.getStatus());
     assertEquals(4, fakeBlobTAE.getReportMetaData().getMerchantList().size());
-    assertEquals(192, fakeBlobTAE.getReportMetaData().getNumCancelledTrx());
+    assertEquals(192, fakeBlobTAE.getReportMetaData().getNumCanceledTrx());
     assertEquals(210, fakeBlobTAE.getReportMetaData().getNumPositiveTrx());
-    assertEquals(211650, fakeBlobTAE.getReportMetaData().getTotalAmountCancelledTrx());
+    assertEquals(211650, fakeBlobTAE.getReportMetaData().getTotalAmountCanceledTrx());
     assertEquals(439580, fakeBlobTAE.getReportMetaData().getTotalAmountPositiveTrx());
     assertEquals("2022-07-17", fakeBlobTAE.getReportMetaData().getMinAccountingDate().toString());
     assertEquals("2022-07-20", fakeBlobTAE.getReportMetaData().getMaxAccountingDate().toString());
