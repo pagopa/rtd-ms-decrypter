@@ -16,6 +16,7 @@ public class ReportMetaData {
   private long totalAmountPositiveTrx;
   private LocalDate minAccountingDate;
   private LocalDate maxAccountingDate;
+  private String checkSum;
 
   public ReportMetaData() {
     this.merchantList = new HashSet<>();
@@ -25,5 +26,6 @@ public class ReportMetaData {
     this.totalAmountPositiveTrx = 0;
     this.minAccountingDate = LocalDate.MAX;
     this.maxAccountingDate = LocalDate.MIN;
+    this.checkSum = "";
   }
 }

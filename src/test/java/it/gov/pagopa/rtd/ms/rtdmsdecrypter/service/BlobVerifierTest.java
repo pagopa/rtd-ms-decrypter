@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.time.LocalDate;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -27,8 +26,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
-@ContextConfiguration(classes = {BlobVerifierImpl.class, VerifierFactory.class})
-@TestPropertySource(value = {"classpath:application-nokafka.yml"}, inheritProperties = false)
+@ContextConfiguration(classes = { BlobVerifierImpl.class, VerifierFactory.class })
+@TestPropertySource(value = { "classpath:application-nokafka.yml" }, inheritProperties = false)
 class BlobVerifierTest {
 
   @Autowired
@@ -65,7 +64,7 @@ class BlobVerifierTest {
 
     blobVerifierImpl.setSkipChecksum(true);
 
-    //Create the decrypted file for RTD
+    // Create the decrypted file for RTD
     File decryptedFile = Path.of(tmpDirectory, blobNameRTD).toFile();
     decryptedFile.getParentFile().mkdirs();
     decryptedFile.createNewFile();
@@ -73,7 +72,7 @@ class BlobVerifierTest {
         Path.of(tmpDirectory, blobNameRTD + ".decrypted").toString());
     Files.copy(Path.of(resources, blobNameRTD), decryptedStream);
 
-    //Instantiate a fake RTD blob with clear text content
+    // Instantiate a fake RTD blob with clear text content
     fakeBlobRTD = new BlobApplicationAware(
         "/blobServices/default/containers/" + containerRTD + "/blobs/" + blobNameRTD
             + ".decrypted");
@@ -81,7 +80,7 @@ class BlobVerifierTest {
     fakeBlobRTD.setStatus(Status.SPLIT);
     fakeBlobRTD.setApp(Application.RTD);
 
-    //Create the decrypted file for TAE
+    // Create the decrypted file for TAE
     File decryptedFileAggregates = Path.of(tmpDirectory, blobNameTAE).toFile();
     decryptedFileAggregates.getParentFile().mkdirs();
     decryptedFileAggregates.createNewFile();
@@ -89,7 +88,7 @@ class BlobVerifierTest {
         Path.of(tmpDirectory, blobNameTAE + ".decrypted").toString());
     Files.copy(Path.of(resources, blobNameTAE), decryptedStreamAggregates);
 
-    //Instantiate a fake TAE blob with clear text content
+    // Instantiate a fake TAE blob with clear text content
     fakeBlobTAE = new BlobApplicationAware(
         "/blobServices/default/containers/" + containerTAE + "/blobs/" + blobNameTAE
             + ".decrypted");
@@ -97,7 +96,7 @@ class BlobVerifierTest {
     fakeBlobTAE.setStatus(Status.SPLIT);
     fakeBlobTAE.setApp(Application.ADE);
 
-    //Create the decrypted empty file for TAE
+    // Create the decrypted empty file for TAE
     File decryptedFileAggregatesEmpty = Path.of(tmpDirectory, blobNameTAEEmpty).toFile();
     decryptedFileAggregatesEmpty.getParentFile().mkdirs();
     decryptedFileAggregatesEmpty.createNewFile();
@@ -105,7 +104,7 @@ class BlobVerifierTest {
         Path.of(tmpDirectory, blobNameTAEEmpty + ".decrypted").toString());
     Files.copy(Path.of(resources, blobNameTAEEmpty), decryptedStreamAggregatesEmpty);
 
-    //Instantiate a fake TAE blob with clear text content
+    // Instantiate a fake TAE blob with clear text content
     fakeBlobTAEEmpty = new BlobApplicationAware(
         "/blobServices/default/containers/" + containerTAE + "/blobs/" + blobNameTAEEmpty
             + ".decrypted");
@@ -113,7 +112,7 @@ class BlobVerifierTest {
     fakeBlobTAEEmpty.setStatus(Status.SPLIT);
     fakeBlobTAEEmpty.setApp(Application.ADE);
 
-    //Create the decrypted empty file for RTD
+    // Create the decrypted empty file for RTD
     File decryptedFileTransactionsEmpty = Path.of(tmpDirectory, blobNameRTDEmpty).toFile();
     decryptedFileTransactionsEmpty.getParentFile().mkdirs();
     decryptedFileTransactionsEmpty.createNewFile();
@@ -121,7 +120,7 @@ class BlobVerifierTest {
         Path.of(tmpDirectory, blobNameRTDEmpty + ".decrypted").toString());
     Files.copy(Path.of(resources, blobNameRTDEmpty), decryptedStreamTransactionsEmpty);
 
-    //Instantiate a fake TAE blob with clear text content
+    // Instantiate a fake TAE blob with clear text content
     fakeBlobRTDEmpty = new BlobApplicationAware(
         "/blobServices/default/containers/" + containerRTD + "/blobs/" + blobNameRTDEmpty
             + ".decrypted");
@@ -153,6 +152,8 @@ class BlobVerifierTest {
     assertEquals(439580, fakeBlobTAE.getReportMetaData().getTotalAmountPositiveTrx());
     assertEquals("2022-07-17", fakeBlobTAE.getReportMetaData().getMinAccountingDate().toString());
     assertEquals("2022-07-20", fakeBlobTAE.getReportMetaData().getMaxAccountingDate().toString());
+    assertEquals("#sha256sum:cf832e6bb27c719d4a784a9688b490540448cbaf888d23742deae60831f282de",
+        fakeBlobTAE.getReportMetaData().getCheckSum());
 
   }
 
@@ -185,7 +186,7 @@ class BlobVerifierTest {
       "00000;00;2022-07-21;2022-07-21;77;249135;978;00000;8894738909374375872;4759769053262163701;;00000000003;00\n",
       "00000;00;2022-07-21;2022-07-21;77;249135;978;00000;8894738909374375872;4759769053262163701;00000000003;00000000003;\n",
       "00000;00;2022-07-21;2022-07-21;77;249135;978;00000;8894738909374375872;4759769053262163701;00000000003;00000000003;0\n",
-      "00000;00;2022-07-21;2022-07-21;77;249135;978;00000;8894738909374375872;4759769053262163701;00000000003;00000000003;000\n"})
+      "00000;00;2022-07-21;2022-07-21;77;249135;978;00000;8894738909374375872;4759769053262163701;00000000003;00000000003;000\n" })
   void shouldFailVerifyTAE(String malformedAggregateRecord) throws IOException {
     Files.write(Path.of(tmpDirectory, blobNameTAEEmpty + ".decrypted"),
         malformedAggregateRecord.getBytes(), StandardOpenOption.APPEND);
@@ -193,7 +194,6 @@ class BlobVerifierTest {
     blobVerifierImpl.verify(fakeBlobTAEEmpty);
     assertEquals(Status.SPLIT, fakeBlobTAEEmpty.getStatus());
   }
-
 
   @ParameterizedTest
   @ValueSource(strings = {
@@ -259,7 +259,7 @@ class BlobVerifierTest {
       "00017;00;09;c3141e7c87d0bf7faac1ea3c79b2312279303b87781eedbb47ec8892f63df3e9;2020-08-06T12:19:16.000+01:00;193531782008954810291361325409791762715;324393315321635981285487364925433121593;27571141360967615190853606122155739169;877690;978;09509;400000080205;80205005;40236010;4900;RSSMRA80A01H501U;12345678901;+1;E197169A09GQNYI34PN3QPA1SDM07",
       "00017;00;09;c3141e7c87d0bf7faac1ea3c79b2312279303b87781eedbb47ec8892f63df3e9;2020-08-06T12:19:16.000+01:00;193531782008954810291361325409791762715;324393315321635981285487364925433121593;27571141360967615190853606122155739169;877690;978;09509;400000080205;80205005;40236010;4900;RSSMRA80A01H501U;12345678901;01;e197169a09GQNYI34PN3QPA1SDM07",
       "00017;00;09;c3141e7c87d0bf7faac1ea3c79b2312279303b87781eedbb47ec8892f63df3e9;2020-08-06T12:19:16.000+01:00;193531782008954810291361325409791762715;324393315321635981285487364925433121593;27571141360967615190853606122155739169;877690;978;09509;400000080205;80205005;40236010;4900;RSSMRA80A01H501U;12345678901;01;E1971",
-      "00017;00;09;c3141e7c87d0bf7faac1ea3c79b2312279303b87781eedbb47ec8892f63df3e9;2020-08-06T12:19:16.000+01:00;193531782008954810291361325409791762715;324393315321635981285487364925433121593;27571141360967615190853606122155739169;877690;978;09509;400000080205;80205005;40236010;4900;RSSMRA80A01H501U;12345678901;01;E197169A09GQNYI34PN3QPA1SDM07AAA"})
+      "00017;00;09;c3141e7c87d0bf7faac1ea3c79b2312279303b87781eedbb47ec8892f63df3e9;2020-08-06T12:19:16.000+01:00;193531782008954810291361325409791762715;324393315321635981285487364925433121593;27571141360967615190853606122155739169;877690;978;09509;400000080205;80205005;40236010;4900;RSSMRA80A01H501U;12345678901;01;E197169A09GQNYI34PN3QPA1SDM07AAA" })
   void shouldFailVerifyRTD(String malformedAggregateRecord) throws IOException {
     Files.write(Path.of(tmpDirectory, blobNameRTDEmpty + ".decrypted"),
         malformedAggregateRecord.getBytes(), StandardOpenOption.APPEND);
@@ -270,7 +270,7 @@ class BlobVerifierTest {
 
   @ParameterizedTest
   @ValueSource(strings = {
-      "00017;00;09;c3141e7c87d0bf7faac1ea3c79b2312279303b87781eedbb47ec8892f63df3e9;2020-08-06T12:19:16.000+01:00;193531782008954810291361325409791762715;324393315321635981285487364925433121593;27571141360967615190853606122155739169;877690;978;09509;400000080205;80205005;40236010;4900;RSSMRA80A01H501U;12345678901;01;E197169A09GQNYI34PN3QPA1SDM07"})
+      "00017;00;09;c3141e7c87d0bf7faac1ea3c79b2312279303b87781eedbb47ec8892f63df3e9;2020-08-06T12:19:16.000+01:00;193531782008954810291361325409791762715;324393315321635981285487364925433121593;27571141360967615190853606122155739169;877690;978;09509;400000080205;80205005;40236010;4900;RSSMRA80A01H501U;12345678901;01;E197169A09GQNYI34PN3QPA1SDM07" })
   void shouldFailVerifyChecksum(String malformedAggregateRecord) throws IOException {
     Files.write(Path.of(tmpDirectory, blobNameRTDEmpty + ".decrypted"),
         malformedAggregateRecord.getBytes(), StandardOpenOption.APPEND);
@@ -284,7 +284,7 @@ class BlobVerifierTest {
   @Test
   void shouldNotVerifyMissingFile() {
 
-    //Set the wrong directory for locating the decrypted fake blob
+    // Set the wrong directory for locating the decrypted fake blob
     fakeBlobRTD.setTargetDir("foobar");
     fakeBlobRTD.setStatus(Status.DECRYPTED);
 
@@ -293,4 +293,3 @@ class BlobVerifierTest {
   }
 
 }
-

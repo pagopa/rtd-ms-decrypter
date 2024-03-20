@@ -145,16 +145,17 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     setMetadata.setHeader(new BasicHeader(subKeyHeader, blobApiKey));
     setMetadata.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
     setMetadata.setHeader(new BasicHeader("x-ms-meta-numMerchant:", blob.getReportMetaData().getMerchantList().size()));
-    setMetadata.setHeader(new BasicHeader("x-ms-meta-numCancelledTrx:", blob.getReportMetaData().getNumCancelledTrx()));
-    setMetadata.setHeader(new BasicHeader("x-ms-meta-numPositiveTrx:", blob.getReportMetaData().getNumPositiveTrx()));
+    setMetadata.setHeader(new BasicHeader("x-ms-meta-numCancelledTrx", blob.getReportMetaData().getNumCancelledTrx()));
+    setMetadata.setHeader(new BasicHeader("x-ms-meta-numPositiveTrx", blob.getReportMetaData().getNumPositiveTrx()));
     setMetadata.setHeader(
-        new BasicHeader("x-ms-meta-totalAmountCancelledTrx:", blob.getReportMetaData().getTotalAmountCancelledTrx()));
+        new BasicHeader("x-ms-meta-totalAmountCancelledTrx", blob.getReportMetaData().getTotalAmountCancelledTrx()));
     setMetadata.setHeader(
-        new BasicHeader("x-ms-meta-totalAmountPositiveTrx:", blob.getReportMetaData().getTotalAmountPositiveTrx()));
+        new BasicHeader("x-ms-meta-totalAmountPositiveTrx", blob.getReportMetaData().getTotalAmountPositiveTrx()));
     setMetadata
-        .setHeader(new BasicHeader("x-ms-meta-maxAccountingDate:", blob.getReportMetaData().getMaxAccountingDate()));
+        .setHeader(new BasicHeader("x-ms-meta-maxAccountingDate", blob.getReportMetaData().getMaxAccountingDate()));
     setMetadata
-        .setHeader(new BasicHeader("x-ms-meta-minAccountingDate:", blob.getReportMetaData().getMinAccountingDate()));
+        .setHeader(new BasicHeader("x-ms-meta-minAccountingDate", blob.getReportMetaData().getMinAccountingDate()));
+    setMetadata.setHeader(new BasicHeader("x-ms-meta-checkSum", blob.getReportMetaData().getMinAccountingDate()));
 
     try {
       httpClient.execute(setMetadata, validateStatusCode());

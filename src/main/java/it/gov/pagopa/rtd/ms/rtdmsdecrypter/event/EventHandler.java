@@ -8,7 +8,6 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

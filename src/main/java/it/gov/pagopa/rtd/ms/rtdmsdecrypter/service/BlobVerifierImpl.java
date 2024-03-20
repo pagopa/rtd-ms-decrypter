@@ -13,8 +13,10 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.DecryptedRecord;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.ReportMetaData;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import java.time.LocalDate;
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
@@ -40,8 +42,6 @@ public class BlobVerifierImpl implements BlobVerifier {
   @Autowired
   private VerifierFactory verifierFactory;
 
-  private long numberOfDeserializeRecords;
-
   /**
    * Verify method, used to verify the validity of the
    * {@link BlobApplicationAware} records
@@ -51,28 +51,32 @@ public class BlobVerifierImpl implements BlobVerifier {
     log.info("START Verifying {}", blob.getBlob());
 
     FileReader fileReader;
+    BufferedReader bufferedReader;
     boolean isValid = true;
-    numberOfDeserializeRecords = 0;
+    long numberOfDeserializeRecords = 0;
+    String checkSum = "";
     try {
       fileReader = new FileReader(Path.of(blob.getTargetDir(), blob.getBlob()).toFile());
+      bufferedReader = new BufferedReader(fileReader);
+      if (skipChecksum) {
+        checkSum = bufferedReader.readLine();
+      }
     } catch (FileNotFoundException e) {
       log.error("Error reading file {}", blob.getBlob());
-
+      return blob;
+    } catch (IOException e){
+      log.error("Error reading checksum {}", blob.getBlob());
       return blob;
     }
 
     BeanVerifier<? extends DecryptedRecord> verifier = verifierFactory.getVerifier(blob.getApp());
     Class<? extends DecryptedRecord> beanClass = verifierFactory.getBeanClass(blob.getApp());
 
-    CsvToBeanBuilder<DecryptedRecord> builder = new CsvToBeanBuilder<DecryptedRecord>(fileReader)
+    CsvToBeanBuilder<DecryptedRecord> builder = new CsvToBeanBuilder<DecryptedRecord>(bufferedReader)
         .withType(beanClass)
         .withSeparator(';')
         .withVerifier((BeanVerifier<DecryptedRecord>) verifier)
         .withThrowExceptions(false);
-
-    if (skipChecksum) {
-      builder.withSkipLines(1);
-    }
 
     CsvToBean<DecryptedRecord> csvToBean = builder.build();
 
@@ -80,7 +84,8 @@ public class BlobVerifierImpl implements BlobVerifier {
 
     // Enrich report
     if (blob.getApp() == Application.ADE && isValid) {
-      deserialized.forEach(i -> gatheringMetadataAndCount(blob, i));
+      numberOfDeserializeRecords = deserialized.peek(i -> gatheringMetadataAndCount(blob, i)).count();
+      blob.getOriginalBlob().getReportMetaData().setCheckSum(checkSum);
     } else {
       numberOfDeserializeRecords = deserialized.count();
     }
@@ -113,17 +118,17 @@ public class BlobVerifierImpl implements BlobVerifier {
 
   private void gatheringMetadataAndCount(BlobApplicationAware blob, DecryptedRecord decryptedRecord) {
     AdeTransactionsAggregate tempAdeAgg = (AdeTransactionsAggregate) decryptedRecord;
-    ReportMetaData reportMetaData =  blob.getOriginalBlob().getReportMetaData();
+    ReportMetaData reportMetaData = blob.getOriginalBlob().getReportMetaData();
     reportMetaData.getMerchantList().add(tempAdeAgg.getMerchantId());
     if (tempAdeAgg.getOperationType().equals("00")) {
       reportMetaData.setNumPositiveTrx(reportMetaData.getNumPositiveTrx() + tempAdeAgg.getNumTrx());
       reportMetaData.setTotalAmountPositiveTrx(
-        reportMetaData.getTotalAmountPositiveTrx() + tempAdeAgg.getTotalAmount());
+          reportMetaData.getTotalAmountPositiveTrx() + tempAdeAgg.getTotalAmount());
     } else {
       reportMetaData
           .setNumCancelledTrx(reportMetaData.getNumCancelledTrx() + tempAdeAgg.getNumTrx());
-          reportMetaData.setTotalAmountCancelledTrx(
-        reportMetaData.getTotalAmountCancelledTrx() + tempAdeAgg.getTotalAmount());
+      reportMetaData.setTotalAmountCancelledTrx(
+          reportMetaData.getTotalAmountCancelledTrx() + tempAdeAgg.getTotalAmount());
     }
     if (reportMetaData.getMinAccountingDate().isAfter(LocalDate.parse(tempAdeAgg.getAccountingDate()))) {
       reportMetaData.setMinAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
@@ -131,6 +136,5 @@ public class BlobVerifierImpl implements BlobVerifier {
     if (reportMetaData.getMaxAccountingDate().isBefore(LocalDate.parse(tempAdeAgg.getAccountingDate()))) {
       reportMetaData.setMaxAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
     }
-    numberOfDeserializeRecords++;
   }
 }
