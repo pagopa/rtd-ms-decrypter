@@ -7,6 +7,7 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobSplitterImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -61,12 +62,10 @@ public class EventHandler {
           .filter(b -> BlobApplicationAware.Status.VERIFIED.equals(b.getStatus()))
           .toList();
 
-      BlobApplicationAware originalBlob = chunks.stream().findFirst()
-          .map(BlobApplicationAware::getOriginalBlob).orElse(null);
+      Optional<BlobApplicationAware> originalBlob = chunks.stream().findFirst()
+          .map(BlobApplicationAware::getOriginalBlob);
 
-          String originalBlobName = chunks.stream().findFirst()
-          .map(BlobApplicationAware::getOriginalBlobName).orElse("ERROR_NO_ORIGINAL_BLOB_NAME");
-      if (!chunks.isEmpty()) {
+      if (!chunks.isEmpty() && originalBlob.isPresent()) {
 
         if (verifiedChunks.size() == chunks.size()) {
           long uploadedChunks = verifiedChunks.stream()
@@ -74,8 +73,8 @@ public class EventHandler {
               .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
               .count();
           log.info("Uploaded chunks: {}", uploadedChunks);
-          blobRestConnectorImpl.setMetadata(originalBlob);
-          log.info("Uploaded pgp Metadata: {}", originalBlob.getBlob());
+          blobRestConnectorImpl.setMetadata(originalBlob.get());
+          log.info("Uploaded pgp Metadata: {}", originalBlob.get().getBlob());
 
         } else {
           log.error("Not all chunks are verified, no chunks will be uploaded of {}",
@@ -87,9 +86,9 @@ public class EventHandler {
             .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus())).count();
 
         log.info("Deleted {}/{} chunks of blob: {}", deletedChunks, chunks.size(),
-        originalBlobName);
+            originalBlob.get().getBlob());
 
-        log.info("Handled blob: {}", originalBlobName);
+        log.info("Handled blob: {}", originalBlob.get().getBlob());
       } else {
         log.error("Number chunks equals to 0 or origin blob is null. Number of chunks: {} Original blob: {} ",
             chunks.size(), originalBlob);
