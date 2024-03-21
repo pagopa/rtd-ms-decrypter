@@ -132,7 +132,7 @@ public class BlobSplitterImpl implements BlobSplitter {
     if (!failSplit) {
       log.info("Obtained {} chunk/s from blob:{}", chunkNum, blob.getBlob());
       for (BlobApplicationAware b : blobSplit) {
-        b.setOrigianalFileChunksNumber(chunkNum);
+        b.setOriginalFileChunksNumber(chunkNum);
       }
       return blobSplit.stream();
     } else {
