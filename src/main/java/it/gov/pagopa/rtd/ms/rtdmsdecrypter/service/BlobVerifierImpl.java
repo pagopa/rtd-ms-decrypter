@@ -13,7 +13,6 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.DecryptedRecord;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.ReportMetaData;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import java.time.LocalDate;
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -24,7 +23,6 @@ import java.util.stream.Stream;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -37,8 +35,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class BlobVerifierImpl implements BlobVerifier {
 
-  @Value("${decrypt.skipChecksum}")
-  private boolean skipChecksum;
 
   @Autowired
   private VerifierFactory verifierFactory;
@@ -52,16 +48,11 @@ public class BlobVerifierImpl implements BlobVerifier {
     log.info("START Verifying {}", blob.getBlob());
 
     FileReader fileReader;
-    BufferedReader bufferedReader;
     boolean isValid = true;
     AtomicLong numberOfDeserializeRecords = new AtomicLong(0);
     String checkSum = "";
     try {
       fileReader = new FileReader(Path.of(blob.getTargetDir(), blob.getBlob()).toFile());
-      bufferedReader = new BufferedReader(fileReader);
-      if (skipChecksum) {
-        checkSum = bufferedReader.readLine();
-      }
     } catch (FileNotFoundException e) {
       log.error("Error reading file {}", blob.getBlob());
       return blob;
@@ -73,7 +64,7 @@ public class BlobVerifierImpl implements BlobVerifier {
     BeanVerifier<? extends DecryptedRecord> verifier = verifierFactory.getVerifier(blob.getApp());
     Class<? extends DecryptedRecord> beanClass = verifierFactory.getBeanClass(blob.getApp());
 
-    CsvToBeanBuilder<DecryptedRecord> builder = new CsvToBeanBuilder<DecryptedRecord>(bufferedReader)
+    CsvToBeanBuilder<DecryptedRecord> builder = new CsvToBeanBuilder<DecryptedRecord>(fileReader)
         .withType(beanClass)
         .withSeparator(';')
         .withVerifier((BeanVerifier<DecryptedRecord>) verifier)
@@ -124,7 +115,7 @@ public class BlobVerifierImpl implements BlobVerifier {
     reportMetaData.getMerchantList().add(tempAdeAgg.getMerchantId());
     reportMetaData.increaseTrx(tempAdeAgg.getOperationType(), tempAdeAgg.getNumTrx());
     reportMetaData.increaseTotalAmountTrx(tempAdeAgg.getOperationType(), tempAdeAgg.getTotalAmount());
-    reportMetaData.updateAccountingDate(tempAdeAgg.getAccountingDate());
+    reportMetaData.updateAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
     numberOfDeserializeRecords.incrementAndGet();
   }
 }

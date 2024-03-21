@@ -43,9 +43,9 @@ class BlobVerifierTest {
 
   String containerTAE = "ade-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
 
-  String blobNameRTD = "CSTAR.99999.TRNLOG.20220419.121045.001.01.csv";
+  String blobNameRTD = "CSTAR.111111.TRNLOG.20220419.121045.001.01.csv";
 
-  String blobNameTAE = "ADE.99999.TRNLOG.20220721.095718.001.01.csv";
+  String blobNameTAE = "ADE.111111.TRNLOG.20220721.095718.001.01.csv";
 
   String blobNameTAEEmpty = "ADE.00000.TRNLOG.20220721.095718.001.01.csv";
 
@@ -61,8 +61,6 @@ class BlobVerifierTest {
 
   @BeforeEach
   void setUp() throws IOException {
-
-    blobVerifierImpl.setSkipChecksum(true);
 
     // Create the decrypted file for RTD
     File decryptedFile = Path.of(tmpDirectory, blobNameRTD).toFile();
@@ -152,8 +150,6 @@ class BlobVerifierTest {
     assertEquals(439580, fakeBlobTAE.getReportMetaData().getTotalAmountPositiveTrx());
     assertEquals("2022-07-17", fakeBlobTAE.getReportMetaData().getMinAccountingDate().toString());
     assertEquals("2022-07-20", fakeBlobTAE.getReportMetaData().getMaxAccountingDate().toString());
-    assertEquals("#sha256sum:cf832e6bb27c719d4a784a9688b490540448cbaf888d23742deae60831f282de",
-        fakeBlobTAE.getReportMetaData().getCheckSum());
 
   }
 
@@ -268,18 +264,6 @@ class BlobVerifierTest {
     assertEquals(Status.SPLIT, fakeBlobRTDEmpty.getStatus());
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = {
-      "00017;00;09;c3141e7c87d0bf7faac1ea3c79b2312279303b87781eedbb47ec8892f63df3e9;2020-08-06T12:19:16.000+01:00;193531782008954810291361325409791762715;324393315321635981285487364925433121593;27571141360967615190853606122155739169;877690;978;09509;400000080205;80205005;40236010;4900;RSSMRA80A01H501U;12345678901;01;E197169A09GQNYI34PN3QPA1SDM07" })
-  void shouldFailVerifyChecksum(String malformedAggregateRecord) throws IOException {
-    Files.write(Path.of(tmpDirectory, blobNameRTDEmpty + ".decrypted"),
-        malformedAggregateRecord.getBytes(), StandardOpenOption.APPEND);
-
-    blobVerifierImpl.setSkipChecksum(false);
-
-    blobVerifierImpl.verify(fakeBlobRTDEmpty);
-    assertEquals(Status.SPLIT, fakeBlobRTDEmpty.getStatus());
-  }
 
   @Test
   void shouldNotVerifyMissingFile() {

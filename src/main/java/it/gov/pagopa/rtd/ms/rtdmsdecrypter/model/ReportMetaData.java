@@ -1,7 +1,6 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
 import java.time.LocalDate;
-import java.time.chrono.ChronoLocalDate;
 import java.util.HashSet;
 
 import lombok.Getter;
@@ -30,12 +29,12 @@ public class ReportMetaData {
     this.checkSum = "";
   }
 
-  public void updateAccountingDate(String accountingDate) {
-    if (this.minAccountingDate.isAfter(LocalDate.parse(accountingDate))) {
-      this.setMinAccountingDate(LocalDate.parse(accountingDate));
+  public void updateAccountingDate(LocalDate accountingDate) {
+    if (this.minAccountingDate.isAfter(accountingDate)) {
+      this.setMinAccountingDate(accountingDate);
     }
-    if (this.maxAccountingDate.isBefore(LocalDate.parse(accountingDate))) {
-      this.setMaxAccountingDate(LocalDate.parse(accountingDate));
+    if (this.maxAccountingDate.isBefore(accountingDate)) {
+      this.setMaxAccountingDate(accountingDate);
     }
   }
 
