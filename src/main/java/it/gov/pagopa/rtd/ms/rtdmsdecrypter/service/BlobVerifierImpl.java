@@ -40,8 +40,11 @@ public class BlobVerifierImpl implements BlobVerifier {
   @Value("${decrypt.skipChecksum}")
   private boolean skipChecksum;
 
-  @Autowired
   private VerifierFactory verifierFactory;
+
+  public BlobVerifierImpl(VerifierFactory verifierFactory){
+    this.verifierFactory = verifierFactory;
+  }
 
   /**
    * Verify method, used to verify the validity of the
