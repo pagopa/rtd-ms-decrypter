@@ -92,7 +92,7 @@ public class BlobSplitterImpl implements BlobSplitter {
         chunkNum++;
       }
       for (BlobApplicationAware blobApplicationAware : blobSplit) {
-        blobApplicationAware.setTotChunk(chunkNum+1);
+        blobApplicationAware.setTotChunk(chunkNum);
       }
 
     } catch (IOException e) {
