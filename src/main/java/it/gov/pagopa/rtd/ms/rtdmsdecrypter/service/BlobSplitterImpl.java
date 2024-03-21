@@ -78,16 +78,23 @@ public class BlobSplitterImpl implements BlobSplitter {
           writeChunks(it, writer, blob);
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
               blob.getBlobUri());
+          tmpBlob.setOriginalBlob(blob);
           tmpBlob.setOriginalBlobName(blob.getBlob());
           tmpBlob.setStatus(SPLIT);
           tmpBlob.setApp(blob.getApp());
           tmpBlob.setBlob(chunkName);
           tmpBlob.setBlobUri(
               blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/" + chunkName);
+          tmpBlob.setNumChunk(chunkNum);
           blobSplit.add(tmpBlob);
         }
+        
         chunkNum++;
       }
+      for (BlobApplicationAware blobApplicationAware : blobSplit) {
+        blobApplicationAware.setTotChunk(chunkNum+1);
+      }
+
     } catch (IOException e) {
       log.error("Missing blob file:{}", blobPath);
       failSplit = true;
@@ -132,7 +139,7 @@ public class BlobSplitterImpl implements BlobSplitter {
     if (!failSplit) {
       log.info("Obtained {} chunk/s from blob:{}", chunkNum, blob.getBlob());
       for (BlobApplicationAware b : blobSplit) {
-        b.setOrigianalFileChunksNumber(chunkNum);
+        b.setOriginalFileChunksNumber(chunkNum);
       }
       return blobSplit.stream();
     } else {
