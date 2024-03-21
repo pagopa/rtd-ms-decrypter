@@ -65,7 +65,7 @@ public class BlobVerifierImpl implements BlobVerifier {
     } catch (FileNotFoundException e) {
       log.error("Error reading file {}", blob.getBlob());
       return blob;
-    } catch (IOException e){
+    } catch (IOException e) {
       log.error("Error reading checksum {}", blob.getBlob());
       return blob;
     }
@@ -117,26 +117,14 @@ public class BlobVerifierImpl implements BlobVerifier {
         deserializedSize, violations);
   }
 
-  private void gatheringMetadataAndCount(BlobApplicationAware blob, DecryptedRecord decryptedRecord, AtomicLong numberOfDeserializeRecords) {
+  private void gatheringMetadataAndCount(BlobApplicationAware blob, DecryptedRecord decryptedRecord,
+      AtomicLong numberOfDeserializeRecords) {
     AdeTransactionsAggregate tempAdeAgg = (AdeTransactionsAggregate) decryptedRecord;
     ReportMetaData reportMetaData = blob.getOriginalBlob().getReportMetaData();
     reportMetaData.getMerchantList().add(tempAdeAgg.getMerchantId());
-    if (tempAdeAgg.getOperationType().equals("00")) {
-      reportMetaData.setNumPositiveTrx(reportMetaData.getNumPositiveTrx() + tempAdeAgg.getNumTrx());
-      reportMetaData.setTotalAmountPositiveTrx(
-          reportMetaData.getTotalAmountPositiveTrx() + tempAdeAgg.getTotalAmount());
-    } else {
-      reportMetaData
-          .setNumCanceledTrx(reportMetaData.getNumCanceledTrx() + tempAdeAgg.getNumTrx());
-      reportMetaData.setTotalAmountCanceledTrx(
-          reportMetaData.getTotalAmountCanceledTrx() + tempAdeAgg.getTotalAmount());
-    }
-    if (reportMetaData.getMinAccountingDate().isAfter(LocalDate.parse(tempAdeAgg.getAccountingDate()))) {
-      reportMetaData.setMinAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
-    }
-    if (reportMetaData.getMaxAccountingDate().isBefore(LocalDate.parse(tempAdeAgg.getAccountingDate()))) {
-      reportMetaData.setMaxAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
-    }
+    reportMetaData.increaseTrx(tempAdeAgg.getOperationType(), tempAdeAgg.getNumTrx());
+    reportMetaData.increaseTotalAmountTrx(tempAdeAgg.getOperationType(), tempAdeAgg.getTotalAmount());
+    reportMetaData.updateAccountingDate(tempAdeAgg.getAccountingDate());
     numberOfDeserializeRecords.incrementAndGet();
   }
 }
