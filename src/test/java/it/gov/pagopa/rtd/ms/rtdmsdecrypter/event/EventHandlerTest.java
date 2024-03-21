@@ -1,8 +1,5 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.event;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -20,7 +17,6 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -82,9 +78,11 @@ class EventHandlerTest {
 
   //The test parameters reproduce the following scenarios: blobUriShouldPassRegex, blobUriShouldPassAlphnumABI
   @ParameterizedTest
-  @ValueSource(strings = {"CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp",
-      "CSTAR.a9911.TRNLOG.20220228.203107.001.csv.pgp"})
-  void blobUriShouldPassRegex(String blobName) {
+  @CsvSource({
+      "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp",
+      "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, CSTAR.a9911.TRNLOG.20220228.203107.001.csv.pgp",
+      "nexi, in/PAGOPAPM_NPG_CONTRACTS_20240313182500_001_OUT"})
+  void blobUriShouldPassRegex(String container, String blobName) {
 
     String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;
     myEvent.setSubject(blobUri);
@@ -149,7 +147,11 @@ class EventHandlerTest {
   @ParameterizedTest
   @CsvSource({
       "ade-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, CSTAR.99910.TRNLOG.20220228.203107.001.01.csv.pgp",
-      "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, ADE.99910.TRNLOG.20220228.203107.001.01.csv.pgp"})
+      "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, ADE.99910.TRNLOG.20220228.203107.001.01.csv.pgp",
+      "nexi, CSTAR.99910.TRNLOG.20220228.203107.001.01.csv.pgp",
+      "nexi, ADE.99910.TRNLOG.20220228.203107.001.01.csv.pgp",
+      "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, PAGOPAPM_NPG_CONTRACTS_20240322000000_001_OUT.decrypted",
+      "ade-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, PAGOPAPM_NPG_CONTRACTS_20240322000000_001_OUT.decrypted"})
   void blobUriShouldFailConflictingService(String container, String blobName) {
 
     String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;

@@ -1,7 +1,13 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl.deserializeAndVerifyContract;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.config.VerifierFactory;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
@@ -42,6 +48,10 @@ class BlobVerifierTest {
 
   String containerTAE = "ade-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
 
+  String containerWallet = "nexi";
+
+  String contractsFolder = "in";
+
   String blobNameRTD = "CSTAR.99999.TRNLOG.20220419.121045.001.01.csv";
 
   String blobNameTAE = "ADE.99999.TRNLOG.20220721.095718.001.01.csv";
@@ -50,6 +60,8 @@ class BlobVerifierTest {
 
   String blobNameRTDEmpty = "CSTAR.00000.TRNLOG.20220419.121045.001.01.csv";
 
+  String blobNameWallet = "PAGOPAPM_NPG_CONTRACTS_20240322000000_001_OUT.decrypted";
+
   BlobApplicationAware fakeBlobRTD;
 
   BlobApplicationAware fakeBlobTAE;
@@ -57,6 +69,8 @@ class BlobVerifierTest {
   BlobApplicationAware fakeBlobTAEEmpty;
 
   BlobApplicationAware fakeBlobRTDEmpty;
+
+  BlobApplicationAware fakeBlobWallet;
 
   @BeforeEach
   void setUp() throws IOException {
@@ -126,6 +140,14 @@ class BlobVerifierTest {
     fakeBlobRTDEmpty.setTargetDir(tmpDirectory);
     fakeBlobRTDEmpty.setStatus(Status.SPLIT);
     fakeBlobRTDEmpty.setApp(Application.RTD);
+
+    //Instantiate a dummy Wallet blob
+    fakeBlobWallet = new BlobApplicationAware(
+        "/blobServices/default/containers/" + containerWallet + "/blobs/" + contractsFolder + "/"
+            + blobNameWallet);
+    fakeBlobWallet.setTargetDir(tmpDirectory);
+    fakeBlobWallet.setStatus(Status.SPLIT);
+    fakeBlobWallet.setApp(Application.WALLET);
   }
 
   @AfterEach
@@ -183,6 +205,11 @@ class BlobVerifierTest {
     assertEquals(Status.SPLIT, fakeBlobTAEEmpty.getStatus());
   }
 
+  @Test
+  void shouldVerifyWallet() {
+    blobVerifierImpl.verify(fakeBlobWallet);
+    assertEquals(Status.VERIFIED, fakeBlobWallet.getStatus());
+  }
 
   @ParameterizedTest
   @ValueSource(strings = {
@@ -268,6 +295,21 @@ class BlobVerifierTest {
 
     blobVerifierImpl.verify(fakeBlobRTDEmpty);
     assertEquals(Status.SPLIT, fakeBlobRTDEmpty.getStatus());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {
+      "{ \"action\": \"CREATE\", \"import_outcome\": \"KO\", \"payment_method\": \"CARD\", \"method_attributes\": { \"pan_tail\": \"6295\", \"expdate\": \"04/28\", \"card_id_4\": \"6b4d345a594e69654478796546556c384c6955765a42794a345139305457424c394d794e4b4566466c44593d\", \"card_payment_circuit\": \"MAESTRO\", \"new_contract_identifier\": \"1e04de1f762b440fa5c444464603bc7c\", \"original_contract_identifier\": \"3b1288edc1f14e0a97129d84fbf1f01e\", \"card_bin\": \"459521\" } }",
+      "{ \"action\": \"CREATE\", \"import_outcome\": \"OK\", \"payment_method\": \"CARD\", \"method_attributes\": { \"pan_tail\": \"62951\", \"expdate\": \"04/28\", \"card_id_4\": \"6b4d345a594e69654478796546556c384c6955765a42794a345139305457424c394d794e4b4566466c44593d\", \"card_payment_circuit\": \"MAESTRO\", \"new_contract_identifier\": \"1e04de1f762b440fa5c444464603bc7c\", \"original_contract_identifier\": \"3b1288edc1f14e0a97129d84fbf1f01e\", \"card_bin\": \"459521\" } }",
+      "{ \"action\": \"DELETE\", \"import_outcome\": \"KO\" } }",
+      "{ \"action\": \"CREATE\", \"import_outcome\": \"OK\", \"payment_method\": \"CARD\" }",
+      "{ \"import_outcome\": \"OK\" }",
+  })
+  void shouldNotVerifyMalformedContract(String serializedContract) throws IOException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    JsonParser parser = new JsonFactory().createJsonParser(serializedContract);
+
+    assertNull(deserializeAndVerifyContract(objectMapper, parser, 0));
   }
 
   @Test

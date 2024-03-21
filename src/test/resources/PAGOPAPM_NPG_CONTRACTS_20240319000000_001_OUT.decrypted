@@ -1,0 +1,12 @@
+{
+    "header": {
+        "file_id": "PAGOPAPM_NPG_CONTRACTS_20231021143000_OUT",
+        "processing_start_time": "2024-02-22T11:18:35Z",
+        "processing_end_time": "2024-02-22T111845Z",
+        "export_id": "aeb5071e-6ecf-477d-8298-55bf1052703a",
+        "import_file_id": "PAGOPAPM_NPG_CONTRACTS_20231021143000",
+        "extraction_time": "2024-02-22T11:18:35Z",
+        "contract_quantity": 3,
+        "file_sequence_number": "001"
+    }
+}
