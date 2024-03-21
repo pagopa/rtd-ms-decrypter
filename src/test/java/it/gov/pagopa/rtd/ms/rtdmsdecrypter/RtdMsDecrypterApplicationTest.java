@@ -108,7 +108,7 @@ class RtdMsDecrypterApplicationTest {
     blobSplit1.setStatus(BlobApplicationAware.Status.SPLIT);
     blobSplit2.setStatus(BlobApplicationAware.Status.SPLIT);
     blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
-    blobVerified.setOrigianalFileChunksNumber(3);
+    blobVerified.setOriginalFileChunksNumber(3);
     blobUploaded.setStatus(BlobApplicationAware.Status.UPLOADED);
     blobDeleted.setStatus(BlobApplicationAware.Status.DELETED);
 
@@ -270,7 +270,7 @@ class RtdMsDecrypterApplicationTest {
     blobSplit1.setStatus(BlobApplicationAware.Status.SPLIT);
     blobSplit2.setStatus(BlobApplicationAware.Status.SPLIT);
     blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
-    blobVerified.setOrigianalFileChunksNumber(3);
+    blobVerified.setOriginalFileChunksNumber(3);
 
     //Mock the behaviour of the beans
     doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
@@ -316,7 +316,7 @@ class RtdMsDecrypterApplicationTest {
     blobSplit1.setStatus(BlobApplicationAware.Status.SPLIT);
     blobSplit2.setStatus(BlobApplicationAware.Status.SPLIT);
     blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
-    blobVerified.setOrigianalFileChunksNumber(3);
+    blobVerified.setOriginalFileChunksNumber(3);
     //Keep the SPLIT status, this will trigger the filter
     blobUploaded.setStatus(BlobApplicationAware.Status.SPLIT);
 

@@ -98,7 +98,7 @@ class EventHandlerTest {
     blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);
     blobDecrypted.setStatus(BlobApplicationAware.Status.DECRYPTED);
     blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
-    blobVerified.setOrigianalFileChunksNumber(3);
+    blobVerified.setOriginalFileChunksNumber(3);
     blobSplit.setStatus(BlobApplicationAware.Status.SPLIT);
     blobUploaded.setStatus(BlobApplicationAware.Status.UPLOADED);
     doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
