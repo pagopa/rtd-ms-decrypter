@@ -296,7 +296,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTD + "." + i + ".decrypted", b.getBlob());
-      assertEquals(b.getOrigianalFileChunksNumber(), 3);
+      assertEquals(b.getOriginalFileChunksNumber(), 3);
       i++;
     }
     assertEquals(3, i);
@@ -313,7 +313,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameWallet + "." + i + ".decrypted", b.getBlob());
-      assertEquals(b.getOrigianalFileChunksNumber(), 4);
+      assertEquals(b.getOriginalFileChunksNumber(), 4);
       i++;
     }
     assertEquals(4, i);
@@ -420,7 +420,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameWallet + "." + i + ".decrypted", b.getBlob());
-      assertEquals(b.getOrigianalFileChunksNumber(), 2);
+      assertEquals(b.getOriginalFileChunksNumber(), 2);
       i++;
     }
     assertEquals(2, i);
@@ -438,7 +438,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTD + "." + i + ".decrypted", b.getBlob());
-      assertEquals(b.getOrigianalFileChunksNumber(), 4);
+      assertEquals(b.getOriginalFileChunksNumber(), 4);
       i++;
     }
     assertEquals(4, i);
@@ -456,7 +456,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTD + "." + i + ".decrypted", b.getBlob());
-      assertEquals(b.getOrigianalFileChunksNumber(), 2);
+      assertEquals(b.getOriginalFileChunksNumber(), 2);
       i++;
     }
     assertEquals(2, i);
@@ -474,7 +474,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTDOldNaming + "." + i + ".decrypted", b.getBlob());
-      assertEquals(b.getOrigianalFileChunksNumber(), 3);
+      assertEquals(b.getOriginalFileChunksNumber(), 3);
       i++;
     }
     assertEquals(3, i);
@@ -483,9 +483,9 @@ class BlobSplitterTest {
   @Test
   void shouldSplitTAE() {
     //Instantiate a fake blob with clear text content
+
     blobSplitterImpl.setAggregatesLineThreshold(1);
     blobSplitterImpl.setChecksumSkipped(false);
-
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobTAE);
     Iterable<BlobApplicationAware> iterable = chunks::iterator;
     int i = 0;
@@ -494,10 +494,10 @@ class BlobSplitterTest {
       assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
           + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber
           + String.format("%03d", i), b.getBlob());
-      assertEquals(b.getOrigianalFileChunksNumber(), 4);
+      assertEquals(b.getOriginalFileChunksNumber(), 6);
       i++;
     }
-    assertEquals(4, i);
+    assertEquals(6, i);
   }
 
   @Test
@@ -516,7 +516,7 @@ class BlobSplitterTest {
               + missingBatchServiceChunkNumberPlaceholder
               + String.format("%03d", i),
           b.getBlob());
-      assertEquals(b.getOrigianalFileChunksNumber(), 4);
+      assertEquals(b.getOriginalFileChunksNumber(), 4);
       i++;
     }
     assertEquals(4, i);
@@ -538,10 +538,10 @@ class BlobSplitterTest {
       assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
           + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber
           + String.format("%03d", i), b.getBlob());
-      assertEquals(b.getOrigianalFileChunksNumber(), 2);
+      assertEquals(b.getOriginalFileChunksNumber(), 3);
       i++;
     }
-    assertEquals(2, i);
+    assertEquals(3, i);
   }
 
   @Test

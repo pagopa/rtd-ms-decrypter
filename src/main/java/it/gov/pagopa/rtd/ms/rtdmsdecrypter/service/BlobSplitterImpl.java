@@ -66,6 +66,9 @@ public class BlobSplitterImpl implements BlobSplitter {
     String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + decryptedSuffix).toString();
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
 
+    // Incremental integer for chunk numbering
+    int chunkNum = 0;
+
     boolean successfulSplit = false;
 
     if (blob.getApp() == Application.ADE || blob.getApp() == Application.RTD) {
@@ -91,8 +94,13 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     try (
         LineIterator it = FileUtils.lineIterator(
-            Path.of(blobPath).toFile(), "UTF-8")
-    ) {
+            Path.of(blobPath).toFile(), "UTF-8")) {
+      if (it.hasNext() && isChecksumSkipped.isFalse()) {
+        String line = it.nextLine();
+        log.info("Checksum: {} {}", blob.getBlob(), line);
+        blob.getReportMetaData().setCheckSum(line);
+        isChecksumSkipped.setTrue();
+      }
       while (it.hasNext()) {
         if (blob.getApp() == Application.ADE) {
           // Left pad with 0s the chunk number to 3 char
@@ -101,22 +109,29 @@ public class BlobSplitterImpl implements BlobSplitter {
           chunkName = blob.getBlob() + "." + chunkNum + decryptedSuffix;
         }
         try (Writer writer = Channels.newWriter(new FileOutputStream(
-                Path.of(blob.getTargetDir(), chunkName).toString(),
-                true).getChannel(),
+            Path.of(blob.getTargetDir(), chunkName).toString(),
+            true).getChannel(),
             StandardCharsets.UTF_8)) {
           writeCsvChunks(it, writer, blob, isChecksumSkipped);
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
               blob.getBlobUri());
+          tmpBlob.setOriginalBlob(blob);
           tmpBlob.setOriginalBlobName(blob.getBlob());
           tmpBlob.setStatus(SPLIT);
           tmpBlob.setApp(blob.getApp());
           tmpBlob.setBlob(chunkName);
           tmpBlob.setBlobUri(
               blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/" + chunkName);
+          tmpBlob.setNumChunk(chunkNum);
           blobSplit.add(tmpBlob);
         }
+
         chunkNum++;
       }
+      for (BlobApplicationAware blobApplicationAware : blobSplit) {
+        blobApplicationAware.setTotChunk(chunkNum);
+      }
+
     } catch (IOException e) {
       log.error("Missing blob file:{}", blobPath);
       return false;
@@ -182,20 +197,8 @@ public class BlobSplitterImpl implements BlobSplitter {
       throws IOException {
     // Counter for current line number (from 0 to aggregatesLineThreshold)
     int i = 0;
-    while (i < aggregatesLineThreshold) {
-      if (it.hasNext()) {
-        String line = it.nextLine();
-        //Skip the checksum line (the first one)
-        if (Boolean.FALSE.equals(isChecksumSkipped.getValue())) {
-          log.info("Checksum: {} {}", blob.getBlob(), line);
-          isChecksumSkipped.setTrue();
-          i--;
-        } else {
-          writer.append(line).append("\n");
-        }
-      } else {
-        break;
-      }
+    while (it.hasNext() && i < this.aggregatesLineThreshold) {
+      writer.append(it.nextLine()).append("\n");
       i++;
     }
   }
@@ -266,7 +269,7 @@ public class BlobSplitterImpl implements BlobSplitter {
     if (successfulSplit) {
       log.info("Obtained {} chunk/s from blob:{}", blobSplit.size(), blob.getBlob());
       for (BlobApplicationAware b : blobSplit) {
-        b.setOrigianalFileChunksNumber(blobSplit.size());
+        b.setOriginalFileChunksNumber(blobSplit.size());
       }
       return blobSplit.stream();
     } else {
