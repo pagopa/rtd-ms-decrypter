@@ -16,7 +16,6 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.ContractMethodAttributes;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.DecryptedRecord;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.ReportMetaData;
-import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import java.time.LocalDate;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.WalletContract;
