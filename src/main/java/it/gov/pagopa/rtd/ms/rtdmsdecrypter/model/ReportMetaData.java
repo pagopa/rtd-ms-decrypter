@@ -28,4 +28,30 @@ public class ReportMetaData {
     this.maxAccountingDate = LocalDate.MIN;
     this.checkSum = "";
   }
+
+  public void updateAccountingDate(LocalDate accountingDate) {
+    if (this.minAccountingDate.isAfter(accountingDate)) {
+      this.setMinAccountingDate(accountingDate);
+    }
+    if (this.maxAccountingDate.isBefore(accountingDate)) {
+      this.setMaxAccountingDate(accountingDate);
+    }
+  }
+
+  public void increaseTrx(String operationType, int numTrx) {
+    if (operationType.equals("00")) {
+      setNumPositiveTrx(this.numPositiveTrx + numTrx);
+    } else {
+      setNumCanceledTrx(this.numCanceledTrx + numTrx);
+    }
+  }
+
+  public void increaseTotalAmountTrx(String operationType, long totalAmount) {
+    if (operationType.equals("00")) {
+      setTotalAmountPositiveTrx(this.totalAmountPositiveTrx + totalAmount);
+    } else {
+      setTotalAmountCanceledTrx(this.totalAmountCanceledTrx + totalAmount);
+    }
+  }
+
 }

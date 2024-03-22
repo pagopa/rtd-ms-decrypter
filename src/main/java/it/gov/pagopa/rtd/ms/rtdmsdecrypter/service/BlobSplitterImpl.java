@@ -1,11 +1,26 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status.SPLIT;
+import static it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl.deserializeAndVerifyContract;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.WalletContract;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.WalletExportHeader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
 import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
@@ -16,6 +31,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -28,8 +44,12 @@ import org.springframework.stereotype.Service;
 public class BlobSplitterImpl implements BlobSplitter {
 
   //Max number of lines allowed in one blob chunk.
-  @Value("${decrypt.splitter.threshold}")
-  private int lineThreshold;
+  @Value("${decrypt.splitter.aggregatesThreshold}")
+  private int aggregatesLineThreshold;
+
+  //Max number of lines allowed in one contracts blob chunk.
+  @Value("${decrypt.splitter.walletThreshold}")
+  private int contractsSplitThreshold;
 
   private String decryptedSuffix = ".decrypted";
 
@@ -43,27 +63,44 @@ public class BlobSplitterImpl implements BlobSplitter {
    * @return a list of blobs that represent the split blob.
    */
   public Stream<BlobApplicationAware> split(BlobApplicationAware blob) {
-    log.info("Start splitting blob {} from {}", blob.getBlob(), blob.getContainer());
-
     String blobPath = Path.of(blob.getTargetDir(), blob.getBlob() + decryptedSuffix).toString();
-
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
 
-    //Flag for fail split
-    boolean failSplit = false;
-
-    //Flag for skipping first checksum line
-    checksumSkipped = false;
-
-    //Incremental integer for chunk numbering
+    // Incremental integer for chunk numbering
     int chunkNum = 0;
 
+    boolean successfulSplit = false;
+
+    if (blob.getApp() == Application.ADE || blob.getApp() == Application.RTD) {
+      log.info("Start splitting blob {} from {}", blob.getBlob(), blob.getContainer());
+      successfulSplit = splitRtdTaeBlob(blob, blobPath, blobSplit);
+    }
+
+    if (blob.getApp() == Application.WALLET) {
+      log.info("Start splitting and verifying blob {} from {}", blob.getBlob(),
+          blob.getContainer());
+      successfulSplit = splitWalletBlob(blob, blobPath, blobSplit);
+    }
+
+    return finalizeSplit(blob, successfulSplit, blobSplit);
+  }
+
+  private boolean splitRtdTaeBlob(BlobApplicationAware blob, String blobPath,
+      ArrayList<BlobApplicationAware> blobSplit) {
+
+    int chunkNum = 0;
     String chunkName;
+    MutableBoolean isChecksumSkipped = new MutableBoolean(checksumSkipped);
 
     try (
         LineIterator it = FileUtils.lineIterator(
-            Path.of(blobPath).toFile(), "UTF-8")
-    ) {
+            Path.of(blobPath).toFile(), "UTF-8")) {
+      if (it.hasNext() && isChecksumSkipped.isFalse()) {
+        String line = it.nextLine();
+        log.info("Checksum: {} {}", blob.getBlob(), line);
+        blob.getReportMetaData().setCheckSum(line);
+        isChecksumSkipped.setTrue();
+      }
       while (it.hasNext()) {
         if (blob.getApp() == Application.ADE) {
           // Left pad with 0s the chunk number to 3 char
@@ -72,10 +109,10 @@ public class BlobSplitterImpl implements BlobSplitter {
           chunkName = blob.getBlob() + "." + chunkNum + decryptedSuffix;
         }
         try (Writer writer = Channels.newWriter(new FileOutputStream(
-                Path.of(blob.getTargetDir(), chunkName).toString(),
-                true).getChannel(),
+            Path.of(blob.getTargetDir(), chunkName).toString(),
+            true).getChannel(),
             StandardCharsets.UTF_8)) {
-          writeChunks(it, writer, blob);
+          writeCsvChunks(it, writer, blob, isChecksumSkipped);
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
               blob.getBlobUri());
           tmpBlob.setOriginalBlob(blob);
@@ -88,7 +125,6 @@ public class BlobSplitterImpl implements BlobSplitter {
           tmpBlob.setNumChunk(chunkNum);
           blobSplit.add(tmpBlob);
         }
-        
         chunkNum++;
       }
       for (BlobApplicationAware blobApplicationAware : blobSplit) {
@@ -97,10 +133,55 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     } catch (IOException e) {
       log.error("Missing blob file:{}", blobPath);
-      failSplit = true;
+      return false;
     }
+    return true;
+  }
 
-    return finalizeSplit(blob, failSplit, chunkNum, blobSplit);
+  private boolean splitWalletBlob(BlobApplicationAware blob, String blobPath,
+      ArrayList<BlobApplicationAware> blobSplit) {
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    JsonFactory jsonFactory = new JsonFactory();
+
+    try (InputStream inputStream = new FileInputStream(blobPath)) {
+      JsonParser jsonParser = jsonFactory.createParser(inputStream);
+
+      if (jsonParser.nextToken() != JsonToken.START_OBJECT) {
+        log.error("Validation error: malformed wallet export");
+        return false;
+      }
+
+      if (jsonParser.nextToken() == JsonToken.FIELD_NAME && !jsonParser.getCurrentName()
+          .equals("header")) {
+        log.error("Validation error: expected wallet export header");
+        return false;
+      }
+
+      jsonParser.nextToken();
+      WalletExportHeader header = objectMapper.readValue(jsonParser, WalletExportHeader.class);
+      log.info("Contracts export header:  {}", header.toString());
+
+      if (jsonParser.getCurrentName() == null || jsonParser.nextToken() != JsonToken.FIELD_NAME
+          || !jsonParser.getCurrentName().equals("contracts")) {
+        log.error("Validation error: expected wallet export contracts");
+        return false;
+      }
+
+      if (jsonParser.nextToken() != JsonToken.START_ARRAY) {
+        log.error("Validation error: expected wallet export contracts array");
+        return false;
+      }
+
+      return deserializeAndSplitContracts(jsonParser, blobSplit, objectMapper, blob);
+
+    } catch (JsonParseException | MismatchedInputException e) {
+      log.error("Validation error: malformed wallet export");
+      return false;
+    } catch (IOException e) {
+      log.error("Missing blob file:{}", blobPath);
+      return false;
+    }
   }
 
   private String adeNamingConvention(BlobApplicationAware blob) {
@@ -110,43 +191,106 @@ public class BlobSplitterImpl implements BlobSplitter {
         + blob.getBatchServiceChunkNumber();
   }
 
-  private void writeChunks(LineIterator it, Writer writer,
-      BlobApplicationAware blob)
+  private void writeCsvChunks(LineIterator it, Writer writer,
+      BlobApplicationAware blob, MutableBoolean isChecksumSkipped)
       throws IOException {
-    // Counter for current line number (from 0 to lineThreshold)
+    // Counter for current line number (from 0 to aggregatesLineThreshold)
     int i = 0;
-    while (i < lineThreshold) {
-      if (it.hasNext()) {
-        String line = it.nextLine();
-        //Skip the checksum line (the first one)
-        if (!checksumSkipped) {
-          log.info("Checksum: {} {}", blob.getBlob(), line);
-          checksumSkipped = true;
-          i--;
-        } else {
-          writer.append(line).append("\n");
-        }
-      } else {
-        break;
-      }
+    while (it.hasNext() && i < this.aggregatesLineThreshold) {
+      writer.append(it.nextLine()).append("\n");
       i++;
     }
   }
 
-  private Stream<BlobApplicationAware> finalizeSplit(BlobApplicationAware blob, boolean failSplit,
-      int chunkNum, ArrayList<BlobApplicationAware> blobSplit) {
+  private boolean deserializeAndSplitContracts(JsonParser jsonParser,
+      ArrayList<BlobApplicationAware> blobSplit, ObjectMapper objectMapper,
+      BlobApplicationAware blob)
+      throws IOException {
+    int contractsCounter = 0;
+    int contractsSplitCounter = 0;
+    int chunkNum = 0;
+    boolean isChunkOpen = false;
 
-    if (!failSplit) {
-      log.info("Obtained {} chunk/s from blob:{}", chunkNum, blob.getBlob());
+    JsonFactory jsonFactory = new JsonFactory();
+    BlobApplicationAware chunkBlob = null;
+    File chunkOutputFile;
+    FileWriter fileWriter = null;
+    JsonGenerator jsonGenerator = null;
+
+    // Iterate over the tokens until the end of the contracts array
+    while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+      if (!isChunkOpen) {
+        chunkBlob = blobChunkConstructor(blob, chunkNum);
+        chunkOutputFile = new File(
+            Path.of(chunkBlob.getTargetDir(), chunkBlob.getBlob()).toString());
+        fileWriter = new FileWriter(chunkOutputFile);
+        jsonGenerator = jsonFactory.createGenerator(fileWriter);
+        jsonGenerator.writeStartArray();
+        isChunkOpen = true;
+      }
+      try {
+        WalletContract contract = deserializeAndVerifyContract(objectMapper, jsonParser,
+            contractsCounter);
+        if (contract == null) {
+          return false;
+        }
+        contractsSplitCounter++;
+        contractsCounter++;
+
+        objectMapper.writeValue(jsonGenerator, contract);
+
+        if (contractsSplitCounter % contractsSplitThreshold == 0) {
+          jsonGenerator.writeEndArray();
+          jsonGenerator.close();
+          fileWriter.close();
+          isChunkOpen = false;
+          blobSplit.add(chunkBlob);
+          chunkNum++;
+        }
+      } catch (UnrecognizedPropertyException e) {
+        log.error("Failed to deserialize the contract {}: {}", contractsCounter, e.getMessage());
+      }
+    }
+
+    if (isChunkOpen) {
+      jsonGenerator.writeEndArray();
+      jsonGenerator.close();
+      fileWriter.close();
+      blobSplit.add(chunkBlob);
+    }
+
+    return true;
+  }
+
+  private Stream<BlobApplicationAware> finalizeSplit(BlobApplicationAware blob,
+      boolean successfulSplit, ArrayList<BlobApplicationAware> blobSplit) {
+
+    if (successfulSplit) {
+      log.info("Obtained {} chunk/s from blob:{}", blobSplit.size(), blob.getBlob());
       for (BlobApplicationAware b : blobSplit) {
-        b.setOriginalFileChunksNumber(chunkNum);
+        b.setOriginalFileChunksNumber(blobSplit.size());
       }
       return blobSplit.stream();
     } else {
       // If split fails, return the original blob (without the SPLIT status)
-      log.info("Failed splitting blob:{}", blob.getBlob());
+      log.info("Failed splitting blob: {}", blob.getBlob());
       blob.localCleanup();
       return Stream.of(blob);
     }
+  }
+
+  private BlobApplicationAware blobChunkConstructor(BlobApplicationAware blob, int chunkNum) {
+    String chunkName = blob.getBlob() + "." + chunkNum + decryptedSuffix;
+    BlobApplicationAware chunkBlob = new BlobApplicationAware(
+        blob.getBlobUri());
+    chunkBlob.setOriginalBlobName(blob.getBlob());
+    chunkBlob.setStatus(SPLIT);
+    chunkBlob.setApp(blob.getApp());
+    chunkBlob.setBlob(chunkName);
+    chunkBlob.setBlobUri(
+        blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/"
+            + chunkName);
+    chunkBlob.setTargetDir(blob.getTargetDir());
+    return chunkBlob;
   }
 }

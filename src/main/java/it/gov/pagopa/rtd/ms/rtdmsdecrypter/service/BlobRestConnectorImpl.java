@@ -1,6 +1,7 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import java.io.FileOutputStream;
 import java.nio.file.Path;
 import java.util.Objects;
@@ -39,6 +40,9 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   private String blobBasePath;
 
   private String subKeyHeader = "Ocp-Apim-Subscription-Key";
+  
+  @Value("${decrypt.blobclient.sftp-basepath}")
+  private String sftpBlobBasePath;
 
   private final CloseableHttpClient httpClient;
 
@@ -51,8 +55,16 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
    */
   public BlobApplicationAware get(BlobApplicationAware blob) {
     log.info("Start GET blob {} from {}", blob.getBlob(), blob.getContainer());
+    String targetBlob = blob.getBlob();
+    String targetBasePath = blobBasePath;
 
-    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob.getBlob();
+    if (blob.getApp().equals(Application.WALLET)) {
+      targetBlob = "in/" + blob.getBlob();
+      targetBasePath = sftpBlobBasePath;
+    }
+
+    String uri = baseUrl + "/" + targetBasePath + "/" + blob.getContainer() + "/" + targetBlob;
+
     final HttpGet getBlob = new HttpGet(uri);
     getBlob.setHeader(new BasicHeader(subKeyHeader, blobApiKey));
 
@@ -64,8 +76,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
       log.error("Cannot GET blob {} from {}. Invalid HTTP response: {}, {}", blob.getBlob(),
           blob.getTargetContainer(), ex.getStatusCode().value(), ex.getReason());
     } catch (Exception ex) {
-      log.error("Cannot GET blob {} from {}: {}", blob.getBlob(), blob.getContainer(),
-          ex.getMessage());
+      log.error("Cannot GET blob {} from {}: {}", blob.getBlob(), blob.getContainer(), ex.getMessage());
     }
 
     return blob;
