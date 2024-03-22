@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -72,6 +73,18 @@ class BlobApplicationAwareTest {
     String blobUri = "/blobServices/default/containers/" + containerAdE + "/blobs/" + blobAdE;
     BlobApplicationAware myBlob = new BlobApplicationAware(blobUri);
     assertSame(BlobApplicationAware.Application.ADE, myBlob.getApp());
+  }
+
+  @Test
+  void shouldMatchRegexWallet() {
+    String containerWallet = "nexi";
+    String contractsFolder = "in";
+    String blobWallet = "PAGOPAPM_NPG_CONTRACTS_20240313182500_001_OUT";
+    String blobUri =
+        "/blobServices/default/containers/" + containerWallet + "/blobs/" + contractsFolder + "/"
+            + blobWallet;
+    BlobApplicationAware myBlob = new BlobApplicationAware(blobUri);
+    assertSame(Application.WALLET, myBlob.getApp());
   }
 
   @ParameterizedTest
