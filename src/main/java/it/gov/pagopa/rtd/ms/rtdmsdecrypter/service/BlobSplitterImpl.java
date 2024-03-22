@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class BlobSplitterImpl implements BlobSplitter {
 
-  //Max number of lines allowed in one blob chunk.
+  // Max number of lines allowed in one blob chunk.
   @Value("${decrypt.splitter.threshold}")
   private int lineThreshold;
 
@@ -49,21 +49,26 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
 
-    //Flag for fail split
+    // Flag for fail split
     boolean failSplit = false;
 
-    //Flag for skipping first checksum line
+    // Flag for skipping first checksum line
     checksumSkipped = false;
 
-    //Incremental integer for chunk numbering
+    // Incremental integer for chunk numbering
     int chunkNum = 0;
 
     String chunkName;
 
     try (
         LineIterator it = FileUtils.lineIterator(
-            Path.of(blobPath).toFile(), "UTF-8")
-    ) {
+            Path.of(blobPath).toFile(), "UTF-8")) {
+      if (it.hasNext() && !checksumSkipped) {
+        String line = it.nextLine();
+        log.info("Checksum: {} {}", blob.getBlob(), line);
+        blob.getReportMetaData().setCheckSum(line);
+        checksumSkipped = true;
+      }
       while (it.hasNext()) {
         if (blob.getApp() == Application.ADE) {
           // Left pad with 0s the chunk number to 3 char
@@ -72,22 +77,29 @@ public class BlobSplitterImpl implements BlobSplitter {
           chunkName = blob.getBlob() + "." + chunkNum + decryptedSuffix;
         }
         try (Writer writer = Channels.newWriter(new FileOutputStream(
-                Path.of(blob.getTargetDir(), chunkName).toString(),
-                true).getChannel(),
+            Path.of(blob.getTargetDir(), chunkName).toString(),
+            true).getChannel(),
             StandardCharsets.UTF_8)) {
           writeChunks(it, writer, blob);
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
               blob.getBlobUri());
+          tmpBlob.setOriginalBlob(blob);
           tmpBlob.setOriginalBlobName(blob.getBlob());
           tmpBlob.setStatus(SPLIT);
           tmpBlob.setApp(blob.getApp());
           tmpBlob.setBlob(chunkName);
           tmpBlob.setBlobUri(
               blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/" + chunkName);
+          tmpBlob.setNumChunk(chunkNum);
           blobSplit.add(tmpBlob);
         }
+
         chunkNum++;
       }
+      for (BlobApplicationAware blobApplicationAware : blobSplit) {
+        blobApplicationAware.setTotChunk(chunkNum);
+      }
+
     } catch (IOException e) {
       log.error("Missing blob file:{}", blobPath);
       failSplit = true;
@@ -108,20 +120,8 @@ public class BlobSplitterImpl implements BlobSplitter {
       throws IOException {
     // Counter for current line number (from 0 to lineThreshold)
     int i = 0;
-    while (i < lineThreshold) {
-      if (it.hasNext()) {
-        String line = it.nextLine();
-        //Skip the checksum line (the first one)
-        if (!checksumSkipped) {
-          log.info("Checksum: {} {}", blob.getBlob(), line);
-          checksumSkipped = true;
-          i--;
-        } else {
-          writer.append(line).append("\n");
-        }
-      } else {
-        break;
-      }
+    while (it.hasNext() && i < this.lineThreshold) {
+      writer.append(it.nextLine()).append("\n");
       i++;
     }
   }

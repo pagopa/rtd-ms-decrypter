@@ -100,6 +100,9 @@ class RtdMsDecrypterApplicationTest {
     BlobApplicationAware blobVerified = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobUploaded = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobDeleted = new BlobApplicationAware(blobUri);
+    blobSplit0.setOriginalBlob(blobDecrypted);
+    blobSplit1.setOriginalBlob(blobDecrypted);
+    blobSplit2.setOriginalBlob(blobDecrypted);
 
     //Mock every step of the blob handling
     blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);
@@ -262,6 +265,9 @@ class RtdMsDecrypterApplicationTest {
     BlobApplicationAware blobSplit1 = new BlobApplicationAware(blobUri + ".1");
     BlobApplicationAware blobSplit2 = new BlobApplicationAware(blobUri + ".2");
     BlobApplicationAware blobVerified = new BlobApplicationAware(blobUri);
+    blobSplit0.setOriginalBlob(blobDecrypted);
+    blobSplit1.setOriginalBlob(blobDecrypted);
+    blobSplit2.setOriginalBlob(blobDecrypted);
 
     //Mock every step of the blob handling
     blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);
@@ -308,6 +314,9 @@ class RtdMsDecrypterApplicationTest {
     BlobApplicationAware blobSplit2 = new BlobApplicationAware(blobUri + ".2");
     BlobApplicationAware blobVerified = new BlobApplicationAware(blobUri);
     BlobApplicationAware blobUploaded = new BlobApplicationAware(blobUri);
+    blobSplit0.setOriginalBlob(blobDecrypted);
+    blobSplit1.setOriginalBlob(blobDecrypted);
+    blobSplit2.setOriginalBlob(blobDecrypted);
 
     //Mock every step of the blob handling
     blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);

@@ -197,7 +197,7 @@ class BlobSplitterTest {
   void shouldSplitTAE() {
     //Instantiate a fake blob with clear text content
     blobSplitterImpl.setLineThreshold(1);
-
+    
     Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobTAE);
     Iterable<BlobApplicationAware> iterable = chunks::iterator;
     int i = 0;
@@ -208,7 +208,7 @@ class BlobSplitterTest {
           + String.format("%03d", i), b.getBlob());
       i++;
     }
-    assertEquals(4, i);
+    assertEquals(6, i);
   }
 
   @Test
@@ -247,7 +247,7 @@ class BlobSplitterTest {
           + String.format("%03d", i), b.getBlob());
       i++;
     }
-    assertEquals(2, i);
+    assertEquals(3, i);
   }
 
   @Test
