@@ -157,8 +157,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     
     setMetadata.setHeader(new BasicHeader(SUB_KEY_HEADER, blobApiKey));
     setMetadata.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
-    setMetadata.setHeader(new BasicHeader("x-ms-blob-type", "BlockBlob"));
-    setMetadata.setHeader(new BasicHeader("If-None-Match", "*"));
+    setMetadata.setHeader(new BasicHeader("content-length", "0"));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numMerchant", blob.getReportMetaData().getMerchantList().size()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numCanceledTrx", blob.getReportMetaData().getNumCanceledTrx()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numPositiveTrx", blob.getReportMetaData().getNumPositiveTrx()));
