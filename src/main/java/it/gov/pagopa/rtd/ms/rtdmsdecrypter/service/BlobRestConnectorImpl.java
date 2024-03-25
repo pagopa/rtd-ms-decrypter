@@ -39,7 +39,9 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   @Value("${decrypt.blobclient.basepath}")
   private String blobBasePath;
 
-  private String subKeyHeader = "Ocp-Apim-Subscription-Key";
+  public static final String BLOB_METADATA_PREFIX = "x-ms-meta-";
+
+  public static final String SUB_KEY_HEADER = "Ocp-Apim-Subscription-Key";
   
   @Value("${decrypt.blobclient.sftp-basepath}")
   private String sftpBlobBasePath;
@@ -66,7 +68,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     String uri = baseUrl + "/" + targetBasePath + "/" + blob.getContainer() + "/" + targetBlob;
 
     final HttpGet getBlob = new HttpGet(uri);
-    getBlob.setHeader(new BasicHeader(subKeyHeader, blobApiKey));
+    getBlob.setHeader(new BasicHeader(SUB_KEY_HEADER, blobApiKey));
 
     try {
       httpClient.execute(getBlob, downloadFileIn(blob));
@@ -110,12 +112,12 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
         ContentType.create("application/octet-stream"));
 
     final HttpPut putBlob = new HttpPut(uri);
-    putBlob.setHeader(new BasicHeader(subKeyHeader, blobApiKey));
+    putBlob.setHeader(new BasicHeader(SUB_KEY_HEADER, blobApiKey));
     putBlob.setHeader(new BasicHeader("x-ms-blob-type", "BlockBlob"));
     putBlob.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
     putBlob.setHeader(new BasicHeader("If-None-Match", "*"));
-    putBlob.setHeader(new BasicHeader("x-ms-meta-numChunk:", blob.getNumChunk()));
-    putBlob.setHeader(new BasicHeader("x-ms-meta-totalChunk:", blob.getTotChunk()));
+    putBlob.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numChunk", blob.getNumChunk()));
+    putBlob.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"totalChunk", blob.getTotChunk()));
     putBlob.setEntity(entity);
 
     try {
@@ -153,20 +155,21 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
 
     final HttpPut setMetadata = new HttpPut(uri);
     
-    setMetadata.setHeader(new BasicHeader(subKeyHeader, blobApiKey));
+    setMetadata.setHeader(new BasicHeader(SUB_KEY_HEADER, blobApiKey));
     setMetadata.setHeader(new BasicHeader("x-ms-version", "2021-04-10"));
-    setMetadata.setHeader(new BasicHeader("x-ms-meta-numMerchant", blob.getReportMetaData().getMerchantList().size()));
-    setMetadata.setHeader(new BasicHeader("x-ms-meta-numCanceledTrx", blob.getReportMetaData().getNumCanceledTrx()));
-    setMetadata.setHeader(new BasicHeader("x-ms-meta-numPositiveTrx", blob.getReportMetaData().getNumPositiveTrx()));
+    setMetadata.setHeader(new BasicHeader("content-length", "0"));
+    setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numMerchant", blob.getReportMetaData().getMerchantList().size()));
+    setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numCanceledTrx", blob.getReportMetaData().getNumCanceledTrx()));
+    setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numPositiveTrx", blob.getReportMetaData().getNumPositiveTrx()));
     setMetadata.setHeader(
-        new BasicHeader("x-ms-meta-totalAmountCanceledTrx", blob.getReportMetaData().getTotalAmountCanceledTrx()));
+        new BasicHeader(BLOB_METADATA_PREFIX+"totalAmountCanceledTrx", blob.getReportMetaData().getTotalAmountCanceledTrx()));
     setMetadata.setHeader(
-        new BasicHeader("x-ms-meta-totalAmountPositiveTrx", blob.getReportMetaData().getTotalAmountPositiveTrx()));
+        new BasicHeader(BLOB_METADATA_PREFIX+"totalAmountPositiveTrx", blob.getReportMetaData().getTotalAmountPositiveTrx()));
     setMetadata
-        .setHeader(new BasicHeader("x-ms-meta-maxAccountingDate", blob.getReportMetaData().getMaxAccountingDate()));
+        .setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"maxAccountingDate", blob.getReportMetaData().getMaxAccountingDate()));
     setMetadata
-        .setHeader(new BasicHeader("x-ms-meta-minAccountingDate", blob.getReportMetaData().getMinAccountingDate()));
-    setMetadata.setHeader(new BasicHeader("x-ms-meta-checkSum", blob.getReportMetaData().getMinAccountingDate()));
+        .setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"minAccountingDate", blob.getReportMetaData().getMinAccountingDate()));
+    setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"checkSum", blob.getReportMetaData().getMinAccountingDate()));
 
     try {
       httpClient.execute(setMetadata, validateStatusCode());

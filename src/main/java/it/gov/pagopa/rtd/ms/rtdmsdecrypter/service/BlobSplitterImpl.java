@@ -122,7 +122,7 @@ public class BlobSplitterImpl implements BlobSplitter {
           tmpBlob.setBlob(chunkName);
           tmpBlob.setBlobUri(
               blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/" + chunkName);
-          tmpBlob.setNumChunk(chunkNum);
+          tmpBlob.setNumChunk(chunkNum+1);
           blobSplit.add(tmpBlob);
         }
         chunkNum++;
