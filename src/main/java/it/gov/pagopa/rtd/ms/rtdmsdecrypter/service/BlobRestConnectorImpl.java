@@ -153,6 +153,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob.getBlob()
         + "?comp=metadata";
 
+    log.info("Set metadata uri {}", uri);
     final HttpPut setMetadata = new HttpPut(uri);
     
     setMetadata.setHeader(new BasicHeader(SUB_KEY_HEADER, blobApiKey));
@@ -170,6 +171,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
         .setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"minAccountingDate", blob.getReportMetaData().getMinAccountingDate()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"checkSum", blob.getReportMetaData().getMinAccountingDate()));
 
+    log.info("Set metadata httpput {}", setMetadata);
     try {
       httpClient.execute(setMetadata, validateStatusCode());
       blob.setStatus(BlobApplicationAware.Status.ENRICHED);
@@ -177,6 +179,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     } catch (ResponseStatusException ex) {
       log.error("Cannot SET metadata for the blob {} in {}. Invalid HTTP response: {}, {}", blob.getBlob(),
           blob.getContainer(), ex.getStatusCode().value(), ex.getReason());
+      log.error("Error {}",ex);
     } catch (Exception ex) {
       log.error("Cannot SET metadata for the blob {} in {}. Unexpected error: {}", blob.getBlob(),
           blob.getContainer(), ex.getMessage());
