@@ -204,7 +204,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   protected HttpClientResponseHandler<Void> validateStatusCodeSetMetadata() {
     return response -> {
       int status = response.getCode();
-      if (status != HttpStatus.SC_ACCEPTED) {
+      if (status != HttpStatus.SC_OK) {
         throw new ResponseStatusException(HttpStatusCode.valueOf(status),
             response.getReasonPhrase());
       }
