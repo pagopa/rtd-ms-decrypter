@@ -74,8 +74,6 @@ public class EventHandler {
               .count();
           log.info("Uploaded chunks: {}", uploadedChunks);
           blobRestConnectorImpl.setMetadata(originalBlob.get());
-          log.info("Uploaded pgp Metadata: {}", originalBlob.get().getBlob());
-
         } else {
           log.error("Not all chunks are verified, no chunks will be uploaded of {}",
               chunks.get(0).getOriginalBlobName());
