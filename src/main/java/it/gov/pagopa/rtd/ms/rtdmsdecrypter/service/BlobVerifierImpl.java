@@ -15,7 +15,7 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Applicatio
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.ContractMethodAttributes;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.DecryptedRecord;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.ReportMetaData;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.WalletContract;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -187,7 +187,8 @@ public class BlobVerifierImpl implements BlobVerifier {
     reportMetaData.getMerchantList().add(tempAdeAgg.getMerchantId());
     reportMetaData.increaseTrx(tempAdeAgg.getOperationType(), tempAdeAgg.getNumTrx());
     reportMetaData.increaseTotalAmountTrx(tempAdeAgg.getOperationType(), tempAdeAgg.getTotalAmount());
-    reportMetaData.updateAccountingDate(LocalDateTime.parse(tempAdeAgg.getAccountingDate()));
+    reportMetaData.updateAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
+    reportMetaData.setCheckSum(blob.getOriginalBlob().getReportMetaData().getCheckSum());
     numberOfDeserializeRecords.incrementAndGet();
   }
 }

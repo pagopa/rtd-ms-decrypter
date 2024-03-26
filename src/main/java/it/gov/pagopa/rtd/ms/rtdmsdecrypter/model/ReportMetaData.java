@@ -1,6 +1,6 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.model;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.HashSet;
 
 import lombok.Getter;
@@ -14,8 +14,8 @@ public class ReportMetaData {
   private long numPositiveTrx;
   private long totalAmountCanceledTrx;
   private long totalAmountPositiveTrx;
-  private LocalDateTime minAccountingDate;
-  private LocalDateTime maxAccountingDate;
+  private LocalDate minAccountingDate;
+  private LocalDate maxAccountingDate;
   private String checkSum;
 
   public ReportMetaData() {
@@ -24,12 +24,12 @@ public class ReportMetaData {
     this.numPositiveTrx = 0L;
     this.totalAmountCanceledTrx = 0L;
     this.totalAmountPositiveTrx = 0L;
-    this.minAccountingDate = LocalDateTime.MAX;
-    this.maxAccountingDate = LocalDateTime.MIN;
+    this.minAccountingDate = LocalDate.MAX;
+    this.maxAccountingDate = LocalDate.MIN;
     this.checkSum = "";
   }
 
-  public void updateAccountingDate(LocalDateTime accountingDate) {
+  public void updateAccountingDate(LocalDate accountingDate) {
     if (this.minAccountingDate.isAfter(accountingDate)) {
       this.setMinAccountingDate(accountingDate);
     }
