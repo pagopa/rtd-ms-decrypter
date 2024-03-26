@@ -10,11 +10,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.entity.EntityBuilder;
+import org.apache.hc.client5.http.entity.mime.InputStreamBody;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.impl.io.IdentityInputStream;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
 import org.apache.hc.core5.http.io.entity.FileEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +27,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.server.ResponseStatusException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Concrete implementation of a BlobRestConnector interface.
@@ -158,11 +163,6 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
         + BLOB_METADATA_QUERY;
 
     final HttpPut setMetadata = new HttpPut(uri);
-
-    FileEntity entity = new FileEntity(
-        Path.of(blob.getTargetDir(), blob.getBlob()).toFile(),
-        ContentType.create("application/octet-stream"));
-
     setMetadata.setHeader(new BasicHeader(SUB_KEY_HEADER, blobApiKey));
     setMetadata.setHeader(
         new BasicHeader(BLOB_METADATA_PREFIX + "numMerchant", blob.getReportMetaData().getMerchantList().size()));
@@ -183,10 +183,11 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
         .setHeader(new BasicHeader(BLOB_METADATA_PREFIX + "minAccountingDate",
             blob.getReportMetaData().getMinAccountingDate().toString()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX + "checkSum", blob.getReportMetaData().getCheckSum()));
-    setMetadata.setEntity(entity);
-    
+    setMetadata.setEntity(EntityBuilder.create().setText("")
+        .setContentType(ContentType.create("text-plain", StandardCharsets.UTF_8)).build());
+
     try {
-      httpClient.execute(setMetadata, validateStatusCode());
+      httpClient.execute(setMetadata, validateStatusCodeSetMetadata());
       blob.setStatus(BlobApplicationAware.Status.ENRICHED);
       log.info("Successful SET metadata of blob {} in {}", blob.getBlob(), blob.getContainer());
     } catch (ResponseStatusException ex) {
@@ -197,5 +198,17 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
           blob.getContainer(), ex.getMessage());
     }
     return blob;
+  }
+
+  @NotNull
+  protected HttpClientResponseHandler<Void> validateStatusCodeSetMetadata() {
+    return response -> {
+      int status = response.getCode();
+      if (status != HttpStatus.SC_ACCEPTED) {
+        throw new ResponseStatusException(HttpStatusCode.valueOf(status),
+            response.getReasonPhrase());
+      }
+      return null;
+    };
   }
 }

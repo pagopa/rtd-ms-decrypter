@@ -96,9 +96,8 @@ public class BlobSplitterImpl implements BlobSplitter {
         LineIterator it = FileUtils.lineIterator(
             Path.of(blobPath).toFile(), "UTF-8")) {
       if (it.hasNext() && isChecksumSkipped.isFalse()) {
-        String line = it.nextLine();
-        log.info("Checksum: {} {}", blob.getBlob(), line);
-        blob.getReportMetaData().setCheckSum(line);
+        blob.getReportMetaData().setCheckSum(it.nextLine());
+        log.info("Checksum: {} {}", blob.getBlob(), blob.getReportMetaData().getCheckSum());
         isChecksumSkipped.setTrue();
       }
       while (it.hasNext()) {
