@@ -21,7 +21,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.server.ResponseStatusException;
-import java.time.*;
 /**
  * Concrete implementation of a BlobRestConnector interface.
  */
@@ -43,6 +42,8 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
 
   public static final String SUB_KEY_HEADER = "Ocp-Apim-Subscription-Key";
   
+  public static final String BLOB_METADATA_QUERY = "?comp=metadata";
+
   @Value("${decrypt.blobclient.sftp-basepath}")
   private String sftpBlobBasePath;
 
@@ -151,13 +152,11 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     log.info("Start SET metadata for  {} to {}", blob.getBlob(), blob.getContainer());
 
     String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob.getBlob()
-        + "?comp=metadata";
+        + BLOB_METADATA_QUERY;
 
-    log.info("Set metadata uri {}", uri);
     final HttpPut setMetadata = new HttpPut(uri);
     
     setMetadata.setHeader(new BasicHeader(SUB_KEY_HEADER, blobApiKey));
-    setMetadata.setHeader(new BasicHeader("x-ms-version", "2023-11-03"));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numMerchant", blob.getReportMetaData().getMerchantList().size()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numCanceledTrx", blob.getReportMetaData().getNumCanceledTrx()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numPositiveTrx", blob.getReportMetaData().getNumPositiveTrx()));
@@ -166,12 +165,11 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     setMetadata.setHeader(
         new BasicHeader(BLOB_METADATA_PREFIX+"totalAmountPositiveTrx", blob.getReportMetaData().getTotalAmountPositiveTrx()));
     setMetadata
-        .setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"maxAccountingDate", blob.getReportMetaData().getMaxAccountingDate()));
+        .setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"maxAccountingDate", blob.getReportMetaData().getMaxAccountingDate().toString()));
     setMetadata
-        .setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"minAccountingDate", blob.getReportMetaData().getMinAccountingDate()));
-    setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"checkSum", blob.getReportMetaData().getMinAccountingDate()));
-
-    log.info("Set metadata httpput {}", setMetadata);
+        .setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"minAccountingDate", blob.getReportMetaData().getMinAccountingDate().toString()));
+    setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"checkSum", blob.getReportMetaData().getCheckSum()));
+    
     try {
       httpClient.execute(setMetadata, validateStatusCode());
       blob.setStatus(BlobApplicationAware.Status.ENRICHED);
@@ -179,7 +177,6 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     } catch (ResponseStatusException ex) {
       log.error("Cannot SET metadata for the blob {} in {}. Invalid HTTP response: {}, {}", blob.getBlob(),
           blob.getContainer(), ex.getStatusCode().value(), ex.getReason());
-      log.error("Error {}",ex);
     } catch (Exception ex) {
       log.error("Cannot SET metadata for the blob {} in {}. Unexpected error: {}", blob.getBlob(),
           blob.getContainer(), ex.getMessage());
