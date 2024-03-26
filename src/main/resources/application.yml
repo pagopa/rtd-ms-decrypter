@@ -2,7 +2,7 @@ spring.application.name: rtddecrypter
 logging:
   level:
     root: INFO
-    org.apache.kafka: WARN
+    org.apache: DEBUG
 
 # OpenTelemetry
 applicationinsights.enabled: '@applicationinsights.enabled@'

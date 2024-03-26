@@ -158,7 +158,6 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     final HttpPut setMetadata = new HttpPut(uri);
     
     setMetadata.setHeader(new BasicHeader(SUB_KEY_HEADER, blobApiKey));
-    setMetadata.setHeader(new BasicHeader("Content-Length",0));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numMerchant", blob.getReportMetaData().getMerchantList().size()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numCanceledTrx", blob.getReportMetaData().getNumCanceledTrx()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numPositiveTrx", blob.getReportMetaData().getNumPositiveTrx()));
@@ -182,7 +181,6 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     } catch (IOException ex) {
       log.error("Cannot SET metadata for the blob {} in {}. Unexpected error: {}", blob.getBlob(),
           blob.getContainer(), ex.getMessage());
-      log.error("Exception: {}", ex);
     }
     return blob;
   }
