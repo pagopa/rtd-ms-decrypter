@@ -188,7 +188,7 @@ public class BlobVerifierImpl implements BlobVerifier {
     reportMetaData.increaseTrx(tempAdeAgg.getOperationType(), tempAdeAgg.getNumTrx());
     reportMetaData.increaseTotalAmountTrx(tempAdeAgg.getOperationType(), tempAdeAgg.getTotalAmount());
     reportMetaData.updateAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
-    reportMetaData.setCheckSum(blob.getOriginalBlob().getReportMetaData().getCheckSum());
+    reportMetaData.setCheckSum(blob.getCheckSum());
     numberOfDeserializeRecords.incrementAndGet();
   }
 }

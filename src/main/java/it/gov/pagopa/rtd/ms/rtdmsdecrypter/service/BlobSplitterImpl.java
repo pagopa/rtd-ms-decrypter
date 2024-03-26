@@ -90,14 +90,16 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     int chunkNum = 0;
     String chunkName;
+    String checkSum = "";
     MutableBoolean isChecksumSkipped = new MutableBoolean(checksumSkipped);
 
     try (
         LineIterator it = FileUtils.lineIterator(
             Path.of(blobPath).toFile(), "UTF-8")) {
       if (it.hasNext() && isChecksumSkipped.isFalse()) {
-        blob.getReportMetaData().setCheckSum(it.nextLine());
-        log.info("Checksum: {} {}", blob.getBlob(), blob.getReportMetaData().getCheckSum());
+        checkSum = it.nextLine();
+        blob.setCheckSum(checkSum);
+        log.info("Checksum: {} {}", blob.getBlob(), checkSum);
         isChecksumSkipped.setTrue();
       }
       while (it.hasNext()) {
@@ -122,6 +124,7 @@ public class BlobSplitterImpl implements BlobSplitter {
           tmpBlob.setBlobUri(
               blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/" + chunkName);
           tmpBlob.setNumChunk(chunkNum+1);
+          tmpBlob.setCheckSum(checkSum);
           blobSplit.add(tmpBlob);
         }
         chunkNum++;

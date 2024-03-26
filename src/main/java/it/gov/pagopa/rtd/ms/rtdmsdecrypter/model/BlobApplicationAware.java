@@ -52,6 +52,7 @@ public class BlobApplicationAware {
   private String blobUri;
   private String container;
   private String blob;
+  private String checkSum;
   private Application app;
   private Status status;
   private String targetContainer;
@@ -106,7 +107,7 @@ public class BlobApplicationAware {
 
     reportMetaData = new ReportMetaData();
     originalBlob = null;
-    
+    checkSum = "";
     numChunk = 0;
     totChunk = 0;
 
