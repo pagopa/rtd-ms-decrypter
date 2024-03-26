@@ -157,7 +157,6 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     final HttpPut setMetadata = new HttpPut(uri);
     
     setMetadata.setHeader(new BasicHeader(SUB_KEY_HEADER, blobApiKey));
-    setMetadata.setHeader(new BasicHeader("Content-Length", "1"));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numMerchant", blob.getReportMetaData().getMerchantList().size()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numCanceledTrx", blob.getReportMetaData().getNumCanceledTrx()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numPositiveTrx", blob.getReportMetaData().getNumPositiveTrx()));
@@ -170,7 +169,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     setMetadata
         .setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"minAccountingDate", blob.getReportMetaData().getMinAccountingDate().toString()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"checkSum", blob.getReportMetaData().getCheckSum()));
-    
+    setMetadata.setEntity(null);
     try {
       httpClient.execute(setMetadata, validateStatusCode());
       blob.setStatus(BlobApplicationAware.Status.ENRICHED);
