@@ -150,14 +150,13 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
   public BlobApplicationAware setMetadata(BlobApplicationAware blob) {
     log.info("Start SET metadata for  {} to {}", blob.getBlob(), blob.getContainer());
 
-    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob
+    String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob.getBlob()
         + "?comp=metadata";
 
     final HttpPut setMetadata = new HttpPut(uri);
     
     setMetadata.setHeader(new BasicHeader(SUB_KEY_HEADER, blobApiKey));
     setMetadata.setHeader(new BasicHeader("x-ms-version", "2023-11-03"));
-    setMetadata.setHeader(new BasicHeader("x-ms-date", Instant.now().toString()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numMerchant", blob.getReportMetaData().getMerchantList().size()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numCanceledTrx", blob.getReportMetaData().getNumCanceledTrx()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX+"numPositiveTrx", blob.getReportMetaData().getNumPositiveTrx()));
