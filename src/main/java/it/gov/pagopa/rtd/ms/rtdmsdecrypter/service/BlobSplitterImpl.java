@@ -43,11 +43,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class BlobSplitterImpl implements BlobSplitter {
 
-  //Max number of lines allowed in one blob chunk.
+  // Max number of lines allowed in one blob chunk.
   @Value("${decrypt.splitter.aggregatesThreshold}")
   private int aggregatesLineThreshold;
 
-  //Max number of lines allowed in one contracts blob chunk.
+  // Max number of lines allowed in one contracts blob chunk.
   @Value("${decrypt.splitter.walletThreshold}")
   private int contractsSplitThreshold;
 
@@ -67,8 +67,6 @@ public class BlobSplitterImpl implements BlobSplitter {
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
 
     // Incremental integer for chunk numbering
-    int chunkNum = 0;
-
     boolean successfulSplit = false;
 
     if (blob.getApp() == Application.ADE || blob.getApp() == Application.RTD) {
@@ -98,6 +96,9 @@ public class BlobSplitterImpl implements BlobSplitter {
             Path.of(blobPath).toFile(), "UTF-8")) {
       if (it.hasNext() && isChecksumSkipped.isFalse()) {
         checkSum = it.nextLine();
+        if (!checkSum.matches("^#sha256.*")) {
+          log.error("Checksum is not a conformed one {}", checkSum);
+        }
         blob.getReportMetaData().setCheckSum(checkSum);
         log.info("Checksum: {} {}", blob.getBlob(), checkSum);
         isChecksumSkipped.setTrue();
@@ -123,7 +124,7 @@ public class BlobSplitterImpl implements BlobSplitter {
           tmpBlob.setBlob(chunkName);
           tmpBlob.setBlobUri(
               blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/" + chunkName);
-          tmpBlob.setNumChunk(chunkNum+1);
+          tmpBlob.setNumChunk(chunkNum + 1);
           blobSplit.add(tmpBlob);
         }
         chunkNum++;

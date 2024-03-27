@@ -67,7 +67,6 @@ public class BlobVerifierImpl implements BlobVerifier {
     FileReader fileReader;
     boolean isValid = true;
     AtomicLong numberOfDeserializeRecords = new AtomicLong(0);
-    String checkSum = "";
     try {
       fileReader = new FileReader(Path.of(blob.getTargetDir(), blob.getBlob()).toFile());
     } catch (FileNotFoundException e) {
@@ -91,7 +90,6 @@ public class BlobVerifierImpl implements BlobVerifier {
     // Enrich report
     if (blob.getApp() == Application.ADE && isValid) {
       deserialized.forEach(i -> gatheringMetadataAndCount(blob, i, numberOfDeserializeRecords));
-      blob.getOriginalBlob().getReportMetaData().setCheckSum(checkSum);
     } else {
       numberOfDeserializeRecords.set(deserialized.count());
     }
