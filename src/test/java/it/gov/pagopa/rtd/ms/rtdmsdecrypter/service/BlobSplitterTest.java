@@ -292,8 +292,9 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTD + "." + i + ".decrypted", b.getBlob());
-      assertEquals(b.getOriginalFileChunksNumber(), 3);
-      assertEquals(b.getOriginalBlob().getReportMetaData().getCheckSum(), "#sha256sum:615bbf196371b6f95b738dccf4a4e3873dff569f7a5c1eb3b50ff52b0718f65d");
+      assertEquals(3, b.getOriginalFileChunksNumber());
+      assertEquals("#sha256sum:615bbf196371b6f95b738dccf4a4e3873dff569f7a5c1eb3b50ff52b0718f65d",
+          b.getOriginalBlob().getReportMetaData().getCheckSum());
       i++;
     }
     assertEquals(3, i);
@@ -310,7 +311,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameWallet + "." + i + ".decrypted", b.getBlob());
-      assertEquals(b.getOriginalFileChunksNumber(), 4);
+      assertEquals(4, b.getOriginalFileChunksNumber());
       i++;
     }
     assertEquals(4, i);
@@ -417,7 +418,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameWallet + "." + i + ".decrypted", b.getBlob());
-      assertEquals(b.getOriginalFileChunksNumber(), 2);
+      assertEquals(2, b.getOriginalFileChunksNumber());
       i++;
     }
     assertEquals(2, i);
@@ -435,7 +436,7 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTD + "." + i + ".decrypted", b.getBlob());
-      assertEquals(b.getOriginalFileChunksNumber(), 4);
+      assertEquals(4, b.getOriginalFileChunksNumber());
       i++;
     }
     assertEquals(4, i);
@@ -453,8 +454,9 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTD + "." + i + ".decrypted", b.getBlob());
-      assertEquals(b.getOriginalFileChunksNumber(), 2);
-      assertEquals(b.getOriginalBlob().getReportMetaData().getCheckSum(), "#sha256sum:615bbf196371b6f95b738dccf4a4e3873dff569f7a5c1eb3b50ff52b0718f65d");
+      assertEquals(2, b.getOriginalFileChunksNumber());
+      assertEquals("#sha256sum:615bbf196371b6f95b738dccf4a4e3873dff569f7a5c1eb3b50ff52b0718f65d",
+          b.getOriginalBlob().getReportMetaData().getCheckSum());
       i++;
     }
     assertEquals(2, i);
@@ -472,8 +474,9 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals(blobNameRTDOldNaming + "." + i + ".decrypted", b.getBlob());
-      assertEquals(b.getOriginalFileChunksNumber(), 3);
-      assertEquals(b.getOriginalBlob().getReportMetaData().getCheckSum(), "#sha256sum:615bbf196371b6f95b738dccf4a4e3873dff569f7a5c1eb3b50ff52b0718f65d");
+      assertEquals(3, b.getOriginalFileChunksNumber());
+      assertEquals("#sha256sum:615bbf196371b6f95b738dccf4a4e3873dff569f7a5c1eb3b50ff52b0718f65d",
+          b.getOriginalBlob().getReportMetaData().getCheckSum());
       i++;
     }
     assertEquals(3, i);
@@ -493,8 +496,9 @@ class BlobSplitterTest {
       assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
           + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber
           + String.format("%03d", i), b.getBlob());
-      assertEquals(b.getOriginalFileChunksNumber(), 6);
-      assertEquals(b.getOriginalBlob().getReportMetaData().getCheckSum(), "#sha256sum:cf832e6bb27c719d4a784a9688b490540448cbaf888d23742deae60831f282de");
+      assertEquals(6, b.getOriginalFileChunksNumber());
+      assertEquals("#sha256sum:cf832e6bb27c719d4a784a9688b490540448cbaf888d23742deae60831f282de",
+          b.getOriginalBlob().getReportMetaData().getCheckSum());
       i++;
     }
     assertEquals(6, i);
@@ -516,8 +520,9 @@ class BlobSplitterTest {
           + missingBatchServiceChunkNumberPlaceholder
           + String.format("%03d", i),
           b.getBlob());
-      assertEquals(b.getOriginalFileChunksNumber(), 4);
-      assertEquals(b.getOriginalBlob().getReportMetaData().getCheckSum(), "#sha256sum:cf832e6bb27c719d4a784a9688b490540448cbaf888d23742deae60831f282de");
+      assertEquals(4, b.getOriginalFileChunksNumber());
+      assertEquals("#sha256sum:cf832e6bb27c719d4a784a9688b490540448cbaf888d23742deae60831f282de",
+          b.getOriginalBlob().getReportMetaData().getCheckSum());
       i++;
     }
     assertEquals(4, i);
@@ -540,8 +545,9 @@ class BlobSplitterTest {
       assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
           + b.getFileCreationTime() + "." + b.getFlowNumber() + "." + batchServiceChunkNumber
           + String.format("%03d", i), b.getBlob());
-      assertEquals(b.getOriginalFileChunksNumber(), 3);
-      assertEquals(b.getOriginalBlob().getReportMetaData().getCheckSum(), "#sha256sum:cf832e6bb27c719d4a784a9688b490540448cbaf888d23742deae60831f282de");
+      assertEquals(3, b.getOriginalFileChunksNumber());
+      assertEquals("#sha256sum:cf832e6bb27c719d4a784a9688b490540448cbaf888d23742deae60831f282de",
+          b.getOriginalBlob().getReportMetaData().getCheckSum());
       i++;
     }
     assertEquals(3, i);

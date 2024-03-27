@@ -7,6 +7,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Arrays;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +49,6 @@ public class BlobApplicationAware {
   private static final int RTD_NAME_CHUNK_NUM = 7;
   private static final int WALLET_NAME_CHUNK_NUM = 6;
 
-
   private String blobUri;
   private String container;
   private String blob;
@@ -56,7 +56,7 @@ public class BlobApplicationAware {
   private Status status;
   private String targetContainer;
   private String originalBlobName;
-  private BlobApplicationAware originalBlob; 
+  private BlobApplicationAware originalBlob;
 
   private String senderCode;
   private String fileCreationDate;
@@ -127,7 +127,8 @@ public class BlobApplicationAware {
       status = Status.RECEIVED;
 
       if (checkRtdNameFormat(blobNameTokenized)) {
-        //Check whether the blob's service matches in path and name, then assign Application
+        // Check whether the blob's service matches in path and name, then assign
+        // Application
         if (matcherRtd.group(2).equalsIgnoreCase("ADE") && blobNameTokenized[0]
             .equalsIgnoreCase("ADE")) {
           app = Application.ADE;
@@ -180,16 +181,9 @@ public class BlobApplicationAware {
    */
   private boolean checkRtdNameFormat(String[] blobNameTokens) {
 
-    if (blobNameTokens.length < RTD_NAME_CHUNK_NUM) {
-      return false;
-    }
-
-    if (!blobNameTokens[0].matches("(ADE|CSTAR)")) {
-      return false;
-    }
-
-    // Check for sender ABI code
-    if (!blobNameTokens[1].matches("[a-zA-Z0-9]{5}")) {
+    // blobNameTokens[1] check for sender ABI code
+    if (blobNameTokens.length < RTD_NAME_CHUNK_NUM || !blobNameTokens[0].matches("(ADE|CSTAR)")
+        || !blobNameTokens[1].matches("[a-zA-Z0-9]{5}")) {
       return false;
     }
 
@@ -206,18 +200,15 @@ public class BlobApplicationAware {
   }
 
   private boolean checkWalletNameFormat(String[] blobNameTokens) {
-    if (blobNameTokens.length != WALLET_NAME_CHUNK_NUM) {
-      return false;
-    }
 
     if (!blobNameTokens[0].equals("PAGOPAPM") || !blobNameTokens[1].equals("NPG")
-        || !blobNameTokens[2].equals("CONTRACTS")) {
+        || !blobNameTokens[2].equals("CONTRACTS") || blobNameTokens.length != WALLET_NAME_CHUNK_NUM) {
       return false;
     }
 
     return checkDateTimeFormat(blobNameTokens[3].substring(0, 8), blobNameTokens[3].substring(8))
         && extractFlowNumber(
-        blobNameTokens[4]);
+            blobNameTokens[4]);
 
   }
 

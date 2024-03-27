@@ -114,7 +114,7 @@ public class BlobSplitterImpl implements BlobSplitter {
             Path.of(blob.getTargetDir(), chunkName).toString(),
             true).getChannel(),
             StandardCharsets.UTF_8)) {
-          writeCsvChunks(it, writer, blob, isChecksumSkipped);
+          writeCsvChunks(it, writer);
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
               blob.getBlobUri());
           tmpBlob.setOriginalBlob(blob);
@@ -193,8 +193,7 @@ public class BlobSplitterImpl implements BlobSplitter {
         + blob.getBatchServiceChunkNumber();
   }
 
-  private void writeCsvChunks(LineIterator it, Writer writer,
-      BlobApplicationAware blob, MutableBoolean isChecksumSkipped)
+  private void writeCsvChunks(LineIterator it, Writer writer)
       throws IOException {
     // Counter for current line number (from 0 to aggregatesLineThreshold)
     int i = 0;

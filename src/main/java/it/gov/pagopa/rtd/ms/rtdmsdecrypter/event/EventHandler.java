@@ -66,11 +66,9 @@ public class EventHandler {
       Optional<BlobApplicationAware> originalBlob = chunks.stream().findFirst()
           .map(BlobApplicationAware::getOriginalBlob);
 
-      if (!chunks.isEmpty() && originalBlob.isPresent()) {
-        long uploadedChunks = 0;
-
+      if (!chunks.isEmpty()) {
         if (verifiedChunks.size() == chunks.size()) {
-          uploadedChunks = verifiedChunks.stream()
+          long uploadedChunks = verifiedChunks.stream()
               .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
               .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
               .count();
@@ -80,10 +78,9 @@ public class EventHandler {
               chunks.get(0).getOriginalBlobName());
         }
 
-        if(uploadedChunks == chunks.size() && originalBlob.get().getApp()!=Application.WALLET){
+        if(originalBlob.get().getApp()==Application.WALLET){
           blobRestConnectorImpl.setMetadata(originalBlob.get());
         }
-        
         long deletedChunks = chunks.stream()
             .map(BlobApplicationAware::localCleanup)
             .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus())).count();
