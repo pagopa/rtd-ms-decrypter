@@ -153,7 +153,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
 
   @Override
   public BlobApplicationAware setMetadata(BlobApplicationAware blob) {
-    log.info("Start SET metadata for  {} to {}", blob.getBlob(), blob.getContainer());
+    log.info("Start SET metadata for  {} to {}. CheckSum {}", blob.getBlob(), blob.getContainer(),blob.getReportMetaData().getCheckSum());
 
     String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob.getBlob()
         + BLOB_METADATA_QUERY;
@@ -179,6 +179,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
         .setHeader(new BasicHeader(BLOB_METADATA_PREFIX + "minAccountingDate",
             blob.getReportMetaData().getMinAccountingDate().toString()));
     setMetadata.setHeader(new BasicHeader(BLOB_METADATA_PREFIX + "checkSum", blob.getReportMetaData().getCheckSum()));
+    
     setMetadata.setEntity(EntityBuilder.create().setText("")
         .setContentType(ContentType.create("text-plain", StandardCharsets.UTF_8)).build());
 

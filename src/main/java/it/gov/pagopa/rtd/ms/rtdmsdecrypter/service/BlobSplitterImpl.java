@@ -98,7 +98,7 @@ public class BlobSplitterImpl implements BlobSplitter {
             Path.of(blobPath).toFile(), "UTF-8")) {
       if (it.hasNext() && isChecksumSkipped.isFalse()) {
         checkSum = it.nextLine();
-        blob.setCheckSum(checkSum);
+        blob.getReportMetaData().setCheckSum(checkSum);
         log.info("Checksum: {} {}", blob.getBlob(), checkSum);
         isChecksumSkipped.setTrue();
       }
@@ -124,7 +124,6 @@ public class BlobSplitterImpl implements BlobSplitter {
           tmpBlob.setBlobUri(
               blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/" + chunkName);
           tmpBlob.setNumChunk(chunkNum+1);
-          tmpBlob.setCheckSum(checkSum);
           blobSplit.add(tmpBlob);
         }
         chunkNum++;
