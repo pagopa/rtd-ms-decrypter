@@ -2,6 +2,7 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.event;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobSplitterImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl;
@@ -66,19 +67,23 @@ public class EventHandler {
           .map(BlobApplicationAware::getOriginalBlob);
 
       if (!chunks.isEmpty() && originalBlob.isPresent()) {
+        long uploadedChunks = 0;
 
         if (verifiedChunks.size() == chunks.size()) {
-          long uploadedChunks = verifiedChunks.stream()
+          uploadedChunks = verifiedChunks.stream()
               .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
               .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
               .count();
           log.info("Uploaded chunks: {}", uploadedChunks);
-          blobRestConnectorImpl.setMetadata(originalBlob.get());
         } else {
           log.error("Not all chunks are verified, no chunks will be uploaded of {}",
               chunks.get(0).getOriginalBlobName());
         }
 
+        if(uploadedChunks == chunks.size() && originalBlob.get().getApp()!=Application.WALLET){
+          blobRestConnectorImpl.setMetadata(originalBlob.get());
+        }
+        
         long deletedChunks = chunks.stream()
             .map(BlobApplicationAware::localCleanup)
             .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus())).count();
