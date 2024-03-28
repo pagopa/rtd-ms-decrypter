@@ -14,10 +14,8 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.ContractMethodAttributes;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.DecryptedRecord;
-
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.ReportMetaData;
 import java.time.LocalDate;
-
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.WalletContract;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -29,15 +27,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-
 import java.util.concurrent.atomic.AtomicLong;
-
 import java.util.Set;
-
 import java.util.stream.Stream;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -51,8 +45,11 @@ import org.springframework.stereotype.Service;
 public class BlobVerifierImpl implements BlobVerifier {
 
 
-  @Autowired
   private VerifierFactory verifierFactory;
+
+  public BlobVerifierImpl(VerifierFactory verifierFactory){
+    this.verifierFactory = verifierFactory;
+  }
 
   /**
    * Verify method, used to verify the validity of the
@@ -70,14 +67,10 @@ public class BlobVerifierImpl implements BlobVerifier {
     FileReader fileReader;
     boolean isValid = true;
     AtomicLong numberOfDeserializeRecords = new AtomicLong(0);
-    String checkSum = "";
     try {
       fileReader = new FileReader(Path.of(blob.getTargetDir(), blob.getBlob()).toFile());
     } catch (FileNotFoundException e) {
       log.error("Error reading file {}", blob.getBlob());
-      return blob;
-    } catch (IOException e) {
-      log.error("Error reading checksum {}", blob.getBlob());
       return blob;
     }
 
@@ -97,7 +90,6 @@ public class BlobVerifierImpl implements BlobVerifier {
     // Enrich report
     if (blob.getApp() == Application.ADE && isValid) {
       deserialized.forEach(i -> gatheringMetadataAndCount(blob, i, numberOfDeserializeRecords));
-      blob.getOriginalBlob().getReportMetaData().setCheckSum(checkSum);
     } else {
       numberOfDeserializeRecords.set(deserialized.count());
     }

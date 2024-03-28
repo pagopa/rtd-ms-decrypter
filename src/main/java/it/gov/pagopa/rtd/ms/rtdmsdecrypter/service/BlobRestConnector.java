@@ -13,4 +13,7 @@ public interface BlobRestConnector {
   // Uploads a blob and returns the name of the uploaded file
   BlobApplicationAware put(BlobApplicationAware fileName);
 
+  // Enrich source pgp metadata
+  BlobApplicationAware setMetadata(BlobApplicationAware blobUri);
+
 }

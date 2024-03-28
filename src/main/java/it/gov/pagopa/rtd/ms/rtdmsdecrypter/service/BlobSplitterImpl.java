@@ -43,11 +43,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class BlobSplitterImpl implements BlobSplitter {
 
-  //Max number of lines allowed in one blob chunk.
+  // Max number of lines allowed in one blob chunk.
   @Value("${decrypt.splitter.aggregatesThreshold}")
   private int aggregatesLineThreshold;
 
-  //Max number of lines allowed in one contracts blob chunk.
+  // Max number of lines allowed in one contracts blob chunk.
   @Value("${decrypt.splitter.walletThreshold}")
   private int contractsSplitThreshold;
 
@@ -67,8 +67,6 @@ public class BlobSplitterImpl implements BlobSplitter {
     ArrayList<BlobApplicationAware> blobSplit = new ArrayList<>();
 
     // Incremental integer for chunk numbering
-    int chunkNum = 0;
-
     boolean successfulSplit = false;
 
     if (blob.getApp() == Application.ADE || blob.getApp() == Application.RTD) {
@@ -90,15 +88,19 @@ public class BlobSplitterImpl implements BlobSplitter {
 
     int chunkNum = 0;
     String chunkName;
+    String checkSum = "";
     MutableBoolean isChecksumSkipped = new MutableBoolean(checksumSkipped);
 
     try (
         LineIterator it = FileUtils.lineIterator(
             Path.of(blobPath).toFile(), "UTF-8")) {
       if (it.hasNext() && isChecksumSkipped.isFalse()) {
-        String line = it.nextLine();
-        log.info("Checksum: {} {}", blob.getBlob(), line);
-        blob.getReportMetaData().setCheckSum(line);
+        checkSum = it.nextLine();
+        if (!checkSum.matches("^#sha256.*")) {
+          log.error("Checksum is not a conformed one {}", checkSum);
+        }
+        blob.getReportMetaData().setCheckSum(checkSum);
+        log.info("Checksum: {} {}", blob.getBlob(), checkSum);
         isChecksumSkipped.setTrue();
       }
       while (it.hasNext()) {
@@ -112,7 +114,7 @@ public class BlobSplitterImpl implements BlobSplitter {
             Path.of(blob.getTargetDir(), chunkName).toString(),
             true).getChannel(),
             StandardCharsets.UTF_8)) {
-          writeCsvChunks(it, writer, blob, isChecksumSkipped);
+          writeCsvChunks(it, writer);
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
               blob.getBlobUri());
           tmpBlob.setOriginalBlob(blob);
@@ -122,10 +124,9 @@ public class BlobSplitterImpl implements BlobSplitter {
           tmpBlob.setBlob(chunkName);
           tmpBlob.setBlobUri(
               blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/" + chunkName);
-          tmpBlob.setNumChunk(chunkNum);
+          tmpBlob.setNumChunk(chunkNum + 1);
           blobSplit.add(tmpBlob);
         }
-
         chunkNum++;
       }
       for (BlobApplicationAware blobApplicationAware : blobSplit) {
@@ -192,8 +193,7 @@ public class BlobSplitterImpl implements BlobSplitter {
         + blob.getBatchServiceChunkNumber();
   }
 
-  private void writeCsvChunks(LineIterator it, Writer writer,
-      BlobApplicationAware blob, MutableBoolean isChecksumSkipped)
+  private void writeCsvChunks(LineIterator it, Writer writer)
       throws IOException {
     // Counter for current line number (from 0 to aggregatesLineThreshold)
     int i = 0;
@@ -288,6 +288,7 @@ public class BlobSplitterImpl implements BlobSplitter {
     chunkBlob.setStatus(SPLIT);
     chunkBlob.setApp(blob.getApp());
     chunkBlob.setBlob(chunkName);
+    chunkBlob.setOriginalBlob(blob);
     chunkBlob.setBlobUri(
         blob.getBlobUri().substring(0, blob.getBlobUri().lastIndexOf("/")) + "/"
             + chunkName);
