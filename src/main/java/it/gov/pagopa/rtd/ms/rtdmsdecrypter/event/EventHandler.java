@@ -73,14 +73,12 @@ public class EventHandler {
               .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
               .count();
           log.info("Uploaded chunks: {}", uploadedChunks);
+          blobRestConnectorImpl.setMetadata(originalBlob.get());
         } else {
           log.error("Not all chunks are verified, no chunks will be uploaded of {}",
               chunks.get(0).getOriginalBlobName());
         }
 
-        if(originalBlob.get().getApp()==Application.WALLET){
-          blobRestConnectorImpl.setMetadata(originalBlob.get());
-        }
         long deletedChunks = chunks.stream()
             .map(BlobApplicationAware::localCleanup)
             .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus())).count();
@@ -89,11 +87,7 @@ public class EventHandler {
             originalBlob.get().getBlob());
 
         log.info("Handled blob: {}", originalBlob.get().getBlob());
-      } else {
-        log.error("Number chunks equals to 0 or origin blob is null. Number of chunks: {} Original blob: {} ",
-            chunks.size(), originalBlob);
-      }
-
+      } 
     };
   }
 }

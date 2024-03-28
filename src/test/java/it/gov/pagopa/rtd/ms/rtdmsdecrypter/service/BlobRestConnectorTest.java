@@ -13,6 +13,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
@@ -25,6 +28,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.io.DefaultClassicHttpResponseFactory;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
+import org.apache.kafka.storage.internals.log.AppendOrigin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,8 +41,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.server.ResponseStatusException;
 
-
-@ExtendWith({OutputCaptureExtension.class, MockitoExtension.class})
+@ExtendWith({ OutputCaptureExtension.class, MockitoExtension.class })
 class BlobRestConnectorTest {
 
   BlobRestConnectorImpl blobRestConnectorImpl;
@@ -178,7 +181,7 @@ class BlobRestConnectorTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {201, 202, 203, 301, 400, 404, 500, 502})
+  @ValueSource(ints = { 201, 202, 203, 301, 400, 404, 500, 502 })
   void givenBadStatusCodeAsGetResponseThenThrowException(int statusCode)
       throws IOException {
     try (var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(statusCode,
@@ -200,7 +203,7 @@ class BlobRestConnectorTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {301, 400, 404, 500, 502})
+  @ValueSource(ints = { 301, 400, 404, 500, 502 })
   void givenBadStatusCodeAsPutResponseThenThrowException(int statusCode)
       throws IOException {
     try (var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(statusCode,
@@ -212,14 +215,21 @@ class BlobRestConnectorTest {
     }
   }
 
-
   @Test
   void shouldSetMetadata(CapturedOutput output) throws IOException {
     BlobApplicationAware blobOut = blobRestConnectorImpl.setMetadata(blobIn);
-
     verify(client, times(1)).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
     assertEquals(BlobApplicationAware.Status.ENRICHED, blobOut.getStatus());
     assertThat(output.getOut(), not(containsString("Cannot SET metadata for the blob")));
+  }
+
+  @Test
+  void shouldNotSetMetadataForWallet(CapturedOutput output) throws IOException {
+    blobIn.setApp(Application.WALLET);
+    blobIn.setStatus(Status.SPLIT);
+    BlobApplicationAware blobOut = blobRestConnectorImpl.setMetadata(blobIn);
+    verify(client, times(0)).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
+    assertEquals(BlobApplicationAware.Status.SPLIT, blobOut.getStatus());
   }
 
   @Test
