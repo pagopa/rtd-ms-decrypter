@@ -243,4 +243,40 @@ class BlobRestConnectorTest {
     assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
     assertThat(output.getOut(), containsString("Cannot SET metadata for the blob"));
   }
+
+
+  @Test
+  void shouldFailSetMetadataUnexpectedError(CapturedOutput output) throws IOException {
+    doThrow(new IOException(EXCEPTION_MESSAGE)).when(client)
+        .execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
+
+    BlobApplicationAware blobOut = blobRestConnectorImpl.setMetadata(blobIn);
+
+    verify(client, times(1)).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
+    assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
+    assertThat(output.getOut(), containsString("Cannot SET metadata for the blob "));
+  }
+
+  @Test
+  void setMetadataGivenPutResponse201ThenReturnsNull() throws HttpException, IOException {
+    var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(201, "test");
+
+    var value = blobRestConnectorImpl.validateStatusCode().handleResponse(response);
+
+    assertNull(value);
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = { 301, 400, 404, 500, 502 })
+  void setMetadataGivenBadStatusCodeAsPutResponseThenThrowException(int statusCode)
+      throws IOException {
+    try (var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(statusCode,
+        "test")) {
+
+      var lambda = blobRestConnectorImpl.validateStatusCodeSetMetadata();
+
+      assertThrows(ResponseStatusException.class, () -> lambda.handleResponse(response));
+    }
+  }
+
 }

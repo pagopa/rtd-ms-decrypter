@@ -86,16 +86,25 @@ class BlobApplicationAwareTest {
     BlobApplicationAware myBlob = new BlobApplicationAware(blobUri);
     assertSame(Application.WALLET, myBlob.getApp());
   }
+ 
+
+
 
   @ParameterizedTest
   @ValueSource(strings = {"/blobServices/default/containers/myContainer/blobs/myBlob",
       "/blobServices/default/directories/myContainer/blobs/myBlob",
       "/blobServices/default/containers/rtd-loremipsum-32489876908u74bh781e2db57k098c5ad034341i8u7y/blobs/CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp",
-      "/blobServices/default/containers/rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y/blobs/CSTAR.99910.TRNLOG.20220228.103107.001"})
+      "/blobServices/default/containers/rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y/blobs/CSTAR.99910.TRNLOG.20220228.103107.001",
+      "/blobServices/default/containers/nexi/blobs/in/PAGOPAPM_NG_CONTRACTS_20240313182500_001_OU",
+      "/blobServices/default/containers/nexi/blobs/in/PAGOPAPM_NPG_CORACTS_20240313182500_001_OU",
+      "/blobServices/default/containers/nexi/blobs/in/PAGOPM_NPG_CONTRACTS_20240313182500_001_OU",
+      "/blobServices/default/containers/nexi/blobs/in/test/PAGOPAPM_NPG_CONTRACTS_20240313182500_001_OU"
+    })
   void shouldMatchNoApp(String blobUri) {
     BlobApplicationAware myBlob = new BlobApplicationAware(blobUri);
     assertSame(BlobApplicationAware.Application.NOAPP, myBlob.getApp());
   }
+
 
   @Test
   void shouldCleanLocalFiles() throws IOException {
