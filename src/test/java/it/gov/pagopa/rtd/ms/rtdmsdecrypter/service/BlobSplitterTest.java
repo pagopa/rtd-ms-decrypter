@@ -1,6 +1,7 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import java.lang.IllegalArgumentException;
 
 @SpringBootTest
 @ContextConfiguration(classes = { BlobSplitterImpl.class })
@@ -51,6 +53,8 @@ class BlobSplitterTest {
 
   String blobNameRTD = "CSTAR.99999.TRNLOG.20220419.121045.001." + batchServiceChunkNumber + ".csv";
 
+  String blobNameRTDMalformedChecksum = "CSTAR.22222.TRNLOG.20220419.121045.001." + batchServiceChunkNumber + ".csv";
+
   String blobNameRTDOldNaming = "CSTAR.99999.TRNLOG.20220419.121045.001.csv";
 
   String blobNameTAE = "ADE.99999.TRNLOG.20220721.095718.001." + batchServiceChunkNumber + ".csv";
@@ -74,6 +78,8 @@ class BlobSplitterTest {
   String blobNameWalletMissing = "PAGOPAPM_NPG_CONTRACTS_20240322000000_002_OUT.decrypted";
 
   BlobApplicationAware fakeBlobRTD;
+
+  BlobApplicationAware fakeBlobRTDMalformedCheckSum;
 
   BlobApplicationAware fakeBlobRTDOldNaming;
 
@@ -114,6 +120,22 @@ class BlobSplitterTest {
     fakeBlobRTD.setTargetDir(tmpDirectory);
     fakeBlobRTD.setStatus(Status.DECRYPTED);
     fakeBlobRTD.setApp(Application.RTD);
+
+
+    // Create the decrypted file for RTD Malformed checksum
+    File decryptedFileMalformed = Path.of(tmpDirectory, blobNameRTDMalformedChecksum).toFile();
+    decryptedFileMalformed.getParentFile().mkdirs();
+    decryptedFileMalformed.createNewFile();
+    FileOutputStream decryptedStreamMalformedChecksum = new FileOutputStream(
+        Path.of(tmpDirectory, blobNameRTDMalformedChecksum + ".decrypted").toString());
+    Files.copy(Path.of(resources, blobNameRTDMalformedChecksum), decryptedStreamMalformedChecksum);
+
+    // Instantiate a fake RTD blob with malformed checksum
+    fakeBlobRTDMalformedCheckSum = new BlobApplicationAware(
+        "/blobServices/default/containers/" + containerRTD + "/blobs/" + blobNameRTDMalformedChecksum);
+    fakeBlobRTDMalformedCheckSum.setTargetDir(tmpDirectory);
+    fakeBlobRTDMalformedCheckSum.setStatus(Status.DECRYPTED);
+    fakeBlobRTDMalformedCheckSum.setApp(Application.RTD);
 
     // Create the decrypted file for RTD old naming convention
     FileOutputStream decryptedStreamTransactionsOldNaming = new FileOutputStream(
@@ -298,6 +320,15 @@ class BlobSplitterTest {
       i++;
     }
     assertEquals(3, i);
+  }
+
+  @Test
+  void shouldNotSplitRTDForMalformedCheckSum() {
+
+    blobSplitterImpl.setAggregatesLineThreshold(1);
+    blobSplitterImpl.setChecksumSkipped(false);
+
+    assertThrows(IllegalArgumentException.class, () -> blobSplitterImpl.split(fakeBlobRTDMalformedCheckSum));
   }
 
   @Test

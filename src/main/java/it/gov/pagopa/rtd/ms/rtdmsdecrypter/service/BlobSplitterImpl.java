@@ -100,7 +100,8 @@ public class BlobSplitterImpl implements BlobSplitter {
         checkSum = it.nextLine();
         if (!checkSum.matches(CHECKSUM_REGEX)) {
           log.error("Checksum is not a conformed one {}", checkSum);
-        }
+          throw new IllegalArgumentException("Error detected inside the file's checksum");
+        } 
         blob.getReportMetaData().setCheckSum(checkSum);
         log.info("Checksum: {} {}", blob.getBlob(), checkSum);
         isChecksumSkipped.setTrue();
