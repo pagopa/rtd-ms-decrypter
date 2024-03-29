@@ -182,7 +182,8 @@ public class BlobApplicationAware {
   private boolean checkRtdNameFormat(String[] blobNameTokens) {
 
     // blobNameTokens[1] check for sender ABI code
-    if (blobNameTokens.length < RTD_NAME_CHUNK_NUM || !blobNameTokens[0].matches("(ADE|CSTAR)")
+    if (blobNameTokens.length < RTD_NAME_CHUNK_NUM
+        || !blobNameTokens[0].matches("(ADE|CSTAR)")
         || !blobNameTokens[1].matches("[a-zA-Z0-9]{5}")) {
       return false;
     }
@@ -201,8 +202,10 @@ public class BlobApplicationAware {
 
   private boolean checkWalletNameFormat(String[] blobNameTokens) {
 
-    if (!blobNameTokens[0].equals("PAGOPAPM") || !blobNameTokens[1].equals("NPG")
-        || !blobNameTokens[2].equals("CONTRACTS") || blobNameTokens.length != WALLET_NAME_CHUNK_NUM) {
+    if (blobNameTokens.length != WALLET_NAME_CHUNK_NUM
+        || !blobNameTokens[0].equals("PAGOPAPM")
+        || !blobNameTokens[1].equals("NPG")
+        || !blobNameTokens[2].equals("CONTRACTS")) {
       return false;
     }
 
