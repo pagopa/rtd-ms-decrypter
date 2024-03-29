@@ -259,9 +259,9 @@ class BlobRestConnectorTest {
 
   @Test
   void setMetadataGivenPutResponse201ThenReturnsNull() throws HttpException, IOException {
-    var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(201, "test");
+    var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(200, "test");
 
-    var value = blobRestConnectorImpl.validateStatusCode().handleResponse(response);
+    var value = blobRestConnectorImpl.validateStatusCodeSetMetadata().handleResponse(response);
 
     assertNull(value);
   }

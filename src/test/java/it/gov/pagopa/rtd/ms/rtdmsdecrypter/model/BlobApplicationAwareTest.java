@@ -145,5 +145,4 @@ class BlobApplicationAwareTest {
     assertTrue(Files.exists(Path.of(tmpDirectory, chunks.get(2).getName())));
 
   }
-
 }
