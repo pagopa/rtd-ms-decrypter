@@ -56,6 +56,8 @@ public class BlobSplitterImpl implements BlobSplitter {
   @Value("${decrypt.skipChecksum}")
   private boolean checksumSkipped;
 
+  private static final String CHECKSUM_REGEX = "^#sha256.*";
+
   /**
    * Method that split the content of a blob in chunks of n lines.
    *
@@ -96,7 +98,7 @@ public class BlobSplitterImpl implements BlobSplitter {
             Path.of(blobPath).toFile(), "UTF-8")) {
       if (it.hasNext() && isChecksumSkipped.isFalse()) {
         checkSum = it.nextLine();
-        if (!checkSum.matches("^#sha256.*")) {
+        if (!checkSum.matches(CHECKSUM_REGEX)) {
           log.error("Checksum is not a conformed one {}", checkSum);
         }
         blob.getReportMetaData().setCheckSum(checkSum);
