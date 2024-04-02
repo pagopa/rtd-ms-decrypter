@@ -7,8 +7,8 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobSplitterImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,24 +55,24 @@ public class EventHandler {
           .filter(b -> BlobApplicationAware.Status.DECRYPTED.equals(b.getStatus()))
           .flatMap(blobSplitterImpl::split)
           .filter(b -> BlobApplicationAware.Status.SPLIT.equals(b.getStatus()))
-          .collect(Collectors.toList());
+          .toList();
 
       List<BlobApplicationAware> verifiedChunks = chunks.stream()
           .map(blobVerifierImpl::verify)
           .filter(b -> BlobApplicationAware.Status.VERIFIED.equals(b.getStatus()))
-          .collect(Collectors.toList());
+          .toList();
+
+      Optional<BlobApplicationAware> originalBlob = chunks.stream().findFirst()
+          .map(BlobApplicationAware::getOriginalBlob);
 
       if (!chunks.isEmpty()) {
-
-        String originalBlobName = chunks.stream().findFirst()
-            .map(BlobApplicationAware::getOriginalBlobName).orElse("ERROR_NO_ORIGINAL_BLOB_NAME");
-
         if (verifiedChunks.size() == chunks.size()) {
           long uploadedChunks = verifiedChunks.stream()
               .map(b -> isChunkUploadEnabled ? blobRestConnectorImpl.put(b) : b)
               .filter(b -> BlobApplicationAware.Status.UPLOADED.equals(b.getStatus()))
               .count();
           log.info("Uploaded chunks: {}", uploadedChunks);
+          blobRestConnectorImpl.setMetadata(originalBlob.get());
         } else {
           log.error("Not all chunks are verified, no chunks will be uploaded of {}",
               chunks.get(0).getOriginalBlobName());
@@ -83,11 +83,10 @@ public class EventHandler {
             .filter(b -> BlobApplicationAware.Status.DELETED.equals(b.getStatus())).count();
 
         log.info("Deleted {}/{} chunks of blob: {}", deletedChunks, chunks.size(),
-            originalBlobName);
+            originalBlob.get().getBlob());
 
-        log.info("Handled blob: {}", originalBlobName);
-      }
-
+        log.info("Handled blob: {}", originalBlob.get().getBlob());
+      } 
     };
   }
 }

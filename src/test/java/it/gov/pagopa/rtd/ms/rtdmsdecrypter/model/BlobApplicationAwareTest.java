@@ -28,6 +28,9 @@ class BlobApplicationAwareTest {
   String containerRtd = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
   String blobNameRtd = "CSTAR.99910.TRNLOG.20220316.164707.001.01.csv.pgp";
 
+  FileOutputStream encryptedBlobStream;
+  FileOutputStream decryptedBlobStream;
+
   BlobApplicationAware fakeBlob;
 
   @BeforeEach
@@ -41,9 +44,9 @@ class BlobApplicationAwareTest {
     decryptedBlob.getParentFile().mkdirs();
     decryptedBlob.createNewFile();
 
-    FileOutputStream encryptedBlobStream = new FileOutputStream(
+    encryptedBlobStream = new FileOutputStream(
         Path.of(tmpDirectory, blobNameRtd).toString());
-    FileOutputStream decryptedBlobStream = new FileOutputStream(
+    decryptedBlobStream = new FileOutputStream(
         Path.of(tmpDirectory, blobNameRtd + ".decrypted").toString());
 
     //Instantiate a fake blob with empty content
@@ -56,6 +59,8 @@ class BlobApplicationAwareTest {
   @AfterEach
   void cleanTmpFiles() throws IOException {
     FileUtils.deleteDirectory(Path.of(tmpDirectory).toFile());
+    encryptedBlobStream.close();
+    decryptedBlobStream.close();
   }
 
   @Test
@@ -86,16 +91,25 @@ class BlobApplicationAwareTest {
     BlobApplicationAware myBlob = new BlobApplicationAware(blobUri);
     assertSame(Application.WALLET, myBlob.getApp());
   }
+ 
+
+
 
   @ParameterizedTest
   @ValueSource(strings = {"/blobServices/default/containers/myContainer/blobs/myBlob",
       "/blobServices/default/directories/myContainer/blobs/myBlob",
       "/blobServices/default/containers/rtd-loremipsum-32489876908u74bh781e2db57k098c5ad034341i8u7y/blobs/CSTAR.99910.TRNLOG.20220228.103107.001.csv.pgp",
-      "/blobServices/default/containers/rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y/blobs/CSTAR.99910.TRNLOG.20220228.103107.001"})
+      "/blobServices/default/containers/rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y/blobs/CSTAR.99910.TRNLOG.20220228.103107.001",
+      "/blobServices/default/containers/nexi/blobs/in/PAGOPAPM_NG_CONTRACTS_20240313182500_001_OU",
+      "/blobServices/default/containers/nexi/blobs/in/PAGOPAPM_NPG_CORACTS_20240313182500_001_OU",
+      "/blobServices/default/containers/nexi/blobs/in/PAGOPM_NPG_CONTRACTS_20240313182500_001_OU",
+      "/blobServices/default/containers/nexi/blobs/in/test/PAGOPAPM_NPG_CONTRACTS_20240313182500_001_OU"
+    })
   void shouldMatchNoApp(String blobUri) {
     BlobApplicationAware myBlob = new BlobApplicationAware(blobUri);
     assertSame(BlobApplicationAware.Application.NOAPP, myBlob.getApp());
   }
+
 
   @Test
   void shouldCleanLocalFiles() throws IOException {
@@ -136,5 +150,4 @@ class BlobApplicationAwareTest {
     assertTrue(Files.exists(Path.of(tmpDirectory, chunks.get(2).getName())));
 
   }
-
 }

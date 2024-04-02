@@ -13,6 +13,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
@@ -37,8 +40,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.server.ResponseStatusException;
 
-
-@ExtendWith({OutputCaptureExtension.class, MockitoExtension.class})
+@ExtendWith({ OutputCaptureExtension.class, MockitoExtension.class })
 class BlobRestConnectorTest {
 
   BlobRestConnectorImpl blobRestConnectorImpl;
@@ -178,7 +180,7 @@ class BlobRestConnectorTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {201, 202, 203, 301, 400, 404, 500, 502})
+  @ValueSource(ints = { 201, 202, 203, 301, 400, 404, 500, 502 })
   void givenBadStatusCodeAsGetResponseThenThrowException(int statusCode)
       throws IOException {
     try (var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(statusCode,
@@ -200,7 +202,7 @@ class BlobRestConnectorTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {301, 400, 404, 500, 502})
+  @ValueSource(ints = { 301, 400, 404, 500, 502 })
   void givenBadStatusCodeAsPutResponseThenThrowException(int statusCode)
       throws IOException {
     try (var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(statusCode,
@@ -211,4 +213,69 @@ class BlobRestConnectorTest {
       assertThrows(ResponseStatusException.class, () -> lambda.handleResponse(response));
     }
   }
+
+  @Test
+  void shouldSetMetadata(CapturedOutput output) throws IOException {
+    BlobApplicationAware blobOut = blobRestConnectorImpl.setMetadata(blobIn);
+    verify(client, times(1)).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
+    assertEquals(BlobApplicationAware.Status.ENRICHED, blobOut.getStatus());
+    assertThat(output.getOut(), not(containsString("Cannot SET metadata for the blob")));
+  }
+
+  @Test
+  void shouldNotSetMetadataForWallet(CapturedOutput output) throws IOException {
+    blobIn.setApp(Application.WALLET);
+    blobIn.setStatus(Status.SPLIT);
+    BlobApplicationAware blobOut = blobRestConnectorImpl.setMetadata(blobIn);
+    verify(client, times(0)).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
+    assertEquals(BlobApplicationAware.Status.SPLIT, blobOut.getStatus());
+  }
+
+  @Test
+  void shouldFailSetMetadataHttpError(CapturedOutput output) throws IOException {
+    doThrow(new ResponseStatusException(HttpStatusCode.valueOf(404), "not_found"))
+        .when(client).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
+
+    BlobApplicationAware blobOut = blobRestConnectorImpl.setMetadata(blobIn);
+
+    verify(client, times(1)).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
+    assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
+    assertThat(output.getOut(), containsString("Cannot SET metadata for the blob"));
+  }
+
+
+  @Test
+  void shouldFailSetMetadataUnexpectedError(CapturedOutput output) throws IOException {
+    doThrow(new IOException(EXCEPTION_MESSAGE)).when(client)
+        .execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
+
+    BlobApplicationAware blobOut = blobRestConnectorImpl.setMetadata(blobIn);
+
+    verify(client, times(1)).execute(any(HttpPut.class), any(HttpClientResponseHandler.class));
+    assertEquals(BlobApplicationAware.Status.RECEIVED, blobOut.getStatus());
+    assertThat(output.getOut(), containsString("Cannot SET metadata for the blob "));
+  }
+
+  @Test
+  void setMetadataGivenPutResponse201ThenReturnsNull() throws HttpException, IOException {
+    var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(200, "test");
+
+    var value = blobRestConnectorImpl.validateStatusCodeSetMetadata().handleResponse(response);
+
+    assertNull(value);
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = { 301, 400, 404, 500, 502 })
+  void setMetadataGivenBadStatusCodeAsPutResponseThenThrowException(int statusCode)
+      throws IOException {
+    try (var response = DefaultClassicHttpResponseFactory.INSTANCE.newHttpResponse(statusCode,
+        "test")) {
+
+      var lambda = blobRestConnectorImpl.validateStatusCodeSetMetadata();
+
+      assertThrows(ResponseStatusException.class, () -> lambda.handleResponse(response));
+    }
+  }
+
 }
