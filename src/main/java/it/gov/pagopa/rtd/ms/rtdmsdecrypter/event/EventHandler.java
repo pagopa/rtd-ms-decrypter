@@ -2,7 +2,6 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.event;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
-import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobSplitterImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl;

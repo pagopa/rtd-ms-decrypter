@@ -305,7 +305,7 @@ class BlobVerifierTest {
   })
   void shouldNotVerifyMalformedContract(String serializedContract) throws IOException {
     ObjectMapper objectMapper = new ObjectMapper();
-    JsonParser parser = new JsonFactory().createJsonParser(serializedContract);
+    JsonParser parser = new JsonFactory().createParser(serializedContract);
 
     assertNull(deserializeAndVerifyContract(objectMapper, parser, 0));
   }

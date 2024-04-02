@@ -28,6 +28,9 @@ class BlobApplicationAwareTest {
   String containerRtd = "rtd-transactions-32489876908u74bh781e2db57k098c5ad00000000000";
   String blobNameRtd = "CSTAR.99910.TRNLOG.20220316.164707.001.01.csv.pgp";
 
+  FileOutputStream encryptedBlobStream;
+  FileOutputStream decryptedBlobStream;
+
   BlobApplicationAware fakeBlob;
 
   @BeforeEach
@@ -41,9 +44,9 @@ class BlobApplicationAwareTest {
     decryptedBlob.getParentFile().mkdirs();
     decryptedBlob.createNewFile();
 
-    FileOutputStream encryptedBlobStream = new FileOutputStream(
+    encryptedBlobStream = new FileOutputStream(
         Path.of(tmpDirectory, blobNameRtd).toString());
-    FileOutputStream decryptedBlobStream = new FileOutputStream(
+    decryptedBlobStream = new FileOutputStream(
         Path.of(tmpDirectory, blobNameRtd + ".decrypted").toString());
 
     //Instantiate a fake blob with empty content
@@ -56,6 +59,8 @@ class BlobApplicationAwareTest {
   @AfterEach
   void cleanTmpFiles() throws IOException {
     FileUtils.deleteDirectory(Path.of(tmpDirectory).toFile());
+    encryptedBlobStream.close();
+    decryptedBlobStream.close();
   }
 
   @Test
