@@ -82,7 +82,7 @@ public class DecrypterImpl implements Decrypter {
       log.warn("{}: {}", e.getMessage(), blob.getBlob());
       decryptFailed = true;
     } catch (Exception e) {
-      log.error("Cannot decrypt {}: {}", blob.getBlob(), e.getMessage());
+      log.error("Cannot decrypt {}: {} {}", blob.getBlob(), e.getMessage(), e.getCause());
       decryptFailed = true;
     }
 
@@ -97,7 +97,6 @@ public class DecrypterImpl implements Decrypter {
 
   protected void decryptFile(InputStream input, OutputStream output, String blobName)
       throws IOException, PGPException {
-
     InputStream keyInput = IOUtils.toInputStream(this.privateKey, StandardCharsets.UTF_8);
     char[] passwd = this.privateKeyPassword.toCharArray();
 

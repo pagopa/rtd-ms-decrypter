@@ -45,12 +45,19 @@ decrypt:
     baseurl: https://${CSV_TRANSACTION_DECRYPT_HOST:internal.it}
   blobclient:
     basepath: storage
+    sftp-basepath: sftp-storage
     apikey: ${INTERNAL_SERVICES_API_KEY:myapikey}
+    inputContainer:
+      wallet: nexi
+    inputDirectory:
+      wallet: in
     targetContainer:
       rtd: rtd-transactions-decrypted
       ade: ade-transactions-decrypted
+      wallet: wallet-contracts-decrypted
   splitter:
-    threshold: ${SPLITTER_LINE_THRESHOLD:250000}
+    aggregatesThreshold: ${AGGREGATES_SPLITTER_LINE_THRESHOLD:250000}
+    walletThreshold: ${CONTRACTS_SPLITTER_LINE_THRESHOLD:100000}
   enableChunkUpload: ${ENABLE_CHUNK_UPLOAD:false}
   skipChecksum: ${SKIP_CHECKSUM:false}
 
