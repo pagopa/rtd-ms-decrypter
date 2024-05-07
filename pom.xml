@@ -153,7 +153,7 @@
             <dependency>
                 <groupId>io.opentelemetry.instrumentation</groupId>
                 <artifactId>opentelemetry-instrumentation-bom-alpha</artifactId>
-                <version>1.33.2-alpha</version>
+                <version>1.37.0-alpha</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
