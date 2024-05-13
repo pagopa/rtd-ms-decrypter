@@ -94,6 +94,7 @@ spring:
             value:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
+applicationinsights.enabled: false
 ---
 spring:
   config:
