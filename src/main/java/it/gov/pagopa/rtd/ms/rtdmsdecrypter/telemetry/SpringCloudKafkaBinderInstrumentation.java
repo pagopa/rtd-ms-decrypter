@@ -55,8 +55,7 @@ public class SpringCloudKafkaBinderInstrumentation {
 
   @Bean
   public ListenerContainerCustomizer<AbstractMessageListenerContainer<?, ?>> containerCustomizer(
-      OpenTelemetry openTelemetry
-  ) {
+      OpenTelemetry openTelemetry) {
     final var springKafkaTelemetry = SpringKafkaTelemetry.builder(openTelemetry)
         .setMessagingReceiveInstrumentationEnabled(true)
         .setCaptureExperimentalSpanAttributes(true)

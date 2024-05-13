@@ -8,10 +8,20 @@ logging:
 applicationinsights:
   enabled: '@applicationinsights.enabled@'
   connection-string: ${APPLICATIONINSIGHTS_CONNECTION_STRING:myconnectionstring}
-otel.log.level: ${OPENTELEMETRY_LOG_LEVEL:INFO}
-otel.instrumentation.logback-appender.enabled: true # enable logback instrumentation
-otel.traces.sampler.probability: 1.0 # sample probability for tracing (spans)
-otel.metric.export.interval: 60000 # sampling rate for metrics (millis)
+otel:
+  log:
+    level: ${OPENTELEMETRY_LOG_LEVEL:INFO}
+  traces:
+    sampler:
+      probability: 1.0 # sample probability for tracing (spans)
+  metric:
+    export:
+      interval: 60000 # sampling rate for metrics (millis)
+  instrumentation:
+    logback-appender:
+      enabled: true # enable logback instrumentation
+    micrometer:
+      enabled: true # enable metrics exports
 
 # Expose only health probes
 management:
@@ -84,7 +94,6 @@ spring:
             value:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
-applicationinsights.enabled: false
 ---
 spring:
   config:
