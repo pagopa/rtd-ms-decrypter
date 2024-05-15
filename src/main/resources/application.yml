@@ -21,7 +21,7 @@ otel:
     logback-appender:
       enabled: true # enable logback instrumentation
     micrometer:
-      enabled: true # enable metrics exports
+      enabled: false # enable metrics exports
 
 # Expose only health probes
 management:
@@ -29,6 +29,10 @@ management:
     export.defaults.enabled: false
     enable:
       all: false
+      process.cpu: false
+      system.cpu: false
+      jvm.memory: false
+      application: false
   endpoints:
     enabled-by-default: false
     web.exposure.include: health
