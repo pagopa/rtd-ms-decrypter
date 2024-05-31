@@ -23,11 +23,12 @@ class HttpClientTest {
 
   @Mock
   HttpClient client;
+  @Mock
+  HttpResponse httpResponse;
 
   @Test
   void shouldNotBeClosed() throws IOException {
 
-    HttpResponse httpResponse = mock(HttpResponse.class);
     when(httpResponse.getCode()).thenReturn(200);
     when(client.execute(any(HttpGet.class))).thenReturn(httpResponse);
     String uri = "https://eu.httpbin.org/get";
