@@ -2,7 +2,6 @@ package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
