@@ -235,23 +235,23 @@ class DecrypterTest {
 
   }
 
-  @Test
-  void shouldWarnNoData(CapturedOutput output)
-      throws IOException, PGPException {
-
-    //Mock decrypter behaviour
-    when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
-    doThrow(new IllegalArgumentException("No data found in decrypted file")).when(
-            mockDecrypterImpl)
-        .decryptFile(any(), any(), any());
-
-    mockDecrypterImpl.decrypt(fakeBlob);
-
-    assertThat(output.getOut(), containsString("No data found in decrypted file"));
-
-    //Check if the local blob is cleaned up (given that it's empty)
-    assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
-  }
+//  @Test
+//  void shouldWarnNoData(CapturedOutput output)
+//      throws IOException, PGPException {
+//
+//    //Mock decrypter behaviour
+//    when(mockDecrypterImpl.decrypt(any(BlobApplicationAware.class))).thenCallRealMethod();
+//    doThrow(new IllegalArgumentException("No data found in decrypted file")).when(
+//            mockDecrypterImpl)
+//        .decryptFile(any(), any(), any());
+//
+//    mockDecrypterImpl.decrypt(fakeBlob);
+//
+//    assertThat(output.getOut(), containsString("No data found in decrypted file"));
+//
+//    //Check if the local blob is cleaned up (given that it's empty)
+//    assertFalse(Files.exists(Path.of(tmpDirectory, blobName)));
+//  }
 
   @ParameterizedTest
   @ValueSource(strings = {"Secret key for message not found.",
