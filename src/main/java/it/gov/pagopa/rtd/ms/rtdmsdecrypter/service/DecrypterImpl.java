@@ -79,7 +79,7 @@ public class DecrypterImpl implements Decrypter {
       log.info("Blob decrypted: {}", blob.getBlob());
 
     } catch (IllegalArgumentException e) {
-      log.warn("{}: {}", e.getMessage(), blob.getBlob());
+      //log.warn("{}: {}", e.getMessage(), blob.getBlob());
       decryptFailed = true;
     } catch (Exception e) {
       log.error("Cannot decrypt {}: {} {}", blob.getBlob(), e.getMessage(), e.getCause());
