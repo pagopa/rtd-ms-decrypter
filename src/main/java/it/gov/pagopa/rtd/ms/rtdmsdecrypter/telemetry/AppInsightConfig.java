@@ -1,9 +1,9 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.telemetry;
 
 import com.azure.monitor.opentelemetry.exporter.AzureMonitorExporterBuilder;
-import io.opentelemetry.sdk.logs.export.LogRecordExporter;
-import io.opentelemetry.sdk.metrics.export.MetricExporter;
-import io.opentelemetry.sdk.trace.export.SpanExporter;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -17,22 +17,18 @@ public class AppInsightConfig implements BeanPostProcessor {
 
   private final AzureMonitorExporterBuilder azureMonitorExporterBuilder;
 
-  public AppInsightConfig() {
-    this.azureMonitorExporterBuilder = new AzureMonitorExporterBuilder();
+  public AppInsightConfig(
+      @Value("${applicationinsights.connection-string}") String applicationInsights) {
+    this.azureMonitorExporterBuilder = new AzureMonitorExporterBuilder().connectionString(
+        applicationInsights);
   }
 
   @Bean
-  public SpanExporter azureSpanProcessor() {
-    return azureMonitorExporterBuilder.buildTraceExporter();
-  }
-
-  @Bean
-  public MetricExporter azureMetricExporter() {
-    return azureMonitorExporterBuilder.buildMetricExporter();
-  }
-
-  @Bean
-  public LogRecordExporter azureLogRecordExporter() {
-    return azureMonitorExporterBuilder.buildLogRecordExporter();
+  public AutoConfigurationCustomizerProvider otelCustomizer() {
+    return p -> {
+      if (p instanceof AutoConfiguredOpenTelemetrySdkBuilder) {
+        this.azureMonitorExporterBuilder.install((AutoConfiguredOpenTelemetrySdkBuilder) p);
+      }
+    };
   }
 }
