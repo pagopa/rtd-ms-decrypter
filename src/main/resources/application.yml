@@ -97,6 +97,9 @@ spring:
 applicationinsights.enabled: false
 ---
 spring:
+  config:
+    activate:
+      on-profile: default
   cloud:
     stream:
       bindings:
