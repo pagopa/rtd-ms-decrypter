@@ -118,9 +118,9 @@ class EventHandlerTest {
 
   @Test
   void blobUriShouldNotFilterRenameEvent() {
-    String container = "nexi";
+    String containerNexi = "nexi";
     String blobName = "in/PAGOPAPM_NPG_CONTRACTS_20240313182500_001_OUT";
-    String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;
+    String blobUri = "/blobServices/default/containers/" + containerNexi + "/blobs/" + blobName;
     myEvent.setSubject(blobUri);
 
     myEvent.setEventType("Microsoft.Storage.BlobRenamed");
@@ -191,9 +191,9 @@ class EventHandlerTest {
       "nexi, ADE.99910.TRNLOG.20220228.203107.001.01.csv.pgp",
       "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, PAGOPAPM_NPG_CONTRACTS_20240322000000_001_OUT.decrypted",
       "ade-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y, PAGOPAPM_NPG_CONTRACTS_20240322000000_001_OUT.decrypted"})
-  void blobUriShouldFailConflictingService(String container, String blobName) {
+  void blobUriShouldFailConflictingService(String currContainer, String blobName) {
 
-    String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;
+    String blobUri = "/blobServices/default/containers/" + currContainer + "/blobs/" + blobName;
     myEvent.setSubject(blobUri);
 
     myConsumer.accept(msg);
