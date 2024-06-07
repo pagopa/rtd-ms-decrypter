@@ -107,7 +107,45 @@ class EventHandlerTest {
         .split(any(BlobApplicationAware.class));
     doReturn(blobVerified).when(blobVerifierImpl).verify(any(BlobApplicationAware.class));
     doReturn(blobUploaded).when(blobRestConnectorImpl).put(any(BlobApplicationAware.class));
-    
+
+    myConsumer.accept(msg);
+    verify(blobRestConnectorImpl, times(1)).get(any());
+    verify(decrypterImpl, times(1)).decrypt(any());
+    verify(blobSplitter, times(1)).split(any());
+    verify(blobVerifierImpl, times(3)).verify(any());
+    verify(blobRestConnectorImpl, times(3)).put(any());
+  }
+
+  @Test
+  void blobUriShouldNotFilterRenameEvent() {
+    String container = "nexi";
+    String blobName = "in/PAGOPAPM_NPG_CONTRACTS_20240313182500_001_OUT";
+    String blobUri = "/blobServices/default/containers/" + container + "/blobs/" + blobName;
+    myEvent.setSubject(blobUri);
+
+    myEvent.setEventType("Microsoft.Storage.BlobRenamed");
+
+    //This test reaches the end of the handler, so the blob to be mocked in every status
+    BlobApplicationAware blobDownloaded = new BlobApplicationAware(blobUri);
+    BlobApplicationAware blobDecrypted = new BlobApplicationAware(blobUri);
+    BlobApplicationAware blobSplit = new BlobApplicationAware(blobUri);
+    BlobApplicationAware blobVerified = new BlobApplicationAware(blobUri);
+    BlobApplicationAware blobUploaded = new BlobApplicationAware(blobUri);
+    blobDownloaded.setStatus(BlobApplicationAware.Status.DOWNLOADED);
+    blobDecrypted.setStatus(BlobApplicationAware.Status.DECRYPTED);
+    blobVerified.setStatus(BlobApplicationAware.Status.VERIFIED);
+    blobVerified.setOriginalFileChunksNumber(3);
+    blobSplit.setStatus(BlobApplicationAware.Status.SPLIT);
+    blobUploaded.setStatus(BlobApplicationAware.Status.UPLOADED);
+    doReturn(blobDownloaded).when(blobRestConnectorImpl).get(any(BlobApplicationAware.class));
+    doReturn(blobDecrypted).when(decrypterImpl).decrypt(any(BlobApplicationAware.class));
+    //Mock this method call by returning a stream of 3 copies of the same mocked blob
+    blobSplit.setOriginalBlob(blobDecrypted);
+    doReturn(Stream.of(blobSplit, blobSplit, blobSplit)).when(blobSplitter)
+        .split(any(BlobApplicationAware.class));
+    doReturn(blobVerified).when(blobVerifierImpl).verify(any(BlobApplicationAware.class));
+    doReturn(blobUploaded).when(blobRestConnectorImpl).put(any(BlobApplicationAware.class));
+
     myConsumer.accept(msg);
     verify(blobRestConnectorImpl, times(1)).get(any());
     verify(decrypterImpl, times(1)).decrypt(any());
@@ -172,6 +210,25 @@ class EventHandlerTest {
   void blobUriShouldIgnoreBecauseNotInteresting() {
 
     myEvent.setSubject("/blobServices/default/containers/cstar-exports/blobs/hashedPans_1.zip");
+
+    myConsumer.accept(msg);
+
+    verify(blobRestConnectorImpl, times(0)).get(any());
+    verify(decrypterImpl, times(0)).decrypt(any());
+    verify(blobSplitter, times(0)).split(any());
+    verify(blobVerifierImpl, times(0)).verify(any());
+    verify(blobRestConnectorImpl, times(0)).put(any());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"Microsoft.Storage.BlobDeleted",
+      "Microsoft.Storage.DirectoryCreated",
+      "Microsoft.Storage.DirectoryRenamed",
+      "Microsoft.Storage.DirectoryDeleted"})
+  void shouldFilterOutWrongEventType(String eventType) {
+    String blobUri = "/blobServices/default/containers/nexi/blobs/in/PAGOPAPM_NPG_CONTRACTS_20240313182500_001_OUT";
+    myEvent.setSubject(blobUri);
+    myEvent.setEventType(eventType);
 
     myConsumer.accept(msg);
 
