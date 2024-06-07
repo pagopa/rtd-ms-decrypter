@@ -19,10 +19,10 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
+import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPut;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.io.DefaultClassicHttpResponseFactory;
@@ -46,7 +46,7 @@ class BlobRestConnectorTest {
   BlobRestConnectorImpl blobRestConnectorImpl;
 
   @Mock
-  CloseableHttpClient client;
+  HttpClient client;
 
   private final static String container = "rtd-transactions-32489876908u74bh781e2db57k098c5ad034341i8u7y";
 
