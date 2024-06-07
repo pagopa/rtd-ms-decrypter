@@ -15,6 +15,10 @@ import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.WalletContract;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.WalletExportHeader;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -26,6 +30,7 @@ import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.stream.Stream;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +62,10 @@ public class BlobSplitterImpl implements BlobSplitter {
   private boolean checksumSkipped;
 
   private static final String CHECKSUM_REGEX = "^#sha256.*";
+
+  private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+
+  private static final Validator validator = factory.getValidator();
 
   /**
    * Method that split the content of a blob in chunks of n lines.
@@ -165,6 +174,15 @@ public class BlobSplitterImpl implements BlobSplitter {
 
       jsonParser.nextToken();
       WalletExportHeader header = objectMapper.readValue(jsonParser, WalletExportHeader.class);
+      Set<ConstraintViolation<WalletExportHeader>> violations = validator.validate(header);
+      if (!violations.isEmpty()) {
+        log.error("Validation error: malformed wallet export header");
+        for (ConstraintViolation<WalletExportHeader> violation : violations) {
+          log.error("{} {}", violation.getPropertyPath(), violation.getMessage());
+        }
+        return false;
+      }
+
       log.info("Contracts export header:  {}", header.toString());
 
       if (jsonParser.getCurrentName() == null || jsonParser.nextToken() != JsonToken.FIELD_NAME
@@ -181,7 +199,7 @@ public class BlobSplitterImpl implements BlobSplitter {
       return deserializeAndSplitContracts(jsonParser, blobSplit, objectMapper, blob);
 
     } catch (JsonParseException | MismatchedInputException e) {
-      log.error("Validation error: malformed wallet export");
+      log.error("Validation error: malformed wallet export {}", e.getMessage());
       return false;
     } catch (IOException e) {
       log.error("Missing blob file:{}", blobPath);
