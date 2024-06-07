@@ -45,8 +45,9 @@ public class EventHandler {
 
     return message -> {
       List<BlobApplicationAware> chunks = message.getPayload().stream()
-          .filter(e -> "Microsoft.Storage.BlobCreated".equals(e.getEventType())
-              || "Microsoft.Storage.BlobRenamed".equals(e.getEventType()))
+          .peek(e -> log.info(e.toString()))
+          .filter(e -> "Microsoft.Storage.BlobCreated" .equals(e.getEventType())
+              || "Microsoft.Storage.BlobRenamed" .equals(e.getEventType()))
           .map(EventGridEvent::getSubject)
           .map(BlobApplicationAware::new)
           .filter(b -> !BlobApplicationAware.Application.NOAPP.equals(b.getApp()))
