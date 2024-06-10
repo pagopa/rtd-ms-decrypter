@@ -35,8 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementation of the {@link BlobVerifier} interface, used to verify the
- * validity of the
+ * Implementation of the {@link BlobVerifier} interface, used to verify the validity of the
  * {@link BlobApplicationAware} records extracted from the input file.
  */
 @Service
@@ -47,13 +46,12 @@ public class BlobVerifierImpl implements BlobVerifier {
 
   private VerifierFactory verifierFactory;
 
-  public BlobVerifierImpl(VerifierFactory verifierFactory){
+  public BlobVerifierImpl(VerifierFactory verifierFactory) {
     this.verifierFactory = verifierFactory;
   }
 
   /**
-   * Verify method, used to verify the validity of the
-   * {@link BlobApplicationAware} records
+   * Verify method, used to verify the validity of the {@link BlobApplicationAware} records
    * decrypted.
    */
   public BlobApplicationAware verify(BlobApplicationAware blob) {
@@ -129,13 +127,6 @@ public class BlobVerifierImpl implements BlobVerifier {
 
       if (contractViolations.isEmpty()) {
 
-        if (contract.getAction().equals("CREATE") && !contract.getImportOutcome().equals("OK")) {
-          log.error(
-              "Validation error on contract {}: conflicting action CREATE and import_outcome not OK",
-              (contractsCounter + 1));
-          return null;
-        }
-
         if (contract.getImportOutcome().equals("KO") && contract.getReasonMessage() == null) {
           log.error("Validation error on contract {}: import outcome KO and no reason message",
               (contractsCounter + 1));
@@ -155,7 +146,8 @@ public class BlobVerifierImpl implements BlobVerifier {
             }
             return null;
           }
-        } else if (!contract.getAction().equals("DELETE")) {
+        } else if (!contract.getAction().equals("DELETE") && !contract.getImportOutcome()
+            .equals("KO")) {
           log.error("Method attributes of contract {} are empty", (contractsCounter + 1));
           return null;
         }
@@ -184,7 +176,8 @@ public class BlobVerifierImpl implements BlobVerifier {
     ReportMetaData reportMetaData = blob.getOriginalBlob().getReportMetaData();
     reportMetaData.getMerchantList().add(tempAdeAgg.getMerchantId());
     reportMetaData.increaseTrx(tempAdeAgg.getOperationType(), tempAdeAgg.getNumTrx());
-    reportMetaData.increaseTotalAmountTrx(tempAdeAgg.getOperationType(), tempAdeAgg.getTotalAmount());
+    reportMetaData.increaseTotalAmountTrx(tempAdeAgg.getOperationType(),
+        tempAdeAgg.getTotalAmount());
     reportMetaData.updateAccountingDate(LocalDate.parse(tempAdeAgg.getAccountingDate()));
     numberOfDeserializeRecords.incrementAndGet();
   }

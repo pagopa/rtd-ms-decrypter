@@ -18,6 +18,18 @@ public class WalletExportHeader {
   @NotNull
   private String fileId;
 
+  @JsonProperty("tenant_id")
+  @NotNull
+  private String tenant_id;
+
+  @JsonProperty("merchant_id")
+  @NotNull
+  private String merchant_id;
+
+  @JsonProperty("terminal_id")
+  @NotNull
+  private String terminal_id;
+
   @JsonProperty("processing_start_time")
   @NotNull
   private String processingStartTime;

@@ -1,6 +1,9 @@
 {
     "header": {
         "file_id": "PAGOPAPM_NPG_CONTRACTS_20231021143000_OUT",
+        "tenant_id" : "20",
+        "merchant_id" : "3470428",
+        "terminal_id" : "3470428",
         "processing_start_time": "2024-02-22T11:18:35Z",
         "processing_end_time": "2024-02-22T111845Z",
         "export_id": "aeb5071e-6ecf-477d-8298-55bf1052703a",
@@ -39,24 +42,16 @@
             }
         },
         {
-            "action": "CREATE",
-            "import_outcome": "OK",
-            "payment_method": "CARD",
-            "method_attributes": {
-                "pan_tail": "8300",
-                "expdate": "08/25",
-                "card_id_4": "6b4847466a504f674a773753626e5a3467554f3779535974466c357876553377305166714136344c7756553d",
-                "card_payment_circuit": "MAESTRO",
-                "new_contract_identifier": "fee6c7da10c44f168a7a4bd2c82f5ab0",
-                "original_contract_identifier": "6563990fb0a8409fbe6df4e49a6361c8",
-                "card_bin": "12345678"
-            }
+            "import_outcome" : "KO",
+            "action" : "DELETE",
+            "original_contract_identifier" : "J9K0L1M2N3O4P5*+§€(&/)IJKM",
+            "reason_message" : "Invalid contract identifier format"
         },
         {
-            "action": "DELETE",
-            "import_outcome": "KO",
-            "reason_message": "Invalid contract identifier format",
-            "original_contract_identifier": "J9K0L1M2N3O4P5*+§€(&/)IJKM"
+            "import_outcome" : "KO",
+            "action" : "CREATE",
+            "original_contract_identifier" : "W1716563102822Hn8B",
+            "reason_message" : "No payment circuit could be found for contract with id W1716563102822Hn8B"
         }
     ]
 }
