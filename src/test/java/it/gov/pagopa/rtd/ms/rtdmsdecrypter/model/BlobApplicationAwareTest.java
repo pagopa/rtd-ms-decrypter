@@ -103,7 +103,14 @@ class BlobApplicationAwareTest {
       "/blobServices/default/containers/nexi/blobs/in/PAGOPAPM_NG_CONTRACTS_20240313182500_001_OU",
       "/blobServices/default/containers/nexi/blobs/in/PAGOPAPM_NPG_CORACTS_20240313182500_001_OU",
       "/blobServices/default/containers/nexi/blobs/in/PAGOPM_NPG_CONTRACTS_20240313182500_001_OU",
-      "/blobServices/default/containers/nexi/blobs/in/test/PAGOPAPM_NPG_CONTRACTS_20240313182500_001_OU"
+      "/blobServices/default/containers/nexi/blobs/in/test/PAGOPAPM_NPG_CONTRACTS_20240313182500_001_OU",
+      "/blobServices/default/containers/nexi/blobs/in/upload_PAGOPAPM_NPG_CONTRACTS_20240313182500_001_OUT",
+      "/blobServices/default/containers/nexi/blobs/in/PAGOPAPM_NPG_CONTRACTS_20240313182500_001_OUT.check",
+      "/blobServices/default/containers/nexi/blobs/in/PAGOPAPM_NPG_CONTRACTS_20240313182500_001",
+      "/blobServices/default/containers/nexi/blobs/in/PAGOPA_NPG_CONTRACTS_20240313182500_001_OUT",
+      "/blobServices/default/containers/nexi/blobs/in/PAGOPAPM_NPGW_CONTRACTS_20240313182500_001_OUT",
+      "/blobServices/default/containers/nexi/blobs/in/PAGOPAPM_NPG_CONTRACT_20240313182500_001_OUT",
+      "/blobServices/default/containers/nexi/blobs/in/PAGOPAPM_NPG_CONTRACTS_202403131825_001_OUT"
     })
   void shouldMatchNoApp(String blobUri) {
     BlobApplicationAware myBlob = new BlobApplicationAware(blobUri);
