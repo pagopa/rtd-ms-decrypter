@@ -154,3 +154,8 @@ spring:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
 applicationinsights.enabled: false
+
+decrypt:
+  resources:
+    base:
+      path: src/test/resources
