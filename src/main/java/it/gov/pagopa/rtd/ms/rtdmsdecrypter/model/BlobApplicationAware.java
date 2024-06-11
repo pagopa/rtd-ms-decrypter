@@ -305,7 +305,6 @@ public class BlobApplicationAware {
     if (!blobNameTokens[5].equals(walletExportFileSuffix)) {
       return false;
     }
-    log.info(blobNameTokens[5]);
     return true;
   }
 }
