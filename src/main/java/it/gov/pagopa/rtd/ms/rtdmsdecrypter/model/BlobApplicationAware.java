@@ -302,9 +302,6 @@ public class BlobApplicationAware {
       return false;
     }
     // Check if last token contains ".check"
-    if (!blobNameTokens[5].equals(walletExportFileSuffix)) {
-      return false;
-    }
-    return true;
+    return blobNameTokens[5].equals(walletExportFileSuffix);
   }
 }
