@@ -78,9 +78,6 @@ public class DecrypterImpl implements Decrypter {
       blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
       log.info("Blob decrypted: {}", blob.getBlob());
 
-    } catch (IllegalArgumentException e) {
-      log.warn("{}: {}", e.getMessage(), blob.getBlob());
-      decryptFailed = true;
     } catch (Exception e) {
       log.error("Cannot decrypt {}: {} {}", blob.getBlob(), e.getMessage(), e.getCause());
       decryptFailed = true;
