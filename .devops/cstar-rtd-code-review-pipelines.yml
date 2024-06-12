@@ -28,7 +28,7 @@ steps:
   #      path: $(MAVEN_CACHE_FOLDER)
   #    displayName: Cache Maven local repo
 
-  - task: SonarCloudPrepare@1
+  - task: SonarCloudPrepare@2
     displayName: 'Prepare SonarCloud analysis configuration'
     inputs:
       SonarCloud: '$(SONARCLOUD_SERVICE_CONN)'
@@ -54,7 +54,7 @@ steps:
       publishJUnitResults: true
       testResultsFiles: '**/surefire-reports/TEST-*.xml'
       javaHomeOption: 'JDKVersion'
-      jdkVersionOption: '1.17'
+      jdkVersionOption: '1.21'
       mavenVersionOption: 'Default'
       mavenAuthenticateFeed: false
       effectivePomSkip: false
@@ -78,6 +78,6 @@ steps:
       sonarQubeRunAnalysis: true
       isJacocoCoverageReportXML: false
       sqMavenPluginVersionChoice: 'latest'
-  - task: SonarCloudPublish@1
+  - task: SonarCloudPublish@2
     inputs:
       pollingTimeoutSec: '300'

@@ -72,30 +72,6 @@ decrypt:
   enableChunkUpload: ${ENABLE_CHUNK_UPLOAD:false}
   skipChecksum: ${SKIP_CHECKSUM:false}
 
----
-spring:
-  config:
-    activate:
-      on-profile: test
-  cloud:
-    stream:
-      bindings:
-        blobStorageConsumer-in-0: # name must match [handler name]-in-0
-          destination: rtd-platform-events
-          group: rtd-decrypter-consumer-group
-          content-type: application/json
-          binder: kafka
-      kafka:
-        binder:
-          auto-create-topics: false
-          consumerProperties:
-            key:
-              deserializer: org.apache.kafka.common.serialization.StringDeserializer
-            value:
-              deserializer: org.apache.kafka.common.serialization.StringDeserializer
-
-applicationinsights.enabled: false
----
 spring:
   config:
     activate:
@@ -154,3 +130,32 @@ spring:
             # partition:
             #   assignment:
             #     strategy: org.apache.kafka.clients.consumer.RangeAssignor
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  cloud:
+    stream:
+      bindings:
+        blobStorageConsumer-in-0: # name must match [handler name]-in-0
+          destination: rtd-platform-events
+          group: rtd-decrypter-consumer-group
+          content-type: application/json
+          binder: kafka
+      kafka:
+        binder:
+          auto-create-topics: false
+          consumerProperties:
+            key:
+              deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            value:
+              deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+applicationinsights.enabled: false
+
+decrypt:
+  resources:
+    base:
+      path: src/test/resources
