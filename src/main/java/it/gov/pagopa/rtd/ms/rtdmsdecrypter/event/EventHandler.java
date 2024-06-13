@@ -44,6 +44,8 @@ public class EventHandler {
     log.info("Chunks upload enabled: {}", isChunkUploadEnabled);
 
     return message -> {
+      log.info("message body {}", message.getPayload().toString());
+      log.info("message body size {}", message.getPayload().size());
       List<BlobApplicationAware> chunks = message.getPayload().stream()
           .map(e -> {
             log.info(e.toString());
