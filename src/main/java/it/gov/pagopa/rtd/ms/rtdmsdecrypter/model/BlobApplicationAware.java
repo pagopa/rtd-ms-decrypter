@@ -12,8 +12,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Class representing a blob-stored transactions file, and it's processing
- * state.
+ * Class representing a blob-stored transactions file, and it's processing state.
  */
 @Getter
 @Setter
@@ -79,6 +78,10 @@ public class BlobApplicationAware {
 
   private String targetDir = "/tmp";
 
+  private String uploadPrefix = "upload";
+
+  private String walletExportFileSuffix = "OUT";
+
   private Pattern uriRtdPattern = Pattern.compile(
       "^.*containers/((ade|rtd)(-transactions-[a-z0-9]{44}))/blobs/(.*)");
 
@@ -126,20 +129,8 @@ public class BlobApplicationAware {
       status = Status.RECEIVED;
 
       if (checkRtdNameFormat(blobNameTokenized)) {
-        // Check whether the blob's service matches in path and name, then assign
-        // Application
-        if (matcherRtd.group(2).equalsIgnoreCase("ADE") && blobNameTokenized[0]
-            .equalsIgnoreCase("ADE")) {
-          app = Application.ADE;
-          targetContainer = targetContainerAde;
-        } else if (matcherRtd.group(2).equalsIgnoreCase("RTD")
-            && blobNameTokenized[0].equalsIgnoreCase("CSTAR")) {
-          app = Application.RTD;
-          targetContainer = targetContainerRtd;
-        } else {
-          log.warn(CONFLICTING_SERVICE_WARNING_MSG + blobUri);
-          app = Application.NOAPP;
-        }
+        String applicationToken = matcherRtd.group(2);
+        checkRtdApplication(applicationToken, blobNameTokenized);
       } else {
         log.warn(WRONG_FORMAT_NAME_WARNING_MSG + blobUri);
         app = Application.NOAPP;
@@ -154,16 +145,19 @@ public class BlobApplicationAware {
 
       String[] blobNameTokenized = blob.split("_");
 
-      status = Status.RECEIVED;
+      if (filterTemporaryBlobs(blobNameTokenized)) {
+        status = Status.RECEIVED;
 
-      if (checkWalletNameFormat(blobNameTokenized)) {
-        app = Application.WALLET;
-        targetContainer = targetContainerWallet;
-      } else {
-        log.warn(WRONG_FORMAT_NAME_WARNING_MSG + blobUri);
-        app = Application.NOAPP;
+        if (checkWalletNameFormat(blobNameTokenized)) {
+          app = Application.WALLET;
+          targetContainer = targetContainerWallet;
+        } else {
+          log.warn(WRONG_FORMAT_NAME_WARNING_MSG + blobUri);
+          app = Application.NOAPP;
+        }
+
+        return;
       }
-      return;
     }
 
     log.info(EVENT_NOT_OF_INTEREST_WARNING_MSG + blobUri);
@@ -174,8 +168,7 @@ public class BlobApplicationAware {
    * This method matches PagoPA file name's standard Specifics can be found at:
    * https://docs.pagopa.it/digital-transaction-register/v/digital-transaction-filter/acquirer-integration-with-pagopa-centrostella/integration/standard-pagopa-file-transactions
    *
-   * @param blobNameTokens values obtained from the name of the blob (separated by
-   *                       dots)
+   * @param blobNameTokens values obtained from the name of the blob (separated by dots)
    * @return true if the name matches the format, false otherwise
    */
   private boolean checkRtdNameFormat(String[] blobNameTokens) {
@@ -199,6 +192,24 @@ public class BlobApplicationAware {
         blobNameTokens[5]);
   }
 
+  /*** Check whether the blob's service matches in path and name, then assign Application
+   *
+   */
+  private void checkRtdApplication(String applicationToken, String[] blobNameTokens) {
+    if (applicationToken.equalsIgnoreCase("ADE") && blobNameTokens[0]
+        .equalsIgnoreCase("ADE")) {
+      app = Application.ADE;
+      targetContainer = targetContainerAde;
+    } else if (applicationToken.equalsIgnoreCase("RTD")
+        && blobNameTokens[0].equalsIgnoreCase("CSTAR")) {
+      app = Application.RTD;
+      targetContainer = targetContainerRtd;
+    } else {
+      log.warn(CONFLICTING_SERVICE_WARNING_MSG + blobUri);
+      app = Application.NOAPP;
+    }
+  }
+
   private boolean checkWalletNameFormat(String[] blobNameTokens) {
 
     if (blobNameTokens.length != WALLET_NAME_CHUNK_NUM
@@ -209,9 +220,7 @@ public class BlobApplicationAware {
     }
 
     return checkDateTimeFormat(blobNameTokens[3].substring(0, 8), blobNameTokens[3].substring(8))
-        && extractFlowNumber(
-            blobNameTokens[4]);
-
+        && extractFlowNumber(blobNameTokens[4]);
   }
 
   private boolean checkDateTimeFormat(String date, String time) {
@@ -235,8 +244,7 @@ public class BlobApplicationAware {
   }
 
   /**
-   * This method deletes the local files left by the blob handling (get, decrypt,
-   * split, put).
+   * This method deletes the local files left by the blob handling (get, decrypt, split, put).
    *
    * @return the blob with its status set to deleted.
    */
@@ -289,5 +297,17 @@ public class BlobApplicationAware {
     } else {
       batchServiceChunkNumber = "00";
     }
+  }
+
+  boolean filterTemporaryBlobs(String[] blobNameTokens) {
+    if (blobNameTokens.length < WALLET_NAME_CHUNK_NUM) {
+      return false;
+    }
+    // Check if last token contains "upload"
+    if (blobNameTokens[0].equals(uploadPrefix)) {
+      return false;
+    }
+    // Check if last token contains ".check"
+    return blobNameTokens[5].equals(walletExportFileSuffix);
   }
 }
