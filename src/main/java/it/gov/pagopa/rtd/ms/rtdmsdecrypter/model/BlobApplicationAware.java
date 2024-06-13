@@ -129,20 +129,8 @@ public class BlobApplicationAware {
       status = Status.RECEIVED;
 
       if (checkRtdNameFormat(blobNameTokenized)) {
-        // Check whether the blob's service matches in path and name, then assign
-        // Application
-        if (matcherRtd.group(2).equalsIgnoreCase("ADE") && blobNameTokenized[0]
-            .equalsIgnoreCase("ADE")) {
-          app = Application.ADE;
-          targetContainer = targetContainerAde;
-        } else if (matcherRtd.group(2).equalsIgnoreCase("RTD")
-            && blobNameTokenized[0].equalsIgnoreCase("CSTAR")) {
-          app = Application.RTD;
-          targetContainer = targetContainerRtd;
-        } else {
-          log.warn(CONFLICTING_SERVICE_WARNING_MSG + blobUri);
-          app = Application.NOAPP;
-        }
+        String applicationToken = matcherRtd.group(2);
+        checkRtdApplication(applicationToken, blobNameTokenized);
       } else {
         log.warn(WRONG_FORMAT_NAME_WARNING_MSG + blobUri);
         app = Application.NOAPP;
@@ -202,6 +190,24 @@ public class BlobApplicationAware {
     extractBatchServiceChunkNumber(blobNameTokens[6]);
     return checkDateTimeFormat(blobNameTokens[3], blobNameTokens[4]) && extractFlowNumber(
         blobNameTokens[5]);
+  }
+
+  /*** Check whether the blob's service matches in path and name, then assign Application
+   *
+   */
+  private void checkRtdApplication(String applicationToken, String[] blobNameTokens) {
+    if (applicationToken.equalsIgnoreCase("ADE") && blobNameTokens[0]
+        .equalsIgnoreCase("ADE")) {
+      app = Application.ADE;
+      targetContainer = targetContainerAde;
+    } else if (applicationToken.equalsIgnoreCase("RTD")
+        && blobNameTokens[0].equalsIgnoreCase("CSTAR")) {
+      app = Application.RTD;
+      targetContainer = targetContainerRtd;
+    } else {
+      log.warn(CONFLICTING_SERVICE_WARNING_MSG + blobUri);
+      app = Application.NOAPP;
+    }
   }
 
   private boolean checkWalletNameFormat(String[] blobNameTokens) {
