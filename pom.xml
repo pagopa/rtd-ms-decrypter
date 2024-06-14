@@ -83,6 +83,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.graalvm.nativeimage</groupId>
+            <artifactId>svm</artifactId>
+            <version>24.0.1</version>
+            <scope>provided</scope>
+        </dependency>
         <!-- Opentelemetry -->
         <dependency>
             <groupId>io.opentelemetry.instrumentation</groupId>
@@ -209,6 +215,8 @@
                                 <arg>--initialize-at-build-time=ch.qos.logback</arg>
                                 <arg>--initialize-at-build-time=com.azure.core.util.logging.ClientLogger</arg>
                                 <arg>--initialize-at-build-time=org.apache.commons.logging.LogFactory</arg>
+                                <arg>--initialize-at-run-time=org.bouncycastle.jcajce.provider.drbg.DRBG$Default,org.bouncycastle.jcajce.provider.drbg.DRBG$NonceAndIV</arg>
+                                <arg>--features=it.gov.pagopa.rtd.ms.rtdmsdecrypter.config.BouncyCastleFeature</arg>
                             </buildArgs>
                         </configuration>
                         <executions>
