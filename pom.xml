@@ -18,7 +18,7 @@
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2023.0.1</spring-cloud.version>
-        <bcpg-jdk18on.version>1.78.1</bcpg-jdk18on.version>
+        <bcpg-jdk18on.version>1.77</bcpg-jdk18on.version>
         <commons-io.version>2.16.1</commons-io.version>
         <opencsv.version>5.9</opencsv.version>
         <snakeyaml.version>2.2</snakeyaml.version>
@@ -82,6 +82,12 @@
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.nativeimage</groupId>
+            <artifactId>svm</artifactId>
+            <version>24.0.1</version>
+            <scope>provided</scope>
         </dependency>
         <!-- Opentelemetry -->
         <dependency>
@@ -209,6 +215,8 @@
                                 <arg>--initialize-at-build-time=ch.qos.logback</arg>
                                 <arg>--initialize-at-build-time=com.azure.core.util.logging.ClientLogger</arg>
                                 <arg>--initialize-at-build-time=org.apache.commons.logging.LogFactory</arg>
+                                <arg>--initialize-at-run-time=org.bouncycastle.jcajce.provider.drbg.DRBG$Default,org.bouncycastle.jcajce.provider.drbg.DRBG$NonceAndIV</arg>
+                                <arg>--features=it.gov.pagopa.rtd.ms.rtdmsdecrypter.config.BouncyCastleFeature</arg>
                             </buildArgs>
                         </configuration>
                         <executions>
