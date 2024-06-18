@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,6 +38,7 @@ public class EventHandler {
    * @return a consumer for Event Grid events
    */
   @Bean
+  @RegisterReflectionForBinding(EventGridEvent.class)
   public Consumer<Message<List<EventGridEvent>>> blobStorageConsumer(DecrypterImpl decrypterImpl,
       BlobRestConnectorImpl blobRestConnectorImpl, BlobSplitterImpl blobSplitterImpl,
       BlobVerifierImpl blobVerifierImpl) {
@@ -45,7 +47,12 @@ public class EventHandler {
 
     return message -> {
       List<BlobApplicationAware> chunks = message.getPayload().stream()
-          .filter(e -> "Microsoft.Storage.BlobCreated".equals(e.getEventType()))
+          .map(e -> {
+            log.info(e.toString());
+            return e;
+          })
+          .filter(e -> "Microsoft.Storage.BlobCreated".equals(e.getEventType())
+              || "Microsoft.Storage.BlobRenamed".equals(e.getEventType()))
           .map(EventGridEvent::getSubject)
           .map(BlobApplicationAware::new)
           .filter(b -> !BlobApplicationAware.Application.NOAPP.equals(b.getApp()))
@@ -86,7 +93,7 @@ public class EventHandler {
             originalBlob.get().getBlob());
 
         log.info("Handled blob: {}", originalBlob.get().getBlob());
-      } 
+      }
     };
   }
 }

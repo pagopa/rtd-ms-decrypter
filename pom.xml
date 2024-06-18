@@ -6,27 +6,24 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.5</version>
+        <version>3.3.0</version>
         <relativePath/>
         <!-- lookup parent from repository -->
     </parent>
     <groupId>it.gov.pagopa.rtd.ms</groupId>
     <artifactId>rtd-ms-decrypter</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
     <name>rtd-ms-decrypter</name>
     <description>Microservice capable of decrypting PGP files</description>
     <properties>
-        <java.version>17</java.version>
-        <spring-cloud.version>2023.0.0</spring-cloud.version>
+        <java.version>21</java.version>
+        <spring-cloud.version>2023.0.1</spring-cloud.version>
         <bcpg-jdk18on.version>1.77</bcpg-jdk18on.version>
-        <commons-io.version>2.15.1</commons-io.version>
-        <httpclient.version>4.5.14</httpclient.version>
+        <commons-io.version>2.16.1</commons-io.version>
         <opencsv.version>5.9</opencsv.version>
         <snakeyaml.version>2.2</snakeyaml.version>
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
         <checkstyle.version>10.12.7</checkstyle.version>
-        <kafka.version>3.6.1</kafka.version>
-        <snappy.version>1.1.10.5</snappy.version>
         <sonar.exclusions>**/telemetry/**.java</sonar.exclusions>
         <applicationinsights.enabled>true</applicationinsights.enabled>
     </properties>
@@ -75,6 +72,22 @@
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>${opencsv.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-collections</groupId>
+                    <artifactId>commons-collections</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.nativeimage</groupId>
+            <artifactId>svm</artifactId>
+            <version>24.0.1</version>
+            <scope>provided</scope>
         </dependency>
         <!-- Opentelemetry -->
         <dependency>
@@ -143,11 +156,6 @@
                 <version>${snakeyaml.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.xerial.snappy</groupId>
-                <artifactId>snappy-java</artifactId>
-                <version>${snappy.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>io.opentelemetry</groupId>
                 <artifactId>opentelemetry-bom</artifactId>
                 <version>1.37.0</version>
@@ -164,12 +172,84 @@
         </dependencies>
     </dependencyManagement>
 
+    <!-- build for standard jar-->
     <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+    <!-- build for native executable. use mvn -Pnative -->
+    <profiles>
+        <profile>
+            <id>native</id>
+            <properties>
+                <applicationinsights.enabled>true</applicationinsights.enabled>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <configuration>
+                            <metadataRepository>
+                                <enabled>true</enabled>
+                            </metadataRepository>
+                            <buildArgs>
+                                <arg>--initialize-at-build-time=ch.qos.logback</arg>
+                                <arg>--initialize-at-build-time=com.azure.core.util.logging.ClientLogger</arg>
+                                <arg>--initialize-at-build-time=org.apache.commons.logging.LogFactory</arg>
+                                <arg>--initialize-at-run-time=org.bouncycastle.jcajce.provider.drbg.DRBG$Default,org.bouncycastle.jcajce.provider.drbg.DRBG$NonceAndIV</arg>
+                                <arg>--features=it.gov.pagopa.rtd.ms.rtdmsdecrypter.config.BouncyCastleFeature</arg>
+                            </buildArgs>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${project.parent.version}</version>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>org.projectlombok</groupId>
+                                    <artifactId>lombok</artifactId>
+                                    <version>${lombok.version}</version>
+                                </path>
+                            </annotationProcessorPaths>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>
