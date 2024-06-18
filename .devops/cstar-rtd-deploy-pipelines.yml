@@ -9,7 +9,7 @@ parameters:
   - name: 'buildNative'
     displayName: 'Deploy and build native version'
     type: boolean
-    default: true
+    default: false
 
 trigger:
   branches:
@@ -23,6 +23,7 @@ trigger:
       - pom.xml
       - helm/*
       - Dockerfile.native
+      - Dockerfile
 
 pr: none
 
