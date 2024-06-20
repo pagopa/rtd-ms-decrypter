@@ -271,6 +271,7 @@ public class BlobSplitterImpl implements BlobSplitter {
         }
       } catch (UnrecognizedPropertyException e) {
         log.error("Failed to deserialize the contract {}: {}", contractsCounter, e.getMessage());
+        return false;
       }
     }
 
