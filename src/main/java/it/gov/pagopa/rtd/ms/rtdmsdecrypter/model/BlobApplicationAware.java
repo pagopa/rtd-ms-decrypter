@@ -88,7 +88,7 @@ public class BlobApplicationAware {
   private Pattern uriWalletPattern = Pattern.compile(
       "^.*containers/(" + inputContainerWallet + ")/blobs/" + inputDirectoryWallet + "/(.*)");
 
-  private static final String WRONG_FORMAT_NAME_WARNING_MSG = "Wrong name format:";
+  private static final String WRONG_FORMAT_NAME_ERROR_MSG = "Wrong name format:";
   private static final String CONFLICTING_SERVICE_WARNING_MSG = "Conflicting service in URI:";
   private static final String EVENT_NOT_OF_INTEREST_WARNING_MSG = "Event not of interest:";
   private static final String FAIL_FILE_DELETE_WARNING_MSG = "Failed to delete local blob file:";
@@ -132,7 +132,7 @@ public class BlobApplicationAware {
         String applicationToken = matcherRtd.group(2);
         checkRtdApplication(applicationToken, blobNameTokenized);
       } else {
-        log.warn(WRONG_FORMAT_NAME_WARNING_MSG + blobUri);
+        log.error(WRONG_FORMAT_NAME_ERROR_MSG + blobUri);
         app = Application.NOAPP;
       }
       return;
@@ -152,7 +152,7 @@ public class BlobApplicationAware {
           app = Application.WALLET;
           targetContainer = targetContainerWallet;
         } else {
-          log.warn(WRONG_FORMAT_NAME_WARNING_MSG + blobUri);
+          log.error(WRONG_FORMAT_NAME_ERROR_MSG + blobUri);
           app = Application.NOAPP;
         }
 
