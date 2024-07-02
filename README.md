@@ -5,7 +5,7 @@ The following was discovered as part of building this project:
 
 * The original package name 'it.gov.pagopa.rtd.ms.rtd-ms-decrypter' is invalid and this project uses 'it.gov.pagopa.rtd.ms.rtdmsdecrypter' instead.
 
-# Getting Started
+# Getting Started 
 
 ### Reference Documentation
 For further reference, please consider the following sections:
