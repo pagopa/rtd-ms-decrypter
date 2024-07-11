@@ -86,7 +86,7 @@ public class BlobSplitterImpl implements BlobSplitter {
     }
 
     if (blob.getApp() == Application.WALLET) {
-      log.info("Start splitting and verifying blob {} from {}", blob.getBlob(),
+      log.info("[Wallet] - Start splitting and verifying blob {} from {}", blob.getBlob(),
           blob.getContainer());
       successfulSplit = splitWalletBlob(blob, blobPath, blobSplit);
     }
@@ -162,13 +162,13 @@ public class BlobSplitterImpl implements BlobSplitter {
       JsonParser jsonParser = jsonFactory.createParser(inputStream);
 
       if (jsonParser.nextToken() != JsonToken.START_OBJECT) {
-        log.error("Validation error: malformed wallet export");
+        log.error("[Wallet] - Validation error: malformed wallet export");
         return false;
       }
 
       if (jsonParser.nextToken() == JsonToken.FIELD_NAME && !jsonParser.getCurrentName()
           .equals("header")) {
-        log.error("Validation error: expected wallet export header");
+        log.error("[Wallet] - Validation error: expected wallet export header");
         return false;
       }
 
@@ -176,33 +176,33 @@ public class BlobSplitterImpl implements BlobSplitter {
       WalletExportHeader header = objectMapper.readValue(jsonParser, WalletExportHeader.class);
       Set<ConstraintViolation<WalletExportHeader>> violations = validator.validate(header);
       if (!violations.isEmpty()) {
-        log.error("Validation error: malformed wallet export header");
+        log.error("[Wallet] - Validation error: malformed wallet export header");
         for (ConstraintViolation<WalletExportHeader> violation : violations) {
-          log.error("{} {}", violation.getPropertyPath(), violation.getMessage());
+          log.error("[Wallet] - {} {}", violation.getPropertyPath(), violation.getMessage());
         }
         return false;
       }
 
-      log.info("Contracts export header:  {}", header.toString());
+      log.info("[Wallet] - Contracts export header:  {}", header.toString());
 
       if (jsonParser.getCurrentName() == null || jsonParser.nextToken() != JsonToken.FIELD_NAME
           || !jsonParser.getCurrentName().equals("contracts")) {
-        log.error("Validation error: expected wallet export contracts");
+        log.error("[Wallet] - Validation error: expected wallet export contracts");
         return false;
       }
 
       if (jsonParser.nextToken() != JsonToken.START_ARRAY) {
-        log.error("Validation error: expected wallet export contracts array");
+        log.error("[Wallet] - Validation error: expected wallet export contracts array");
         return false;
       }
 
       return deserializeAndSplitContracts(jsonParser, blobSplit, objectMapper, blob);
 
     } catch (JsonParseException | MismatchedInputException e) {
-      log.error("Validation error: malformed wallet export {}", e.getMessage());
+      log.error("[Wallet] - Validation error: malformed wallet export {}", e.getMessage());
       return false;
     } catch (IOException e) {
-      log.error("Missing blob file:{}", blobPath);
+      log.error("[Wallet] - Missing blob file:{}", blobPath);
       return false;
     }
   }
