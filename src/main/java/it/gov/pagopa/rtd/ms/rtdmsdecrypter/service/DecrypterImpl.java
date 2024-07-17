@@ -73,7 +73,6 @@ public class DecrypterImpl implements Decrypter {
         FileOutputStream decrypted = new FileOutputStream(
             Path.of(blob.getTargetDir(), blob.getBlob() + ".decrypted").toFile())
     ) {
-
       this.decryptFile(encrypted, decrypted, blob.getBlob());
       blob.setStatus(BlobApplicationAware.Status.DECRYPTED);
       log.info("Blob decrypted: {}", blob.getBlob());
