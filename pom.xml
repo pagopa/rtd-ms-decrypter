@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.0</version>
+        <version>3.3.1</version>
         <relativePath/>
         <!-- lookup parent from repository -->
     </parent>
@@ -17,7 +17,7 @@
     <description>Microservice capable of decrypting PGP files</description>
     <properties>
         <java.version>21</java.version>
-        <spring-cloud.version>2023.0.1</spring-cloud.version>
+        <spring-cloud.version>2023.0.3</spring-cloud.version>
         <bcpg-jdk18on.version>1.77</bcpg-jdk18on.version>
         <commons-io.version>2.16.1</commons-io.version>
         <opencsv.version>5.9</opencsv.version>
