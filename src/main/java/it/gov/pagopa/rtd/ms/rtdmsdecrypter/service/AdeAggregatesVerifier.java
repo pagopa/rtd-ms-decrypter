@@ -10,6 +10,7 @@ import jakarta.validation.ValidatorFactory;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -18,57 +19,85 @@ import java.util.Set;
  */
 public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggregate> {
 
+  static String malformedFieldMessage = "Malformed field extracted:";
   private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
 
   private static final Validator validator = factory.getValidator();
 
   /**
-   * Implementation of {@link BeanVerifier#verifyBean(Object)}, used to verify the
-   * validity of the
+   * Implementation of {@link BeanVerifier#verifyBean(Object)}, used to verify the validity of the
    * {@link AdeTransactionsAggregate} records extracted from the decrypted file.
    *
-   * @param adeTransactionsAggregate The {@link AdeTransactionsAggregate} to be
-   *                                 verified
+   * @param adeTransactionsAggregate The {@link AdeTransactionsAggregate} to be verified
    * @return Boolean representing the validity of the record
    * @throws CsvConstraintViolationException in case of malformed fields
    */
   @Override
   public boolean verifyBean(AdeTransactionsAggregate adeTransactionsAggregate)
       throws CsvConstraintViolationException {
+    StringBuilder malformedFields = new StringBuilder();
+
     Set<ConstraintViolation<AdeTransactionsAggregate>> violations = validator.validate(
         adeTransactionsAggregate);
 
     if (!violations.isEmpty()) {
-      StringBuilder malformedFields = new StringBuilder();
-      for (ConstraintViolation<AdeTransactionsAggregate> violation : violations) {
-        if (!violation.getPropertyPath().toString().equals("acquirerCode")) {
-          malformedFields.append(String.format("[ Acquirer code: %s ] ",
-              adeTransactionsAggregate.getAcquirerCode()));
+      Iterator<ConstraintViolation<AdeTransactionsAggregate>> violationIterator = violations.iterator();
+
+      boolean acquirerCodeAppended = false;
+      boolean terminalIdAppended = false;
+      boolean fiscalCodeAppended = false;
+
+      while (violationIterator.hasNext()) {
+        ConstraintViolation<AdeTransactionsAggregate> violation = violationIterator.next();
+        String propertyPath = violation.getPropertyPath().toString();
+
+        if (adeTransactionsAggregate.getAcquirerCode() != null
+            && !adeTransactionsAggregate.getAcquirerCode().isEmpty() && !acquirerCodeAppended
+            && !propertyPath.equals("acquirerCode")) {
+          malformedFields.append(
+              String.format("[ Acquirer code: %s ] ", adeTransactionsAggregate.getAcquirerCode()));
+          acquirerCodeAppended = true;
         }
-        if (!violation.getPropertyPath().toString().equals("terminalId")) {
-          malformedFields.append(String.format("[ Terminal id: %s ] ",
-              adeTransactionsAggregate.getTerminalId()));
+        if (adeTransactionsAggregate.getTerminalId() != null
+            && adeTransactionsAggregate.getTerminalId().isEmpty() && !terminalIdAppended
+            && !propertyPath.equals("terminalId")) {
+          malformedFields.append(
+              String.format("[ Terminal id: %s ] ", adeTransactionsAggregate.getTerminalId()));
+          terminalIdAppended = true;
         }
-        if (!violation.getPropertyPath().toString().equals("fiscalCode")) {
-          malformedFields.append(String.format("[ Fiscal code: %s ] ",
-              adeTransactionsAggregate.getFiscalCode()));
+        if (adeTransactionsAggregate.getFiscalCode() != null
+            && adeTransactionsAggregate.getFiscalCode().isEmpty() && !fiscalCodeAppended
+            && !propertyPath.equals("fiscalCode")) {
+          malformedFields.append(
+              String.format("[ Fiscal code: %s ] ", adeTransactionsAggregate.getFiscalCode()));
+          fiscalCodeAppended = true;
         }
-        malformedFields.append("Malformed fields extracted : (")
+
+        malformedFields.append(malformedFieldMessage).append(" (")
             .append(violation.getPropertyPath().toString()).append(": ");
-        malformedFields.append(violation.getMessage()).append(") ");
+        malformedFields.append(violation.getMessage()).append("), ");
       }
+    }
 
+    if (adeTransactionsAggregate.getTransmissionDate() == null || !validateDate(
+        adeTransactionsAggregate.getTransmissionDate())) {
+      malformedFields.append(malformedFieldMessage).append(" (")
+          .append("transmission date").append(": ");
+      malformedFields.append("Invalid transmission date ")
+          .append(adeTransactionsAggregate.getTransmissionDate())
+          .append("), ");
+    }
+    if (adeTransactionsAggregate.getAccountingDate() == null || !validateDate(
+        adeTransactionsAggregate.getAccountingDate())) {
+      malformedFields.append(malformedFieldMessage).append(" (")
+          .append("accounting date").append(": ");
+      malformedFields.append("Invalid accounting date ")
+          .append(adeTransactionsAggregate.getAccountingDate())
+          .append("), ");
+    }
+
+    if (!malformedFields.isEmpty()) {
       throw new CsvConstraintViolationException(malformedFields.toString());
-    }
-
-    if (!validateDate(adeTransactionsAggregate.getTransmissionDate())) {
-      throw new CsvConstraintViolationException(
-          "Invalid transmission date " + adeTransactionsAggregate.getTransmissionDate());
-
-    }
-    if (!validateDate(adeTransactionsAggregate.getAccountingDate())) {
-      throw new CsvConstraintViolationException(
-          "Invalid accounting date " + adeTransactionsAggregate.getAccountingDate());
     }
 
     return true;
