@@ -35,6 +35,7 @@ public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggreg
   @Override
   public boolean verifyBean(AdeTransactionsAggregate adeTransactionsAggregate)
       throws CsvConstraintViolationException {
+    StringBuilder recordTroubleshootingInfo = new StringBuilder();
     StringBuilder malformedFields = new StringBuilder();
 
     Set<ConstraintViolation<AdeTransactionsAggregate>> violations = validator.validate(
@@ -54,22 +55,22 @@ public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggreg
         if (adeTransactionsAggregate.getAcquirerCode() != null
             && !adeTransactionsAggregate.getAcquirerCode().isEmpty() && !acquirerCodeAppended
             && !propertyPath.equals("acquirerCode")) {
-          malformedFields.append(
-              String.format("[ Acquirer code: %s ] ", adeTransactionsAggregate.getAcquirerCode()));
+          recordTroubleshootingInfo.append(
+              String.format("[Acquirer code: %s] ", adeTransactionsAggregate.getAcquirerCode()));
           acquirerCodeAppended = true;
         }
         if (adeTransactionsAggregate.getTerminalId() != null
             && adeTransactionsAggregate.getTerminalId().isEmpty() && !terminalIdAppended
             && !propertyPath.equals("terminalId")) {
-          malformedFields.append(
-              String.format("[ Terminal id: %s ] ", adeTransactionsAggregate.getTerminalId()));
+          recordTroubleshootingInfo.append(
+              String.format("[Terminal id: %s] ", adeTransactionsAggregate.getTerminalId()));
           terminalIdAppended = true;
         }
         if (adeTransactionsAggregate.getFiscalCode() != null
             && adeTransactionsAggregate.getFiscalCode().isEmpty() && !fiscalCodeAppended
             && !propertyPath.equals("fiscalCode")) {
-          malformedFields.append(
-              String.format("[ Fiscal code: %s ] ", adeTransactionsAggregate.getFiscalCode()));
+          recordTroubleshootingInfo.append(
+              String.format("[Fiscal code: %s] ", adeTransactionsAggregate.getFiscalCode()));
           fiscalCodeAppended = true;
         }
 
@@ -77,7 +78,16 @@ public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggreg
             .append(violation.getPropertyPath().toString()).append(": ");
         malformedFields.append(violation.getMessage()).append("), ");
       }
+    } else {
+      recordTroubleshootingInfo.append(
+          String.format("[Acquirer code: %s] ", adeTransactionsAggregate.getAcquirerCode()));
+      recordTroubleshootingInfo.append(
+          String.format("[Terminal id: %s] ", adeTransactionsAggregate.getTerminalId()));
+      recordTroubleshootingInfo.append(
+          String.format("[Fiscal code: %s] ", adeTransactionsAggregate.getFiscalCode()));
     }
+
+    // Timestamps validity must be verified outside violations iterator
 
     if (adeTransactionsAggregate.getTransmissionDate() == null || !validateDate(
         adeTransactionsAggregate.getTransmissionDate())) {
@@ -97,7 +107,8 @@ public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggreg
     }
 
     if (!malformedFields.isEmpty()) {
-      throw new CsvConstraintViolationException(malformedFields.toString());
+      throw new CsvConstraintViolationException(
+          recordTroubleshootingInfo.append(malformedFields).toString());
     }
 
     return true;
