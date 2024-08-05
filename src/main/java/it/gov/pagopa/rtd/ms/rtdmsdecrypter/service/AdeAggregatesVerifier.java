@@ -44,48 +44,16 @@ public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggreg
     if (!violations.isEmpty()) {
       Iterator<ConstraintViolation<AdeTransactionsAggregate>> violationIterator = violations.iterator();
 
-      boolean acquirerCodeAppended = false;
-      boolean terminalIdAppended = false;
-      boolean fiscalCodeAppended = false;
-
       while (violationIterator.hasNext()) {
         ConstraintViolation<AdeTransactionsAggregate> violation = violationIterator.next();
-        String propertyPath = violation.getPropertyPath().toString();
-
-        if (adeTransactionsAggregate.getAcquirerCode() != null
-            && !adeTransactionsAggregate.getAcquirerCode().isEmpty() && !acquirerCodeAppended
-            && !propertyPath.equals("acquirerCode")) {
-          recordTroubleshootingInfo.append(
-              String.format("[Acquirer code: %s] ", adeTransactionsAggregate.getAcquirerCode()));
-          acquirerCodeAppended = true;
-        }
-        if (adeTransactionsAggregate.getTerminalId() != null
-            && adeTransactionsAggregate.getTerminalId().isEmpty() && !terminalIdAppended
-            && !propertyPath.equals("terminalId")) {
-          recordTroubleshootingInfo.append(
-              String.format("[Terminal id: %s] ", adeTransactionsAggregate.getTerminalId()));
-          terminalIdAppended = true;
-        }
-        if (adeTransactionsAggregate.getFiscalCode() != null
-            && adeTransactionsAggregate.getFiscalCode().isEmpty() && !fiscalCodeAppended
-            && !propertyPath.equals("fiscalCode")) {
-          recordTroubleshootingInfo.append(
-              String.format("[Fiscal code: %s] ", adeTransactionsAggregate.getFiscalCode()));
-          fiscalCodeAppended = true;
-        }
 
         malformedFields.append(malformedFieldMessage).append(" (")
             .append(violation.getPropertyPath().toString()).append(": ");
         malformedFields.append(violation.getMessage()).append("), ");
       }
-    } else {
-      recordTroubleshootingInfo.append(
-          String.format("[Acquirer code: %s] ", adeTransactionsAggregate.getAcquirerCode()));
-      recordTroubleshootingInfo.append(
-          String.format("[Terminal id: %s] ", adeTransactionsAggregate.getTerminalId()));
-      recordTroubleshootingInfo.append(
-          String.format("[Fiscal code: %s] ", adeTransactionsAggregate.getFiscalCode()));
     }
+
+    parseTroubleshootingInfo(adeTransactionsAggregate, recordTroubleshootingInfo);
 
     // Timestamps validity must be verified outside violations iterator
 
@@ -121,6 +89,25 @@ public class AdeAggregatesVerifier implements BeanVerifier<AdeTransactionsAggreg
       return true;
     } catch (DateTimeParseException e) {
       return false;
+    }
+  }
+
+  private void parseTroubleshootingInfo(AdeTransactionsAggregate adeTransactionsAggregate,
+      StringBuilder recordTroubleshootingInfo) {
+    if (adeTransactionsAggregate.getAcquirerCode() != null
+        && !adeTransactionsAggregate.getAcquirerCode().isEmpty()) {
+      recordTroubleshootingInfo.append(
+          String.format("[Acquirer code: %s] ", adeTransactionsAggregate.getAcquirerCode()));
+    }
+    if (adeTransactionsAggregate.getTerminalId() != null
+        && !adeTransactionsAggregate.getTerminalId().isEmpty()) {
+      recordTroubleshootingInfo.append(
+          String.format("[Terminal id: %s] ", adeTransactionsAggregate.getTerminalId()));
+    }
+    if (adeTransactionsAggregate.getFiscalCode() != null
+        && !adeTransactionsAggregate.getFiscalCode().isEmpty()) {
+      recordTroubleshootingInfo.append(
+          String.format("[Fiscal code: %s] ", adeTransactionsAggregate.getFiscalCode()));
     }
   }
 }
