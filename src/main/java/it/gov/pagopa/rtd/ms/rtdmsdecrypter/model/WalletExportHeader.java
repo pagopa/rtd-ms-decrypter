@@ -20,15 +20,15 @@ public class WalletExportHeader {
 
   @JsonProperty("tenant_id")
   @NotNull
-  private String tenant_id;
+  private String tenantId;
 
   @JsonProperty("merchant_id")
   @NotNull
-  private String merchant_id;
+  private String merchantId;
 
   @JsonProperty("terminal_id")
   @NotNull
-  private String terminal_id;
+  private String terminalId;
 
   @JsonProperty("processing_start_time")
   @NotNull
