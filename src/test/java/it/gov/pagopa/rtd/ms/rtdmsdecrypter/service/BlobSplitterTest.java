@@ -75,6 +75,8 @@ class BlobSplitterTest {
 
   String blobNameWalletNoHeader = "PAGOPAPM_NPG_CONTRACTS_20240322000000_001_OUT.decrypted";
 
+  String blobNameWalletMalformedHeader = "PAGOPAPM_NPG_CONTRACTS_20240301000000_002_OUT.decrypted";
+
   String blobNameWalletMissing = "PAGOPAPM_NPG_CONTRACTS_20240322000000_002_OUT.decrypted";
 
   BlobApplicationAware fakeBlobRTD;
@@ -100,6 +102,8 @@ class BlobSplitterTest {
   BlobApplicationAware noArrayContractsBlobWallet;
 
   BlobApplicationAware noHeaderBlobWallet;
+
+  BlobApplicationAware malformedHeaderBlobWallet;
 
   BlobApplicationAware missingBlobWallet;
 
@@ -299,6 +303,23 @@ class BlobSplitterTest {
     missingBlobWallet.setTargetDir(tmpDirectory);
     missingBlobWallet.setStatus(Status.DECRYPTED);
     missingBlobWallet.setApp(Application.WALLET);
+
+    // Create a decrypted file for Wallet migration without header
+    File malformedHeadersDecryptedExportFile = Path.of(tmpDirectory, blobNameWalletMalformedHeader)
+        .toFile();
+    malformedHeadersDecryptedExportFile.getParentFile().mkdirs();
+    malformedHeadersDecryptedExportFile.createNewFile();
+    FileOutputStream malformedHeadersDecryptedStream = new FileOutputStream(
+        Path.of(tmpDirectory, blobNameWalletMalformedHeader + ".decrypted").toString());
+    Files.copy(Path.of(resources, blobNameWalletMalformedHeader), malformedHeadersDecryptedStream);
+
+    // Instantiate a fake malformed header Wallet blob
+    malformedHeaderBlobWallet = new BlobApplicationAware(
+        "/blobServices/default/containers/" + containerWallet + "/blobs/" + contractsFolder + "/"
+            + blobNameWalletMalformedHeader);
+    malformedHeaderBlobWallet.setTargetDir(tmpDirectory);
+    malformedHeaderBlobWallet.setStatus(Status.DECRYPTED);
+    malformedHeaderBlobWallet.setApp(Application.WALLET);
   }
 
   @AfterEach
@@ -431,6 +452,21 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.DELETED, b.getStatus());
       assertEquals(blobNameWalletNoHeader, b.getBlob());
+      i++;
+    }
+    assertEquals(1, i);
+  }
+
+  @Test
+  void shouldNotSplitWalletMalformedHeader() {
+    blobSplitterImpl.setContractsSplitThreshold(1);
+
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(malformedHeaderBlobWallet);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.DELETED, b.getStatus());
+      assertEquals(blobNameWalletMalformedHeader, b.getBlob());
       i++;
     }
     assertEquals(1, i);
