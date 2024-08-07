@@ -1,7 +1,6 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Application;
@@ -23,11 +22,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import java.lang.IllegalArgumentException;
 
 @SpringBootTest
-@ContextConfiguration(classes = { BlobSplitterImpl.class })
-@TestPropertySource(value = { "classpath:application-nokafka.yml" }, inheritProperties = false)
+@ContextConfiguration(classes = {BlobSplitterImpl.class})
+@TestPropertySource(value = {"classpath:application-nokafka.yml"}, inheritProperties = false)
 class BlobSplitterTest {
 
   @Autowired
@@ -53,7 +51,8 @@ class BlobSplitterTest {
 
   String blobNameRTD = "CSTAR.99999.TRNLOG.20220419.121045.001." + batchServiceChunkNumber + ".csv";
 
-  String blobNameRTDMalformedChecksum = "CSTAR.22222.TRNLOG.20220419.121045.001." + batchServiceChunkNumber + ".csv";
+  String blobNameRTDMalformedChecksum =
+      "CSTAR.22222.TRNLOG.20220419.121045.001." + batchServiceChunkNumber + ".csv";
 
   String blobNameRTDOldNaming = "CSTAR.99999.TRNLOG.20220419.121045.001.csv";
 
@@ -61,7 +60,8 @@ class BlobSplitterTest {
 
   String blobNameTAEOldNaming = "ADE.99999.TRNLOG.20220721.095718.001.csv";
 
-  String blobNameTAEEmpty = "ADE.00000.TRNLOG.20220721.095718.001." + batchServiceChunkNumber + ".csv";
+  String blobNameTAEEmpty =
+      "ADE.00000.TRNLOG.20220721.095718.001." + batchServiceChunkNumber + ".csv";
 
   String blobNameWallet = "PAGOPAPM_NPG_CONTRACTS_20240323000000_001_OUT.decrypted";
 
@@ -121,7 +121,6 @@ class BlobSplitterTest {
     fakeBlobRTD.setStatus(Status.DECRYPTED);
     fakeBlobRTD.setApp(Application.RTD);
 
-
     // Create the decrypted file for RTD Malformed checksum
     File decryptedFileMalformed = Path.of(tmpDirectory, blobNameRTDMalformedChecksum).toFile();
     decryptedFileMalformed.getParentFile().mkdirs();
@@ -132,7 +131,8 @@ class BlobSplitterTest {
 
     // Instantiate a fake RTD blob with malformed checksum
     fakeBlobRTDMalformedCheckSum = new BlobApplicationAware(
-        "/blobServices/default/containers/" + containerRTD + "/blobs/" + blobNameRTDMalformedChecksum);
+        "/blobServices/default/containers/" + containerRTD + "/blobs/"
+            + blobNameRTDMalformedChecksum);
     fakeBlobRTDMalformedCheckSum.setTargetDir(tmpDirectory);
     fakeBlobRTDMalformedCheckSum.setStatus(Status.DECRYPTED);
     fakeBlobRTDMalformedCheckSum.setApp(Application.RTD);
@@ -200,8 +200,9 @@ class BlobSplitterTest {
     Files.copy(Path.of(resources, blobNameWallet), decryptedWalletStream);
 
     // Instantiate a fake Wallet blob with clear text content
-    String blobUri = "/blobServices/default/containers/" + containerWallet + "/blobs/" + contractsFolder + "/"
-        + blobNameWallet;
+    String blobUri =
+        "/blobServices/default/containers/" + containerWallet + "/blobs/" + contractsFolder + "/"
+            + blobNameWallet;
 
     fakeBlobWallet = new BlobApplicationAware(blobUri);
     fakeBlobWallet.setTargetDir(tmpDirectory);
@@ -225,7 +226,8 @@ class BlobSplitterTest {
     malformedBlobWallet.setApp(Application.WALLET);
 
     // Create a malformed decrypted file for Wallet migration
-    File malformedJsonDecryptedExportFile = Path.of(tmpDirectory, blobNameWalletMalformedJson).toFile();
+    File malformedJsonDecryptedExportFile = Path.of(tmpDirectory, blobNameWalletMalformedJson)
+        .toFile();
     malformedJsonDecryptedExportFile.getParentFile().mkdirs();
     malformedJsonDecryptedExportFile.createNewFile();
     FileOutputStream malformedJsonDecryptedWalletStream = new FileOutputStream(
@@ -257,12 +259,14 @@ class BlobSplitterTest {
     noContractsBlobWallet.setApp(Application.WALLET);
 
     // Create a decrypted file for Wallet migration without contracts as array
-    File noArrayContractsDecryptedExportFile = Path.of(tmpDirectory, blobNameWalletNoArrayContracts).toFile();
+    File noArrayContractsDecryptedExportFile = Path.of(tmpDirectory, blobNameWalletNoArrayContracts)
+        .toFile();
     noArrayContractsDecryptedExportFile.getParentFile().mkdirs();
     noArrayContractsDecryptedExportFile.createNewFile();
     FileOutputStream noArrayContractsdDecryptedWalletStream = new FileOutputStream(
         Path.of(tmpDirectory, blobNameWalletNoArrayContracts + ".decrypted").toString());
-    Files.copy(Path.of(resources, blobNameWalletNoArrayContracts), noArrayContractsdDecryptedWalletStream);
+    Files.copy(Path.of(resources, blobNameWalletNoArrayContracts),
+        noArrayContractsdDecryptedWalletStream);
 
     // Instantiate a fake no-contracts Wallet blob with clear text content
     noArrayContractsBlobWallet = new BlobApplicationAware(
@@ -328,7 +332,16 @@ class BlobSplitterTest {
     blobSplitterImpl.setAggregatesLineThreshold(1);
     blobSplitterImpl.setChecksumSkipped(false);
 
-    assertThrows(IllegalArgumentException.class, () -> blobSplitterImpl.split(fakeBlobRTDMalformedCheckSum));
+    Stream<BlobApplicationAware> chunks = blobSplitterImpl.split(fakeBlobRTDMalformedCheckSum);
+    Iterable<BlobApplicationAware> iterable = chunks::iterator;
+    int i = 0;
+    for (BlobApplicationAware b : iterable) {
+      assertEquals(Status.DELETED, b.getStatus());
+      assertEquals(blobNameRTDMalformedChecksum, b.getBlob());
+      i++;
+    }
+    assertEquals(1, i);
+
   }
 
   @Test
@@ -547,9 +560,9 @@ class BlobSplitterTest {
     for (BlobApplicationAware b : iterable) {
       assertEquals(Status.SPLIT, b.getStatus());
       assertEquals("AGGADE." + b.getSenderCode() + "." + b.getFileCreationDate() + "."
-          + b.getFileCreationTime() + "." + b.getFlowNumber() + "."
-          + missingBatchServiceChunkNumberPlaceholder
-          + String.format("%03d", i),
+              + b.getFileCreationTime() + "." + b.getFlowNumber() + "."
+              + missingBatchServiceChunkNumberPlaceholder
+              + String.format("%03d", i),
           b.getBlob());
       assertEquals(4, b.getOriginalFileChunksNumber());
       assertEquals("#sha256sum:cf832e6bb27c719d4a784a9688b490540448cbaf888d23742deae60831f282de",
