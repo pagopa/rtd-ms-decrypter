@@ -1,14 +1,11 @@
 {
     "header": {
         "file_id": "PAGOPAPM_NPG_CONTRACTS_20231021143000_OUT",
-        "tenant_id" : "20",
-        "merchant_id" : "3470428",
-        "terminal_id" : "3470428",
-        "processing_start_time": "2024-02-22T11:18:35Z",
-        "processing_end_time": "2024-02-22T111845Z",
-        "export_id": "aeb5071e-6ecf-477d-8298-55bf1052703a",
+        "processing_start_time": "2024-02-20T15:02:25Z",
+        "processing_end_time": "2024-02-20T150235Z",
+        "export_id": "fe3f244b-53d9-4fab-b8c5-b532428bcd9a",
         "import_file_id": "PAGOPAPM_NPG_CONTRACTS_20231021143000",
-        "extraction_time": "2024-02-22T11:18:35Z",
+        "extraction_time": "2024-02-20T15:02:25Z",
         "contract_quantity": 3,
         "file_sequence_number": "001"
     }
