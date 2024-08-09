@@ -157,7 +157,7 @@ public class BlobRestConnectorImpl implements BlobRestConnector {
     if(blob.getApp()==Application.WALLET){
       return blob;
     }
-    log.info("Start SET metadata for  {} to {}. CheckSum {}", blob.getBlob(), blob.getContainer(),blob.getReportMetaData().getCheckSum());
+    log.info("Start SET metadata for {} to {}. CheckSum {}", blob.getBlob(), blob.getContainer(),blob.getReportMetaData().getCheckSum());
 
     String uri = baseUrl + "/" + blobBasePath + "/" + blob.getContainer() + "/" + blob.getBlob()
         + BLOB_METADATA_QUERY;

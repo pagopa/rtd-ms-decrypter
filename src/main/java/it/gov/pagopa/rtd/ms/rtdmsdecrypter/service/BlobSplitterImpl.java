@@ -108,9 +108,8 @@ public class BlobSplitterImpl implements BlobSplitter {
       if (it.hasNext() && isChecksumSkipped.isFalse()) {
         checkSum = it.nextLine();
         if (!checkSum.matches(CHECKSUM_REGEX)) {
-          log.error("Checksum is not a conformed one {}", checkSum);
           throw new IllegalArgumentException("Error detected inside the file's checksum");
-        } 
+        }
         blob.getReportMetaData().setCheckSum(checkSum);
         log.info("Checksum: {} {}", blob.getBlob(), checkSum);
         isChecksumSkipped.setTrue();
@@ -123,8 +122,8 @@ public class BlobSplitterImpl implements BlobSplitter {
           chunkName = blob.getBlob() + "." + chunkNum + decryptedSuffix;
         }
         try (Writer writer = Channels.newWriter(new FileOutputStream(
-            Path.of(blob.getTargetDir(), chunkName).toString(),
-            true).getChannel(),
+                Path.of(blob.getTargetDir(), chunkName).toString(),
+                true).getChannel(),
             StandardCharsets.UTF_8)) {
           writeCsvChunks(it, writer);
           BlobApplicationAware tmpBlob = new BlobApplicationAware(
@@ -145,6 +144,9 @@ public class BlobSplitterImpl implements BlobSplitter {
         blobApplicationAware.setTotChunk(chunkNum);
       }
 
+    } catch (IllegalArgumentException e) {
+      log.error("Malformed checksum of blob {}: {}", blob.getBlob(), checkSum);
+      return false;
     } catch (IOException e) {
       log.error("Missing blob file:{}", blobPath);
       return false;
@@ -166,8 +168,8 @@ public class BlobSplitterImpl implements BlobSplitter {
         return false;
       }
 
-      if (jsonParser.nextToken() == JsonToken.FIELD_NAME && !jsonParser.getCurrentName()
-          .equals("header")) {
+      if (jsonParser.nextToken() == JsonToken.FIELD_NAME && !"header".equals(
+          jsonParser.currentName())) {
         log.error("[Wallet] - Validation error: expected wallet export header");
         return false;
       }
@@ -185,8 +187,8 @@ public class BlobSplitterImpl implements BlobSplitter {
 
       log.info("[Wallet] - Contracts export header:  {}", header.toString());
 
-      if (jsonParser.getCurrentName() == null || jsonParser.nextToken() != JsonToken.FIELD_NAME
-          || !jsonParser.getCurrentName().equals("contracts")) {
+      if (jsonParser.currentName() == null || jsonParser.nextToken() != JsonToken.FIELD_NAME
+          || !"contracts".equals(jsonParser.currentName())) {
         log.error("[Wallet] - Validation error: expected wallet export contracts");
         return false;
       }
