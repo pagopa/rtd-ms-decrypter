@@ -1,6 +1,9 @@
 {
     "header": {
         "file_id": "PAGOPAPM_NPG_CONTRACTS_20231021143000_OUT",
+        "tenant_id" : "20",
+        "merchant_id" : "3470428",
+        "terminal_id" : "3470428",
         "processing_start_time": "2024-02-22T11:18:35Z",
         "processing_end_time": "2024-02-22T111845Z",
         "export_id": "aeb5071e-6ecf-477d-8298-55bf1052703a",
