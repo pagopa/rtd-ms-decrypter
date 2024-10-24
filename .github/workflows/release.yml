@@ -17,17 +17,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 #v4.2.1
         with:
           persist-credentials: false
           fetch-depth: 0
 
       - name: Release
-        uses: cycjimmy/semantic-release-action@61680d0e9b02ff86f5648ade99e01be17f0260a4 #v4.0.0
+        uses: cycjimmy/semantic-release-action@b1b432f13acb7768e0c8efdec416d363a57546f2 #v4.1.1
         with:
           semantic_version: 19.0.5
           extra_plugins: |
-            semantic-release/release-notes-generator#5f9d65debbb60057c0d35d3a198e41f5bf09cf0f #v10.0.3
+            semantic-release/release-notes-generator#44c780c6f9c1bf2643fe48b6718bd9a84b820132 #v10.0.3
             semantic-release/git#3e934d45f97fd07a63617c0fc098c9ed3e67d97a #v10.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
