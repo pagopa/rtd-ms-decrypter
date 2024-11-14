@@ -1,6 +1,6 @@
 package it.gov.pagopa.rtd.ms.rtdmsdecrypter.telemetry;
 
-import com.azure.monitor.opentelemetry.exporter.AzureMonitorExporterBuilder;
+import com.azure.monitor.opentelemetry.exporter.AzureMonitorExporter;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,19 +14,16 @@ import org.springframework.context.annotation.Import;
 @Import(SpringCloudKafkaBinderInstrumentation.class)
 public class AppInsightConfig {
 
-  private final AzureMonitorExporterBuilder azureMonitorExporterBuilder;
-
-  public AppInsightConfig(
-      @Value("${applicationinsights.connection-string}") String applicationInsights) {
-    this.azureMonitorExporterBuilder = new AzureMonitorExporterBuilder().connectionString(
-        applicationInsights);
-  }
-
   @Bean
-  public AutoConfigurationCustomizerProvider otelCustomizer() {
+  public AutoConfigurationCustomizerProvider otelCustomizer(
+          @Value("${applicationinsights.connection-string}") String connectionString
+  ) {
     return p -> {
       if (p instanceof AutoConfiguredOpenTelemetrySdkBuilder builder) {
-        this.azureMonitorExporterBuilder.install(builder);
+        AzureMonitorExporter.customize(
+                builder,
+                connectionString
+        );
       }
     };
   }
