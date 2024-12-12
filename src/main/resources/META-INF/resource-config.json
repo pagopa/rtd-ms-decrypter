@@ -1287,9 +1287,6 @@
       },
       {
         "pattern": "\\Qspring.properties\\E"
-      },
-      {
-        "pattern": "\\Qopencsv.properties\\E"
       }
     ]
   },
@@ -1464,12 +1461,6 @@
     },
     {
       "name": "org.apache.tomcat.websocket.server.LocalStrings",
-      "locales": [
-        ""
-      ]
-    },
-    {
-      "name": "opencsv",
       "locales": [
         ""
       ]
