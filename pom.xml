@@ -216,9 +216,11 @@
                                 <arg>--initialize-at-build-time=org.slf4j.helpers</arg>
                                 <arg>--initialize-at-build-time=com.azure.core.util.logging.ClientLogger</arg>
                                 <arg>--initialize-at-build-time=org.apache.commons.logging.LogFactory</arg>
-                                <arg>--initialize-at-run-time=org.bouncycastle.jcajce.provider.drbg.DRBG$Default,org.bouncycastle.jcajce.provider.drbg.DRBG$NonceAndIV</arg>
+                                <arg>
+                                    --initialize-at-run-time=org.bouncycastle.jcajce.provider.drbg.DRBG$Default,org.bouncycastle.jcajce.provider.drbg.DRBG$NonceAndIV
+                                </arg>
                                 <arg>--features=it.gov.pagopa.rtd.ms.rtdmsdecrypter.config.BouncyCastleFeature</arg>
-                                <arg>-H:ConfigurationFileDirectories=.</arg>
+                                <arg>-H:ConfigurationFileDirectories=src/main/resources/META-INF</arg>
                             </buildArgs>
                         </configuration>
                         <executions>
