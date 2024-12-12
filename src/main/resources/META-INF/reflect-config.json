@@ -42,6 +42,14 @@
     "unsafeAllocated": true
   },
   {
+    "name": "java.sql.Time[]",
+    "unsafeAllocated": true
+  },
+  {
+    "name": "java.sql.Time",
+    "unsafeAllocated": true
+  },
+  {
     "name": "it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.AdeTransactionsAggregate",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
