@@ -9583,6 +9583,14 @@
     "unsafeAllocated": true
   },
   {
+    "name": "java.sql.Timestamp[]",
+    "unsafeAllocated": true
+  },
+  {
+    "name": "java.sql.Timestamp",
+    "unsafeAllocated": true
+  },
+  {
     "name": "it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.AdeTransactionsAggregate",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
