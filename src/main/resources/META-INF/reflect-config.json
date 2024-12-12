@@ -38,10 +38,6 @@
     "unsafeAllocated": true
   },
   {
-    "name": "java.sql.Date[]",
-    "unsafeAllocated": true
-  },
-  {
     "name": "it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.AdeTransactionsAggregate",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
@@ -58,6 +54,40 @@
     "allPublicMethods": true,
     "allDeclaredFields": true,
     "allPublicFields": true
+  },
+  {
+    "name": "org.springframework.cloud.stream.binder.kafka.KafkaMessageChannelBinder",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "io.opentelemetry.instrumentation.spring.autoconfigure.OpenTelemetryAutoConfiguration",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "org.apache.kafka.clients.consumer.KafkaConsumer",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "org.apache.kafka.clients.producer.KafkaProducer",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "com.azure.monitor.opentelemetry.exporter.AzureMonitorExporter",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
   }
-
 ]
