@@ -4046,7 +4046,7 @@
   "name":"org.springframework.cloud.stream.config.BindingHandlerAdvise$MappingsProvider",
   "queryAllDeclaredMethods":true,
   "queryAllPublicMethods":true,
-  "methods":[{"name":"<init>","parameterTypes":["org.springframework.cloud.stream.binder.kafka.config.ExtendedBindingHandlerMappingsProviderConfiguration$$Lambda/0x000000e80145e038"] }, {"name":"from","parameterTypes":["org.springframework.cloud.stream.binder.kafka.config.ExtendedBindingHandlerMappingsProviderConfiguration$$Lambda/0x000000e80145e038"] }, {"name":"of","parameterTypes":["org.springframework.cloud.stream.binder.kafka.config.ExtendedBindingHandlerMappingsProviderConfiguration$$Lambda/0x000000e80145e038"] }, {"name":"valueOf","parameterTypes":["org.springframework.cloud.stream.binder.kafka.config.ExtendedBindingHandlerMappingsProviderConfiguration$$Lambda/0x000000e80145e038"] }]
+  "methods":[{"name":"<init>","parameterTypes":["org.springframework.cloud.stream.binder.kafka.config.ExtendedBindingHandlerMappingsProviderConfiguration$$Lambda/0x0000007001456b88"] }, {"name":"from","parameterTypes":["org.springframework.cloud.stream.binder.kafka.config.ExtendedBindingHandlerMappingsProviderConfiguration$$Lambda/0x0000007001456b88"] }, {"name":"of","parameterTypes":["org.springframework.cloud.stream.binder.kafka.config.ExtendedBindingHandlerMappingsProviderConfiguration$$Lambda/0x0000007001456b88"] }, {"name":"valueOf","parameterTypes":["org.springframework.cloud.stream.binder.kafka.config.ExtendedBindingHandlerMappingsProviderConfiguration$$Lambda/0x0000007001456b88"] }]
 },
 {
   "name":"org.springframework.cloud.stream.config.BindingServiceConfiguration",
