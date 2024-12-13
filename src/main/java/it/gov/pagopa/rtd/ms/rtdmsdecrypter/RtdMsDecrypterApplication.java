@@ -15,6 +15,7 @@ import org.springframework.context.annotation.ImportRuntimeHints;
 @SpringBootApplication
 @ImportRuntimeHints(RtdMsDecrypterApplication.RtdMsDecrypterRuntimeHints.class)
 public class RtdMsDecrypterApplication {
+    private static final String BUILD_METHOD = "build";
 
     public static void main(String[] args) {
         SpringApplication.run(RtdMsDecrypterApplication.class, args);
@@ -42,21 +43,20 @@ public class RtdMsDecrypterApplication {
                             WalletExportHeader.WalletExportHeaderBuilder.class.getDeclaredConstructor(), ExecutableMode.INVOKE
                     )
                     .registerMethod(
-                            AdeTransactionsAggregate.AdeTransactionsAggregateBuilder.class.getMethod("build"), ExecutableMode.INVOKE
+                            AdeTransactionsAggregate.AdeTransactionsAggregateBuilder.class.getMethod(BUILD_METHOD), ExecutableMode.INVOKE
                     )
                     .registerMethod(
-                            ContractMethodAttributes.ContractMethodAttributesBuilder.class.getMethod("build"), ExecutableMode.INVOKE
+                            ContractMethodAttributes.ContractMethodAttributesBuilder.class.getMethod(BUILD_METHOD), ExecutableMode.INVOKE
                     )
                     .registerMethod(
-                            RtdTransaction.RtdTransactionBuilder.class.getMethod("build"), ExecutableMode.INVOKE
+                            RtdTransaction.RtdTransactionBuilder.class.getMethod(BUILD_METHOD), ExecutableMode.INVOKE
                     )
                     .registerMethod(
-                            WalletContract.WalletContractBuilder.class.getMethod("build"), ExecutableMode.INVOKE
+                            WalletContract.WalletContractBuilder.class.getMethod(BUILD_METHOD), ExecutableMode.INVOKE
                     )
                     .registerMethod(
-                            WalletExportHeader.WalletExportHeaderBuilder.class.getMethod("build"), ExecutableMode.INVOKE
-                    )
-            ;
+                            WalletExportHeader.WalletExportHeaderBuilder.class.getMethod(BUILD_METHOD), ExecutableMode.INVOKE
+                    );
         }
     }
 
