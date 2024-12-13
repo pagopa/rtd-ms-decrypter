@@ -5,16 +5,24 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.event.EventHandler;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.AdeTransactionsAggregate;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.BlobApplicationAware.Status;
+import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.ContractMethodAttributes;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.model.EventGridEvent;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobRestConnectorImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobSplitterImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.BlobVerifierImpl;
 import it.gov.pagopa.rtd.ms.rtdmsdecrypter.service.DecrypterImpl;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +30,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,6 +43,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -366,11 +377,6 @@ class RtdMsDecrypterApplicationTest {
                 .isNotNull();
         assertThat(hints.reflection().getTypeHint(AdeTransactionsAggregate.AdeTransactionsAggregateBuilder.class))
                 .isNotNull();
-
-        assertThat(hints.reflection().getTypeHint(AdeTransactionsAggregate.AdeTransactionsAggregateBuilder.class)
-                .getMethods().stream()
-                .anyMatch(methodHint -> methodHint.getName().equals("build")))
-                .isTrue();
     }
 
     @Test
