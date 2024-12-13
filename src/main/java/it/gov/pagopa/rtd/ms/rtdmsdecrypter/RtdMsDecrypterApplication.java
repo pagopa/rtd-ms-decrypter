@@ -13,14 +13,14 @@ import org.springframework.context.annotation.ImportRuntimeHints;
  * Spring Boot application's entry point.
  */
 @SpringBootApplication
-@ImportRuntimeHints(RtdMsDecrypterApplication.DemoApplicationRuntimeHints.class)
+@ImportRuntimeHints(RtdMsDecrypterApplication.RtdMsDecrypterRuntimeHints.class)
 public class RtdMsDecrypterApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(RtdMsDecrypterApplication.class, args);
     }
 
-    static class DemoApplicationRuntimeHints implements RuntimeHintsRegistrar {
+    static class RtdMsDecrypterRuntimeHints implements RuntimeHintsRegistrar {
 
         @SneakyThrows
         @Override
