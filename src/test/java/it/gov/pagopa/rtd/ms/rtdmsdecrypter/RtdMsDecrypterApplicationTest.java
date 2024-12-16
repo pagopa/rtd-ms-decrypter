@@ -43,8 +43,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 
 @SpringBootTest
 @ActiveProfiles("test")
