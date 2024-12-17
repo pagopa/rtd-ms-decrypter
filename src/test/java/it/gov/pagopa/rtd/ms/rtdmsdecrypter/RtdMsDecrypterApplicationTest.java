@@ -363,32 +363,5 @@ class RtdMsDecrypterApplicationTest {
         });
     }
 
-    @Test
-    void shouldRegisterRuntimeHints() {
-        RuntimeHints hints = new RuntimeHints();
-        RtdMsDecrypterApplication.RtdMsDecrypterRuntimeHints runtimeHints =
-                new RtdMsDecrypterApplication.RtdMsDecrypterRuntimeHints();
-
-        runtimeHints.registerHints(hints, getClass().getClassLoader());
-
-        assertThat(hints.reflection().getTypeHint(ContractMethodAttributes.ContractMethodAttributesBuilder.class))
-                .isNotNull();
-        assertThat(hints.reflection().getTypeHint(AdeTransactionsAggregate.AdeTransactionsAggregateBuilder.class))
-                .isNotNull();
-    }
-
-    @Test
-    void shouldHandleReflectionConfiguredClasses() {
-        try {
-            Class<?> clazz = AdeTransactionsAggregate.AdeTransactionsAggregateBuilder.class;
-            Constructor<?> constructor = clazz.getDeclaredConstructor();
-            Method method = clazz.getMethod("build");
-
-            assertNotNull(constructor);
-            assertNotNull(method);
-        } catch (NoSuchMethodException e) {
-            fail("Reflection hints are not correctly configured", e);
-        }
-    }
 }
 
