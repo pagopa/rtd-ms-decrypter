@@ -1,0 +1,17 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "\\Qopencsv.properties\\E"
+      }
+    ],
+    "bundles": [
+      {
+        "name": "opencsv",
+        "locales": [
+          ""
+        ]
+      }
+    ]
+  }
+}
