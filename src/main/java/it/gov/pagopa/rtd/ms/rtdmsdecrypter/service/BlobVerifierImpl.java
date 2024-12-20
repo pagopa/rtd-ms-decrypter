@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.Set;
 import java.util.stream.Stream;
+import java.util.Locale;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -79,7 +80,8 @@ public class BlobVerifierImpl implements BlobVerifier {
         .withType(beanClass)
         .withSeparator(';')
         .withVerifier((BeanVerifier<DecryptedRecord>) verifier)
-        .withThrowExceptions(false);
+        .withThrowExceptions(false)
+        .withErrorLocale(Locale.ROOT);
 
     CsvToBean<DecryptedRecord> csvToBean = builder.build();
 
