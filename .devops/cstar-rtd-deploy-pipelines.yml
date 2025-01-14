@@ -9,7 +9,7 @@ parameters:
   - name: 'buildNative'
     displayName: 'Deploy and build native version'
     type: boolean
-    default: false
+    default: true
 
 trigger:
   branches:
