@@ -138,12 +138,6 @@
             <artifactId>awaitility</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>24.0.1</version>
-            <scope>compile</scope>
-        </dependency>
         <!--    END TEST-->
     </dependencies>
 
