@@ -17,7 +17,7 @@
     <description>Microservice capable of decrypting PGP files</description>
     <properties>
         <java.version>21</java.version>
-        <spring-cloud.version>2023.0.3</spring-cloud.version>
+        <spring-cloud.version>2024.0.0</spring-cloud.version>
         <bcpg-jdk18on.version>1.77</bcpg-jdk18on.version>
         <commons-io.version>2.16.1</commons-io.version>
         <opencsv.version>5.9</opencsv.version>
@@ -137,6 +137,12 @@
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>24.0.1</version>
+            <scope>compile</scope>
         </dependency>
         <!--    END TEST-->
     </dependencies>
