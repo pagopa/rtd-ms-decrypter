@@ -291,9 +291,13 @@ public class BlobSplitterImpl implements BlobSplitter {
       boolean successfulSplit, ArrayList<BlobApplicationAware> blobSplit) {
 
     if (successfulSplit) {
-      log.info("Obtained {} chunk/s from blob:{}", blobSplit.size(), blob.getBlob());
-      for (BlobApplicationAware b : blobSplit) {
-        b.setOriginalFileChunksNumber(blobSplit.size());
+      if(blobSplit.isEmpty())
+        log.error("Obtained 0 chunk from blob:{}", blob.getBlob());
+      else {
+        log.info("Obtained {} chunk/s from blob:{}", blobSplit.size(), blob.getBlob());
+        for (BlobApplicationAware b : blobSplit) {
+          b.setOriginalFileChunksNumber(blobSplit.size());
+        }
       }
       return blobSplit.stream();
     } else {
