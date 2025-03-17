@@ -298,7 +298,7 @@ public class BlobSplitterImpl implements BlobSplitter {
       return blobSplit.stream();
     } else {
       // If split fails, return the original blob (without the SPLIT status)
-      log.info("Failed splitting blob: {}", blob.getBlob());
+      log.error("Failed splitting blob: {}", blob.getBlob());
       blob.localCleanup();
       return Stream.of(blob);
     }
