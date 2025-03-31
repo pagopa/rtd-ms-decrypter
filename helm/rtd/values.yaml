@@ -45,7 +45,7 @@ microservice-chart:
     runAsGroup: 65534
 
   envSecret:
-    APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-instrumentation-key
+    APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-connection-string
     KAFKA_SASL_JAAS_CONFIG_CONSUMER_BLOB_STORAGE_EVENTS: evh-rtd-platform-events-rtd-platform-events-sub-rtd
     INTERNAL_SERVICES_API_KEY: rtd-internal-api-product-subscription-key
     CSV_TRANSACTION_PRIVATE_KEY: cstarblobstorage-private-key
