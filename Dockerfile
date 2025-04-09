@@ -11,7 +11,7 @@ FROM public.ecr.aws/docker/library/eclipse-temurin:17-jre@sha256:493c1b23a728db1
 WORKDIR /app
 
 COPY --from=buildtime /build/target/*.jar /app/app.jar
-RUN chown -R nobody:nobody /app
+RUN chown -R nobody:nogroup /app
 
 USER 65534
 
