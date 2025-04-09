@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/maven:3.9.6-amazoncorretto-17@sha256:b64f097a87e94f3fb433649f2a49270564fa626494d7d6bfd8955f32da794210 AS buildtime
+FROM public.ecr.aws/docker/library/maven:3.9.6-amazoncorretto-21@sha256:16dbd3a488a582cff1e42489f67b2b10b466e8a8eb1bdc4a1223d4e949812593 AS buildtime
 
 WORKDIR /build
 COPY . .
