@@ -20,9 +20,9 @@ microservice-chart:
       memory: "8Gi"
       cpu: "1"
 
-topologySpreadConstraints:
-  create: true
-  useDefaultConfiguration: true
+  topologySpreadConstraints:
+    create: true
+    useDefaultConfiguration: true
 
   autoscaling:
     enable: true
