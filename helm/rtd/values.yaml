@@ -30,16 +30,21 @@ microservice-chart:
     create: false
 
   serviceAccount:
-    create: false
-    annotations: { }
-    name: ""
+    name: "rtd-workload-identity" # Replace with your service account name if using workload identity
+    # If using Azure Workload Identity, also add the azure section:
+    azure:
+      workloadIdentityClientId: "CHANGEME" # Insert your clientId here if needed
 
   podSecurityContext:
     seccompProfile:
       type: RuntimeDefault
 
   securityContext:
+    readOnlyRootFilesystem: true
     allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - all
     runAsNonRoot: true
     runAsUser: 65534
     runAsGroup: 65534
@@ -51,7 +56,15 @@ microservice-chart:
     CSV_TRANSACTION_PRIVATE_KEY: cstarblobstorage-private-key
     CSV_TRANSACTION_PRIVATE_KEY_PASS: cstarblobstorage-private-key-passphrase
 
-  envConfigMapExternals:
+  tmpVolumeMount:
+    create: true
+    mounts:
+      - name: tmp
+        mountPath: /tmp
+      - name: logs
+        mountPath: /app/logs
+
+  externalConfigMapValues:
     rtddecrypter:
       OPENTELEMETRY_LOG_LEVEL: APPLICATIONINSIGHTS_INSTRUMENTATION_LOGGING_LEVEL
       CSV_TRANSACTION_DECRYPT_HOST: CSV_TRANSACTION_DECRYPT_HOST
