@@ -20,7 +20,7 @@
         <spring-cloud.version>2024.0.0</spring-cloud.version>
         <bcpg-jdk18on.version>1.77</bcpg-jdk18on.version>
         <commons-io.version>2.16.1</commons-io.version>
-        <opencsv.version>5.9</opencsv.version>
+        <opencsv.version>5.11.1</opencsv.version>
         <snakeyaml.version>2.2</snakeyaml.version>
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
         <checkstyle.version>10.12.7</checkstyle.version>
